@@ -110,8 +110,8 @@
       var fpA = r >= 4 ? (1 - resA) * fatA + resA : fatA * contA, fpB = r >= 4 ? (1 - resB) * fatB + resB : fatB * contB;
       var mfA = 0.6 + clamp(mA, 0, 100) / 100 * 0.6, mfB = 0.6 + clamp(mB, 0, 100) / 100 * 0.6;
       var gA = 1 + (cmdA - 5) * 0.06, gB = 1 + (cmdB - 5) * 0.06;
-      var atkA = pA.atk * muA * mfA * gA * fpA * (terA > 1 ? 1 + (terA - 1) * 0.5 : terA);
-      var atkB = pB.atk * muB * mfB * gB * fpB * (terB > 1 ? 1 + (terB - 1) * 0.5 : terB);
+      var atkA = pA.atk * muA * mfA * gA * fpA * (terA > 1 ? 1 + (terA - 1) * 0.5 : terA) * (opt.luckA || 1);
+      var atkB = pB.atk * muB * mfB * gB * fpB * (terB > 1 ? 1 + (terB - 1) * 0.5 : terB) * (opt.luckB || 1);
       var defA = pA.def * mfA * gA * terA, defB = pB.def * mfB * gB * terB;
       var engA = A.cap && na > A.cap ? A.cap / na : 1, engB = B.cap && nb > B.cap ? B.cap / nb : 1;
       var am = r === 1 && (sA === 'ambush') ? (field === TK.hill || field === TK.pass || field === TK.river ? 1.7 : 1.35) : 1, bm = r === 1 && sB === 'ambush' ? (field === TK.hill || field === TK.pass || field === TK.river ? 1.7 : 1.35) : 1;

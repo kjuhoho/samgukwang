@@ -47,7 +47,7 @@
 <script>
 /* 캐시 문제 방지: 파일마다 버전 값을 붙여 순서대로 로드 (배포 시 V를 고정 문자열로 바꿔도 됨) */
 (function () {
-  var V = Date.now(), list = ["js/data/mapdata.js", "js/data/places.js", "js/data/deploy.js", "js/data/territories.js", "js/data/routes.js", "js/data/rosters.js", "js/data/generals.js", "js/data/commanders.js", "js/data/kings.js", "js/engine/map.js", "js/engine/game.js", "js/engine/tactics.js", "js/data/commands.js", "js/data/events.js", "js/data/events2.js", "js/data/events3.js", "js/engine/sandbox.js", "js/engine/advisor.js", "js/engine/deploy.js", "js/engine/council.js", "js/engine/auto.js", "js/engine/save.js", "js/engine/history.js", "js/engine/realism.js", "js/engine/threat.js", "js/engine/world.js", "js/data/scenario_uija.js", "js/data/scenario_uija_timeline.js", "js/data/sc_goguryeo.js", "js/data/sc_baekje.js", "js/data/sc_silla.js", "js/main.js"];
+  var V = Date.now(), list = ["js/data/mapdata.js", "js/data/places.js", "js/data/deploy.js", "js/data/territories.js", "js/data/routes.js", "js/data/rosters.js", "js/data/generals.js", "js/data/commanders.js", "js/data/kings.js", "js/engine/map.js", "js/engine/game.js", "js/engine/tactics.js", "js/data/commands.js", "js/data/events.js", "js/data/events2.js", "js/data/events3.js", "js/engine/sandbox.js", "js/engine/advisor.js", "js/engine/deploy.js", "js/engine/council.js", "js/engine/auto.js", "js/engine/save.js", "js/engine/history.js", "js/engine/realism.js", "js/engine/threat.js", "js/engine/world.js", "js/engine/hard.js", "js/data/scenario_uija.js", "js/data/scenario_uija_timeline.js", "js/data/sc_goguryeo.js", "js/data/sc_baekje.js", "js/data/sc_silla.js", "js/main.js"];
   list.forEach(function (src) { document.write('<script src="' + src + '?v=' + V + '"><\/script>'); });
 })();
 </script>

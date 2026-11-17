@@ -90,7 +90,7 @@
     card.innerHTML = '<h2>⚔ 군사 회의 — ' + (ctx.title || '결전') + '</h2><div class="sub">지형 <b>' + tkn + '</b>' + (sea ? ' · 계절 <b>' + sea + '</b>' : '') + ' · 아군 훈련 <b>' + Math.round(s.realm.train) + '</b> · 적 훈련 ' + (i >= 40 ? '<b>' + Math.round(en.train == null ? 48 : en.train) + '</b>' : '?') + '</div>' +
       '<div class="note">🔎 <b>정찰</b> — 적 편성: ' + recon + ' · 적 작전 ' + estTxt + (i < 25 ? ' <small>(첩보가 낮아 부정확)</small>' : '') + '</div>' +
       '<div class="cn-gen">🎖 <b>지휘관</b> <select id="cn-g">' + gopts + '</select> <small id="cn-gn"></small></div>' +
-      '<div class="cn-pick">① 작전을 고르고 ② 아래 <b>교전 시작</b>을 누르세요. 지금 선택: <b id="cn-cur"></b></div><div id="cn-st"></div><div class="cn-foot"><div class="cn-res">예비대 <input type="range" id="cn-r" min="0" max="30" step="10" value="0"> <b id="cn-rv">0%</b> <small>(4합에 투입)</small></div><button class="btn pri" id="cn-go">⚔ 교전 시작</button></div>';
+      '<div class="cn-pick"><small>※ 승산은 어림입니다. 실제 전투에는 날씨·우연 같은 <b>전운</b>이 끼어들어 유리해 보여도 질 수 있습니다.</small></div><div class="cn-pick">① 작전을 고르고 ② 아래 <b>교전 시작</b>을 누르세요. 지금 선택: <b id="cn-cur"></b></div><div id="cn-st"></div><div class="cn-foot"><div class="cn-res">예비대 <input type="range" id="cn-r" min="0" max="30" step="10" value="0"> <b id="cn-rv">0%</b> <small>(4합에 투입)</small></div><button class="btn pri" id="cn-go">⚔ 교전 시작</button></div>';
     var box = $1('#cn-st', card), btns = {};
     function refresh() {
       var cm0 = self.cmdr(sel.gen); $1('#cn-gn', card).innerHTML = cm0 ? cm0.note + ' · <b>' + TN[cm0.trait] + '</b>: ' + TD[cm0.trait] : (sel.gen ? '사료 속 이 전투의 지휘관' : '왕이 직접 군을 이끕니다. 패주하면 왕권이 흔들립니다.');
@@ -110,7 +110,10 @@
     $1('#cn-r', card).oninput = function () { sel.reserve = this.value / 100; $1('#cn-rv', card).textContent = this.value + '%'; refresh(); };
     $1('#cn-go', card).onclick = function () {
       var st = sel.stance; if (self.stanceOk(st, ours, tk)) st = 'balanced'; sel.stance = st;
-      wrap.remove(); self.tune(ours, en, bo, ctx, sel); var r = SG.battle(ours, en, bo);
+      wrap.remove(); self.tune(ours, en, bo, ctx, sel);
+      var HD = SG.HARD; if (HD) { bo.luckA = HD.luckA[0] + Math.random() * HD.luckA[1]; bo.luckB = HD.luckB[0] + Math.random() * HD.luckB[1]; } // 전운: 예측에는 없는 변수
+      var r = SG.battle(ours, en, bo);
+      if (HD) { var lk = bo.luckA / bo.luckB; r.factors.push('<b>전운</b> ' + (lk > 1.06 ? '하늘이 도왔습니다. 날씨와 우연이 아군 편이었습니다.' : lk < 0.9 ? '운이 따르지 않았습니다. 돌발 상황이 겹쳐 예상보다 고전했습니다.' : '특별한 변수는 없었습니다.') + ' <small>(승산 예측에는 반영되지 않는 변수)</small>'); }
       // 실전 경험: 싸운 군대는 숙련된다(이기면 더)
       var gain = r.winner === 'a' ? 2 : 1; s.realm.train = Math.min(100, s.realm.train + gain);
       var cmx = self.cmdr(sel.gen), gname = cmx ? cmx.name : sel.gen ? (SG.generalById(sel.gen) || {}).name : '국왕';
