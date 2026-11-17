@@ -102,8 +102,9 @@
   function short(pl) { return pl.name.replace(/\(.*?\)/g, '').trim(); }
 
   P.isSeat = function (pl, side) { var s = this.s; return (s.seat && s.seat[side] === pl.id) || (pl.kind === 'capital' && pl.side === side); };
-  P.capitalFall = function (pl, prev) {
+  P.capitalFall = function (pl, prev, by) {
     var self = this, s = this.s, me = this.side; if (!pl || !prev || prev === me || !this.isSeat(pl, prev)) return;
+    var mine = !by || by === me;
     if (s.destroyed && s.destroyed[prev]) return;
     var role = this.roleOf(prev), w = role && s.world[role], rest = this.places().filter(function (p) { return self.ownerOf(p) === prev && p.id !== pl.id; });
     var seats = rest.filter(function (p) { return p.kind === 'capital' && p.side === prev; }), msg, chips = '';
@@ -114,14 +115,15 @@
       if (w) { w.p = Math.min(w.p, 4); w.hostility = 0; if (role === 'tang') w.commit = 0; }
       if (role && this.names[role].indexOf('멸망') < 0) this.names[role] += '(멸망)';
       msg = '👑 <b>' + nm(prev) + ' 멸망</b> — 도읍 ' + short(pl) + '이(가) 함락되어 ' + nm(prev) + '의 조정이 무너졌습니다. 남은 성들은 주인을 잃고 이웃 나라들이 차례로 차지할 것입니다.';
-      chips = this.eff({ fx: { gold: 30, morale: 12, people: 5 }, realm: { royal: 8 } }); this.log(nm(prev) + ' 멸망 (도읍 ' + short(pl) + ' 함락)');
+      if (mine) chips = this.eff({ fx: { gold: 30, morale: 12, people: 5 }, realm: { royal: 8 } }); this.log(nm(prev) + ' 멸망 (도읍 ' + short(pl) + ' 함락)');
     } else {
       var to = seats[0]; if (!to) { var home = SG.placeById(this.cfg.capPlace) || pl, cls = function (p) { return p.kind === 'city' || p.kind === 'capital' ? 0 : p.kind === 'fortress' ? 1 : 2; }; rest.sort(function (a, b) { return cls(a) - cls(b) || dist(b, home) - dist(a, home); }); to = rest[0]; }
       s.seat[prev] = to.id; var before = w ? w.p : 0;
       if (w) { w.p = Math.max(4, Math.round(w.p * (seats.length ? 0.55 : 0.4))); if (role === 'tang') w.commit = Math.round(w.commit * 0.5); else w.hostility = Math.min(100, w.hostility + 15); }
       msg = '👑 <b>' + nm(prev) + '의 도읍 ' + short(pl) + ' 함락</b> — ' + nm(prev) + '은(는) ' + short(to) + '(으)로 달아나 조정을 다시 세웠습니다.' + (w ? ' 국력 ' + Math.round(before) + ' → ' + Math.round(w.p) + '.' : '') + ' 그곳마저 잃으면 나라가 무너집니다.';
-      chips = this.eff({ fx: { gold: 20, morale: 8, people: 3 }, realm: { royal: 5 } }); this.log(nm(prev) + ' 도읍 ' + short(pl) + ' 함락 — ' + short(to) + ' 천도');
+      if (mine) chips = this.eff({ fx: { gold: 20, morale: 8, people: 3 }, realm: { royal: 5 } }); this.log(nm(prev) + ' 도읍 ' + short(pl) + ' 함락 — ' + short(to) + ' 천도');
     }
+    if (!mine) msg = msg.replace('</b> — ', '</b> — ' + nm(by) + '의 공격으로 ');
     this.pre = (this.pre || '') + '<div class="freehd">' + msg + chips + '</div>';
   };
 
