@@ -1,0 +1,35 @@
+/* 진군로 데이터 (Fork1: 지리). pts = places.js의 id 또는 [lon,lat] 경유점(바다 위 경유점 포함).
+ * 경로는 사료의 지명 순서를 따른 개략 선이며, 구간 사이의 실제 경로는 학설·추정입니다. */
+window.SG = window.SG || {}; SG.data = SG.data || {};
+SG.data.routes = {
+  silla_army_660: { name:'신라 육군 진군로', side:'silla', date:'660.5~7',
+    pts:['seorabeol','sangju','chungju','namcheonjeong',[127.45,36.65],'tanhyeon','hwangsanbeol','sabi'],
+    note:'무열왕·김유신 군(5만). 서라벌 출발(5.26)→남천정(6.18)→김유신 군 황산벌 진군(7.9)→사비. 중간 경유(상주·충주·청주)는 추정이며, 추풍령~옥천~대전을 넘는 직행로 설(탄현 비정과 연동)도 있음.' },
+  silla_navy_660: { name:'신라 수군(법민)', side:'silla', date:'660.6',
+    pts:['danghangseong',[126.40,37.15],'deokmuldo'],
+    note:'태자 법민이 병선 100여 척으로 덕물도에서 소정방을 맞이함.' },
+  tang_navy_660: { name:'당 수군 진군로', side:'tang', date:'660.6~7',
+    pts:['laizhou','seongsan',[124.30,37.10],'deokmuldo',[126.20,36.45],'gibeolpo',[126.80,36.15],'sabi'],
+    note:'소정방 13만(수군). 내주→성산→서해 횡단→덕물도→기벌포(상륙)→백강(금강)을 거슬러 사비 남쪽. 7.10 합류 약속.' },
+  uija_flight_660: { name:'의자왕 피신', side:'baekje', date:'660.7.12~13',
+    pts:['sabi','ungjin'],
+    note:'사비 함락 직전 의자왕·태자 효가 웅진성으로 피신. 7.18 항복.' },
+  wa_fleet_663: { name:'왜 수군 경로', side:'wa', date:'661~663.8',
+    pts:['hakata','iki','tsushima',[128.00,34.20],[126.70,34.10],[125.90,34.90],[126.30,35.60],'baekgang'],
+    note:'하카타 집결→이키·쓰시마→남해·서남해 연안→백강구. 663.8.27~28 백강 전투. 남해안 경유점은 추정.' },
+  tang_baekgang_663: { name:'당 수군(백강)', side:'tang', date:'663.8',
+    pts:['ungjin','sabi','gibeolpo','baekgang'],
+    note:'유인궤·손인사·유인원의 군과 두상·부여융의 수군 170척이 금강을 따라 백강구로 이동.' },
+  silla_land_663: { name:'신라·당 육군(주류성)', side:'silla', date:'663.8~9',
+    pts:['ungjin','sabi',[126.85,36.17],'juryuseong'],
+    note:'육군이 주류성을 압박, 9.7 함락. 주류성 비정에 따라 종점이 달라짐.' },
+  silla_supply_662: { name:'김유신 군량 수송', side:'silla', date:'662.1~2',
+    pts:['namcheonjeong','chiljungseong',[126.40,38.40],'pyeongyang'],
+    note:'평양 포위 중인 소정방군에 군량 수송. 경로는 개략적 추정.' },
+  tang_goguryeo_668: { name:'당 이적군 진군로', side:'tang', date:'667~668.9',
+    pts:['yodongseong','sinseong',[124.90,41.20],'gungnae',[125.40,40.30],[125.60,39.70],'pyeongyang'],
+    note:'이적이 신성 함락(667) 후 압록 방면을 거쳐 평양을 포위, 668.9 함락. 중간 경유점은 추정.' },
+  silla_army_668: { name:'신라군 평양 합류', side:'silla', date:'668.6~9',
+    pts:['seorabeol','namcheonjeong','chiljungseong',[126.10,38.40],[125.90,38.70],'pyeongyang'],
+    note:'문무왕이 한성주를 거쳐 평양 방면으로 진군해 당군과 합류.' }
+};

@@ -1,0 +1,65 @@
+// 인물 데이터 (660~668년 전후). 주의: stats(cmd 지휘·val 무용·int 지략·pol 정치·loy 충성, 1~10)는 '게임 추상화'이며 사료 수치가 아니다.
+// bio·years 는 『삼국사기』『일본서기』『구당서』 등 사료 기준이나 연대 일부는 학계 추정. basis: source(사료 기록) / inferred(학계 추정) / abstract(게임 추상화).
+window.SG = window.SG || {}; SG.data = SG.data || {};
+SG.data.generals = [
+  // ===== 백제 =====
+  { id:'uija', name:'의자왕', hanja:'義慈王', side:'baekje', title:'백제 31대 왕', role:'군주', years:'?~660(당 압송 후 사망)', stats:{cmd:5,val:5,int:5,pol:5,loy:5}, traits:['해동증자','말년 사치'], bio:'무왕의 맏아들. 642년 신라 대야성 등 40여 성 공략, 말년 정국 혼란. 660년 사비성 함락 후 웅진으로 피신했다가 항복, 당으로 압송.', basis:'source', src:'삼국사기 백제본기 의자왕' },
+  { id:'seongchung', name:'성충', hanja:'成忠', side:'baekje', title:'좌평', role:'참모', years:'?~656', stats:{cmd:3,val:2,int:9,pol:8,loy:10}, traits:['극간','충절'], bio:'의자왕의 향락을 극간하다 투옥되어 옥사. 죽기 전 "육지는 탄현, 수군은 기벌포를 막으라"는 유언 상소를 올렸다고 전한다.', basis:'source', src:'삼국사기 백제본기 의자왕 16년' },
+  { id:'heungsu', name:'흥수', hanja:'興首', side:'baekje', title:'좌평(유배 중)', role:'참모', years:'미상', stats:{cmd:3,val:2,int:9,pol:6,loy:7}, traits:['선견'], bio:'죄를 입어 고마미지현에 유배. 660년 의자왕이 대책을 묻자 탄현·백강 봉쇄와 지구전을 건의했으나 대신들이 반대.', basis:'source', src:'삼국사기 백제본기 의자왕 20년' },
+  { id:'uijik', name:'의직', hanja:'義直', side:'baekje', title:'장군', role:'장군', years:'미상', stats:{cmd:6,val:7,int:5,pol:3,loy:7}, traits:['속전론'], bio:'660년 어전회의에서 당군을 먼저 치자고 주장. 이전 윤충 휘하로 대야성 전역 등에 참여한 것으로 전한다.', basis:'source', src:'삼국사기 백제본기 의자왕 20년' },
+  { id:'sangyeong', name:'상영', hanja:'常永', side:'baekje', title:'달솔', role:'대신', years:'미상', stats:{cmd:4,val:3,int:6,pol:6,loy:6}, traits:['신중론'], bio:'660년 회의에서 당군은 멀리서 와 오래 버티기 어려우니 지연하고 신라를 먼저 치자는 안을 낸 인물로 전한다.', basis:'source', src:'삼국사기 백제본기 의자왕 20년' },
+  { id:'gyebaek', name:'계백', hanja:'階伯', side:'baekje', title:'달솔', role:'장군', years:'?~660', stats:{cmd:8,val:9,int:6,pol:3,loy:10}, traits:['결사','충절'], bio:'660년 결사대 5천으로 황산벌에서 신라군 5만(사료 수치)을 상대해 네 차례 막아냈으나 패전·전사. 출전 전 처자를 직접 베었다는 일화가 전한다.', basis:'source', src:'삼국사기 열전 계백' },
+  { id:'taeja_yung', name:'태자 융', hanja:'隆', side:'baekje', title:'태자', role:'왕족', years:'?~?', stats:{cmd:2,val:2,int:4,pol:4,loy:5}, traits:['포로'], bio:'의자왕의 아들. 660년 당에 압송된 뒤 당에서 관직(사농경)을 받고 이후 웅진도독이 되었다.', basis:'source', src:'삼국사기 백제본기, 구당서 백제전' },
+  { id:'buyeo_hyo', name:'태자 효', hanja:'孝', side:'baekje', title:'태자(사료에 따라 상이)', role:'왕족', years:'?~?', stats:{cmd:2,val:2,int:4,pol:4,loy:5}, traits:[], bio:'의자왕 태자로 전하나 사료마다 태자 융·효의 관계 기술이 엇갈린다. 660년 사비성 함락 시 항복.', basis:'inferred', src:'삼국사기 백제본기(기록 혼재)' },
+  { id:'buyeo_tae', name:'부여태', hanja:'扶餘泰', side:'baekje', title:'왕자', role:'왕족', years:'?~?', stats:{cmd:3,val:3,int:3,pol:3,loy:3}, traits:['자립 시도'], bio:'사비성 포위 때 스스로 왕을 칭하고 성을 지켰으나 태자 융의 아들 문사가 항복하자 병사들이 따라 나가 무너졌다.', basis:'source', src:'삼국사기 백제본기 의자왕 20년' },
+  { id:'munsa', name:'문사', hanja:'文思', side:'baekje', title:'왕손', role:'왕족', years:'?~?', stats:{cmd:2,val:2,int:3,pol:3,loy:3}, traits:[], bio:'태자 융의 아들. 사비성 포위 때 먼저 성문을 나가 항복해 부여태 측 결속을 깼다고 전한다.', basis:'source', src:'삼국사기 백제본기 의자왕 20년' },
+  { id:'yesikjin', name:'예식진', hanja:'禰寔進', side:'baekje', title:'웅진방 장군', role:'장군', years:'615~672', stats:{cmd:5,val:5,int:5,pol:5,loy:2}, traits:['투항'], bio:'웅진방 장군으로서 의자왕을 사로잡아 당에 항복했다고 알려진다(묘지명 기록). 당에서 좌위위대장군 등을 지냈다.', basis:'inferred', src:'예식진 묘지명(학계 해석)' },
+  { id:'boksin', name:'복신', hanja:'福信', side:'baekje', title:'부흥군 지도자', role:'장군', years:'?~663', stats:{cmd:7,val:7,int:7,pol:6,loy:8}, traits:['부흥운동'], bio:'백제 종실 출신 무장. 도침과 주류성에서 거병, 왜에 있던 부여풍을 왕으로 옹립하나 이후 내분 끝에 풍에게 살해된다.', basis:'source', src:'삼국사기 백제본기, 일본서기 천지기' },
+  { id:'dochim', name:'도침', hanja:'道琛', side:'baekje', title:'승려·부흥군 지도자', role:'장군', years:'?~661', stats:{cmd:5,val:3,int:5,pol:5,loy:8}, traits:['승려'], bio:'승려로서 부흥군을 이끌었으나 복신과 다투어 복신에게 살해되었다.', basis:'source', src:'구당서 유인궤전, 삼국사기' },
+  { id:'heukchi', name:'흑치상지', hanja:'黑齒常之', side:'baekje', title:'풍달군장', role:'장군', years:'630?~689', stats:{cmd:9,val:8,int:7,pol:5,loy:6}, traits:['명장','투항 후 당 장군'], bio:'백제 서부 출신 장군. 660년 당에 항복했다가 임존성에서 부흥운동에 가담, 이후 당에 귀순해 당나라 장군으로 활약.', basis:'source', src:'삼국사기 열전 흑치상지, 구당서' },
+  { id:'sataksangyeo', name:'사타상여', hanja:'沙吒相如', side:'baekje', title:'부흥군 장수', role:'장군', years:'?~?', stats:{cmd:6,val:7,int:5,pol:3,loy:6}, traits:[], bio:'흑치상지와 함께 임존성에서 부흥군을 이끌다 당에 귀순한 장수.', basis:'source', src:'구당서 흑치상지전' },
+  { id:'jisusin', name:'지수신', hanja:'遲受信', side:'baekje', title:'부흥군 장수', role:'장군', years:'?~?', stats:{cmd:6,val:6,int:5,pol:3,loy:9}, traits:['끝까지 항전'], bio:'임존성을 끝까지 지키다 663년 말 성이 함락되자 고구려로 달아났다.', basis:'source', src:'삼국사기 백제본기, 일본서기' },
+  { id:'buyeo_pung', name:'부여풍', hanja:'扶餘豊', side:'baekje', title:'부흥 백제왕', role:'군주', years:'?~?', stats:{cmd:3,val:4,int:3,pol:3,loy:4}, traits:['왜 체류 왕자'], bio:'의자왕의 아들로 왜에 인질로 체류하다 661년 귀국해 왕으로 추대. 663년 백강 패전 후 고구려로 달아났고 당에서 영남 유배.', basis:'source', src:'일본서기, 삼국사기' },
+
+  // ===== 신라 =====
+  { id:'muyeol', name:'태종 무열왕(김춘추)', hanja:'金春秋', side:'silla', title:'신라 29대 왕', role:'군주', years:'603~661', stats:{cmd:5,val:3,int:9,pol:9,loy:8}, traits:['외교','연합'], bio:'642년 대야성 패전 후 고구려·왜·당을 오가며 동맹을 모색, 648년 당과의 군사동맹을 이끌었다. 654년 즉위.', basis:'source', src:'삼국사기 신라본기 태종무열왕' },
+  { id:'gim_yusin', name:'김유신', hanja:'金庾信', side:'silla', title:'대장군(상대등 등)', role:'장군', years:'595~673', stats:{cmd:10,val:8,int:8,pol:7,loy:9}, traits:['삼국통일의 주역','화랑 출신'], bio:'가야계 후손. 660년 황산벌 전투를 총지휘하고 660~668년 전쟁에서 신라군을 이끌었다.', basis:'source', src:'삼국사기 열전 김유신' },
+  { id:'munmu', name:'문무왕(김법민)', hanja:'金法敏', side:'silla', title:'태자→문무왕', role:'군주', years:'626~681', stats:{cmd:7,val:6,int:8,pol:8,loy:8}, traits:['통일 완수'], bio:'660년 태자로서 수군을 이끌고 덕물도에서 소정방과 합류. 661년 즉위.', basis:'source', src:'삼국사기 문무왕 상' },
+  { id:'gim_inmun', name:'김인문', hanja:'金仁問', side:'silla', title:'장군', role:'장군', years:'629~694', stats:{cmd:6,val:5,int:7,pol:7,loy:7}, traits:['당 숙위'], bio:'무열왕의 아들. 당에 오래 머물며 당·신라 연락을 맡았고 660년 이후 당군과 협력 작전.', basis:'source', src:'삼국사기 열전 김인문' },
+  { id:'gim_pumil', name:'김품일', hanja:'金品日', side:'silla', title:'장군(대당총관)', role:'장군', years:'?~?', stats:{cmd:6,val:6,int:5,pol:4,loy:7}, traits:['관창의 아버지'], bio:'황산벌에서 아들 관창을 선봉으로 내보내 사기를 높였다.', basis:'source', src:'삼국사기 열전 관창' },
+  { id:'gim_humsun', name:'김흠순(흠춘)', hanja:'金欽純', side:'silla', title:'장군', role:'장군', years:'?~?', stats:{cmd:7,val:6,int:6,pol:5,loy:7}, traits:['김유신의 동생'], bio:'황산벌 전투에서 아들 반굴을 내보내 군의 사기를 끌어올렸다고 전한다.', basis:'source', src:'삼국사기 열전 김유신, 반굴 기사' },
+  { id:'gim_munyeong', name:'김문영', hanja:'金文穎', side:'silla', title:'독군', role:'장군', years:'?~?', stats:{cmd:5,val:5,int:4,pol:3,loy:6}, traits:['기벌포 전투'], bio:'660년 약속 기일에 늦어 소정방이 문책(군령으로 목을 베려 함)하려 하자 김유신이 반발했다는 일화의 대상.', basis:'source', src:'삼국사기 신라본기 문무왕/김유신전' },
+  { id:'bangul', name:'반굴', hanja:'盤屈', side:'silla', title:'화랑', role:'소장', years:'?~660', stats:{cmd:2,val:7,int:3,pol:1,loy:10}, traits:['순국'], bio:'김흠순의 아들. 황산벌에서 홀로 적진에 돌격해 전사.', basis:'source', src:'삼국사기 열전' },
+  { id:'gwanchang', name:'관창', hanja:'官昌', side:'silla', title:'화랑', role:'소장', years:'645?~660', stats:{cmd:2,val:7,int:3,pol:1,loy:10}, traits:['순국','소년 용사'], bio:'16세 화랑. 계백에게 사로잡혔다 풀려난 뒤 다시 돌격하다 죽었고, 이 일이 신라군의 사기를 끌어올렸다.', basis:'source', src:'삼국사기 열전 관창' },
+  { id:'gim_cheonjon', name:'김천존', hanja:'金天存', side:'silla', title:'장군', role:'장군', years:'?~?', stats:{cmd:6,val:7,int:5,pol:3,loy:7}, traits:[], bio:'김유신 휘하 장군으로 알려진 인물.', basis:'inferred', src:'삼국사기(단편 기록)' },
+  { id:'jukji', name:'죽지', hanja:'竹旨', side:'silla', title:'장군', role:'장군', years:'?~?', stats:{cmd:7,val:6,int:6,pol:4,loy:8}, traits:['득오와의 일화'], bio:'진덕·무열·문무 시대 장군. 군직을 지내며 고구려·백제 정벌에 참여.', basis:'inferred', src:'삼국사기, 삼국유사 죽지랑조' },
+  { id:'alcheon', name:'알천', hanja:'閼川', side:'silla', title:'상대등', role:'장군', years:'?~?', stats:{cmd:7,val:8,int:5,pol:6,loy:7}, traits:['원로'], bio:'선덕여왕 말 비담의 난 진압에 관여한 원로 장군. 진덕왕 사후 섭정 대상으로 거론되었으나 춘추에게 양보했다고 전한다.', basis:'source', src:'삼국사기 신라본기' },
+
+  // ===== 당 =====
+  { id:'gaozong', name:'당 고종(이치)', hanja:'李治', side:'tang', title:'황제', role:'군주', years:'628~683', stats:{cmd:3,val:2,int:5,pol:6,loy:5}, traits:[], bio:'660년 소정방에게 백제 정벌을 명했다.', basis:'source', src:'구당서 고종기' },
+  { id:'sojeongbang', name:'소정방', hanja:'蘇定方', side:'tang', title:'신구도행군대총관', role:'장군', years:'592~667', stats:{cmd:9,val:8,int:7,pol:5,loy:7}, traits:['명장','서돌궐 평정'], bio:'660년 백제 정벌군 총사령관. 사비성을 함락하고 의자왕을 압송했다.', basis:'source', src:'구당서 소정방전' },
+  { id:'yuinwon', name:'유인원', hanja:'劉仁願', side:'tang', title:'웅진도독부 사마·진장', role:'장군', years:'?~?', stats:{cmd:6,val:5,int:5,pol:5,loy:7}, traits:['사비 주둔'], bio:'660년 이후 사비성에 남아 당군을 지휘, 부흥군에 포위되었다 구원을 받았다.', basis:'source', src:'구당서 유인궤전' },
+  { id:'yuingwe', name:'유인궤', hanja:'劉仁軌', side:'tang', title:'검교대방주자사', role:'장군', years:'601~685', stats:{cmd:8,val:5,int:9,pol:8,loy:8}, traits:['백강 전투','군정 정비'], bio:'663년 백강에서 왜·백제 연합군을 격파한 지휘관이자 부흥운동 진압의 핵심 인물.', basis:'source', src:'구당서 유인궤전' },
+  { id:'son_inbi', name:'손인사', hanja:'孫仁師', side:'tang', title:'부여도행군총관', role:'장군', years:'?~?', stats:{cmd:7,val:6,int:6,pol:4,loy:7}, traits:['증원군'], bio:'663년 증원군을 이끌고 와 유인궤와 합류했다.', basis:'source', src:'구당서 유인궤전' },
+  { id:'wangmundo', name:'왕문도', hanja:'王文度', side:'tang', title:'웅진도독', role:'관리', years:'?~660', stats:{cmd:4,val:3,int:5,pol:6,loy:6}, traits:[], bio:'660년 웅진도독에 임명되었으나 부임 중 사망했다.', basis:'source', src:'구당서' },
+  { id:'yubaekyeong', name:'유백영', hanja:'劉伯英', side:'tang', title:'장군', role:'장군', years:'?~?', stats:{cmd:5,val:5,int:4,pol:3,loy:6}, traits:[], bio:'백제 정벌 관련 당 장수(세부 사적은 불분명).', basis:'inferred', src:'구당서(단편)' },
+  { id:'seol_inguy', name:'설인귀', hanja:'薛仁貴', side:'tang', title:'장군', role:'장군', years:'614~683', stats:{cmd:8,val:10,int:5,pol:3,loy:7}, traits:['용맹'], bio:'고구려 전쟁에 공을 세운 당 장수. 670년대 이후 신라와의 전쟁에도 투입.', basis:'source', src:'구당서 설인귀전' },
+  { id:'ijeok', name:'이적', hanja:'李勣', side:'tang', title:'요동도행군대총관', role:'장군', years:'594~669', stats:{cmd:9,val:6,int:8,pol:7,loy:8}, traits:['고구려 정벌'], bio:'668년 평양성 함락을 지휘한 당의 원수.', basis:'source', src:'구당서 이적전' },
+
+  // ===== 왜(일본) =====
+  { id:'saimei', name:'제명(사이메이)', hanja:'齊明', side:'wa', title:'여제', role:'군주', years:'594~661', stats:{cmd:2,val:1,int:4,pol:6,loy:5}, traits:[], bio:'백제 구원 군을 일으키려 규슈로 이동했다가 661년 아사쿠라궁에서 사망.', basis:'source', src:'일본서기 제명기' },
+  { id:'nakanooe', name:'중대형(덴지)', hanja:'中大兄', side:'wa', title:'황태자(칭제)', role:'군주', years:'626~672', stats:{cmd:5,val:4,int:8,pol:8,loy:6}, traits:['백강 후 방어체제'], bio:'백강 패전 후 다자이후 수성, 방인·봉화 등 방어체제를 정비하고 667년 오미로 천도.', basis:'source', src:'일본서기 천지기' },
+  { id:'abe_hirafu', name:'아베노히라부', hanja:'阿倍比羅夫', side:'wa', title:'장군', role:'장군', years:'?~?', stats:{cmd:7,val:6,int:5,pol:4,loy:7}, traits:['수군'], bio:'동북 원정 경험의 수군 장군으로 백제 구원군 후속 병력에 참여했다고 전한다.', basis:'source', src:'일본서기' },
+  { id:'azumi_hirafu', name:'아즈미노히라부', hanja:'安曇比羅夫', side:'wa', title:'장군', role:'장군', years:'?~663', stats:{cmd:6,val:6,int:4,pol:3,loy:7}, traits:['선발대'], bio:'661년 부여풍을 호송한 후속 병력과 함께 도해, 백강 전투 근처에서 전사했다고 전한다.', basis:'source', src:'일본서기 천지기' },
+  { id:'kamitsuke_wakako', name:'가미쓰케노와카코', hanja:'上毛野稚子', side:'wa', title:'장군(전군)', role:'장군', years:'?~?', stats:{cmd:5,val:5,int:4,pol:3,loy:6}, traits:[], bio:'663년 전군을 이끌고 신라 정벌에 나섰다고 일본서기가 전한다.', basis:'source', src:'일본서기 천지기 2년 3월' },
+  { id:'sai_ajima', name:'사이노아지마사', hanja:'狹井連檳榔', side:'wa', title:'장군', role:'장군', years:'?~?', stats:{cmd:5,val:5,int:4,pol:3,loy:6}, traits:[], bio:'백제 구원군 장수(상세 미상). ※발음·한자 표기는 사료·번역에 따라 다름.', basis:'inferred', src:'일본서기(표기 이설)' },
+  { id:'hata_takutsu', name:'하타노타쿠쓰', hanja:'秦造田來津', side:'wa', title:'장군', role:'장군', years:'?~663', stats:{cmd:6,val:7,int:4,pol:3,loy:9}, traits:['백강 전사'], bio:'백제 구원군 지휘관의 한 사람으로 663년 백강에서 전사.', basis:'source', src:'일본서기 천지기' },
+
+  // ===== 고구려 =====
+  { id:'yeon_gaesomun', name:'연개소문', hanja:'淵蓋蘇文', side:'goguryeo', title:'대막리지', role:'권신', years:'?~665', stats:{cmd:9,val:9,int:8,pol:8,loy:4}, traits:['독재','대당 강경'], bio:'642년 정변으로 영류왕을 제거하고 보장왕을 옹립, 대막리지로 실권을 장악하고 당에 맞섰다.', basis:'source', src:'삼국사기 열전 개소문' },
+  { id:'bojang', name:'보장왕', hanja:'寶藏王', side:'goguryeo', title:'고구려 28대 왕', role:'군주', years:'?~682', stats:{cmd:2,val:2,int:3,pol:3,loy:3}, traits:['허수아비'], bio:'연개소문에 의해 옹립. 668년 평양성 함락 때 당에 항복.', basis:'source', src:'삼국사기 고구려본기' },
+  { id:'yeon_namsaeng', name:'연남생', hanja:'淵男生', side:'goguryeo', title:'막리지', role:'권신', years:'634~679', stats:{cmd:6,val:5,int:6,pol:6,loy:3}, traits:['형제 내분','당에 투항'], bio:'연개소문의 맏아들. 아버지 사후 동생들과 권력 다툼 끝에 당에 투항해 침공의 길잡이가 되었다.', basis:'source', src:'삼국사기 열전, 남생 묘지명' },
+  { id:'yeon_namgeon', name:'연남건', hanja:'淵男建', side:'goguryeo', title:'막리지', role:'권신', years:'?~?', stats:{cmd:7,val:6,int:6,pol:6,loy:7}, traits:['항전'], bio:'형 남생을 몰아내고 실권을 쥐어 당군에 항전했다. 평양성 함락 후 유배.', basis:'source', src:'삼국사기 열전' },
+  { id:'yeon_namsan', name:'연남산', hanja:'淵男產', side:'goguryeo', title:'막리지', role:'권신', years:'639~701', stats:{cmd:4,val:3,int:5,pol:5,loy:4}, traits:[], bio:'연개소문의 아들. 평양성 말기 보장왕과 함께 항복.', basis:'source', src:'삼국사기 열전, 남산 묘지명' },
+  { id:'yeon_jeongto', name:'연정토', hanja:'淵淨土', side:'goguryeo', title:'장군(동생)', role:'장군', years:'?~?', stats:{cmd:4,val:4,int:4,pol:4,loy:3}, traits:['신라 투항'], bio:'연개소문의 동생. 666년 12성 763호를 이끌고 신라에 투항.', basis:'source', src:'삼국사기 신라본기 문무왕 6년' }
+];
