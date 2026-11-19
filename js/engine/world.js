@@ -22,7 +22,8 @@
       if (!ACT[a] || a === me || d[a]) return;
       var ra = self.roleOf(a), pa = self.sidePower(a);
       if (a === 'tang' && (!ra || s.world[ra].commit < 40)) return;
-      if (Math.random() > 0.25 + (pa > 70 ? 0.06 : 0)) return;
+      s.wsLast = s.wsLast || {}; if (s.year - (s.wsLast[a] || -9) < 3) return; // 한 나라가 잇달아 싸우지는 않는다
+      if (Math.random() > 0.13 + (pa > 70 ? 0.04 : 0)) return;
       var own = by[a], cand = [];
       all.forEach(function (p) {
         var o = self.ownerOf(p); if (!o || o === a || o === me || !ACT[o] || s.owners[p.id] === '__lock') return;
@@ -37,7 +38,7 @@
       var ch = clamp(0.38 + (pa - pd) / 130 - (KDEF[t.p.kind] || 0) + (fallen ? 0.15 : 0), 0.08, 0.8);
       var ro2 = self.roleOf(t.o), wa = ra && s.world[ra], wd = ro2 && s.world[ro2];
       if (Math.random() < ch) {
-        var seat = self.isSeat && self.isSeat(t.p, t.o);
+        s.wsLast[a] = s.year; var seat = self.isSeat && self.isSeat(t.p, t.o);
         s.owners[t.p.id] = a; by[a].push(t.p);
         if (wa && ra !== 'tang') wa.p = clamp(wa.p + 2, 5, 150); if (wd && ro2 !== 'tang') wd.p = clamp(wd.p - 3, 4, 150);
         notes.push('<b>' + jo(nm(a), '이', '가') + '</b> ' + nm(t.o) + '의 <b>' + jo(short(t.p), '을', '를') + '</b> 빼앗았습니다');

@@ -47,11 +47,16 @@
     return { ab: ab, key: worst || 'luck', val: worst ? Math.round(stat(S, worst)) : 0 };
   }
   function failP(ab, ev) {
-    var f = ev ? 3 + Math.max(0, 65 - ab) * 0.45 + Math.max(0, 35 - ab) * 0.4 : 4 + Math.max(0, 70 - ab) * 0.5 + Math.max(0, 40 - ab) * 0.4;
-    return clamp(f, ev ? 3 : 4, ev ? 45 : 55) / 100;
+    var f = ev ? 3 + Math.max(0, 60 - ab) * 0.35 + Math.max(0, 35 - ab) * 0.3 : 3 + Math.max(0, 65 - ab) * 0.4 + Math.max(0, 35 - ab) * 0.4;
+    return clamp(f, 3, ev ? 40 : 50) / 100;
   }
   function reason(a) { return (a.key === 'luck' ? '' : '<small>(' + FNAME[a.key] + ' ' + a.val + ')</small> ') + WHY[a.key]; }
-  P.cmdOdds = function (c) { var a = assess(this, c), f = failP(a.ab), h = f * 0.7; return { fail: f, half: h, ok: 1 - f - h, a: a }; };
+  // 병력·군수를 늘리는 명령은 최소한 안정적으로 되어야 한다(실패 5%, 절반 성과 3%가 상한)
+  P.cmdOdds = function (c) {
+    var a = assess(this, c), f = failP(a.ab), h = f * 0.5;
+    if (c && c.eff && c.eff.army) { f = Math.min(f, 0.05); h = Math.min(h, 0.03); }
+    return { fail: f, half: h, ok: 1 - f - h, a: a };
+  };
 
   /* ── 정무 명령의 실패 ── */
   var _run = P.run;
