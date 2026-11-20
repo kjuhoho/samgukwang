@@ -275,3 +275,8 @@ form.free input:focus{outline:none;border-color:var(--gold)}
   body.mapview #mapctl{bottom:70px}
   body.mapview #hud{display:flex}
 }
+
+/* 언어 선택 */
+.langsel{background:#0d0a07;color:var(--gold2);border:1px solid var(--line);border-radius:6px;padding:5px 8px;font:600 13px var(--sans);cursor:pointer}
+.lang-top{display:flex;justify-content:flex-end;margin-bottom:6px}
+#hud .langsel{margin-left:8px}
