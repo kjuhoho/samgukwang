@@ -263,3 +263,15 @@ form.free input:focus{outline:none;border-color:var(--gold)}
 @media(max-width:640px){.modal.council #cn-st{grid-template-columns:1fr}}
 
 .modal.council .cn-gen{margin-top:8px;font-size:13px;display:flex;flex-wrap:wrap;gap:6px;align-items:center}.modal.council .cn-gen select{background:#1d1812;color:inherit;border:1px solid rgba(255,255,255,.25);border-radius:6px;padding:5px 8px;font:inherit}.modal.council .cn-gen small{flex-basis:100%;opacity:.85}
+
+/* ── 사이트 부가 요소 ── */
+.fb-link{display:inline-block;margin-top:10px;color:var(--gold2);font:600 13px var(--sans);opacity:.85;text-decoration:none;border-bottom:1px dotted var(--gold)}
+.fb-link:hover{opacity:1}
+#mtoggle{display:none}
+@media (max-width:820px){
+  #mtoggle{display:block;position:absolute;z-index:25;right:10px;bottom:calc(58% + 16px);padding:8px 12px;border-radius:18px;background:rgba(26,19,5,.92);color:var(--gold2);border:1px solid var(--gold);font:700 13px var(--sans)}
+  body.mapview #chron{display:none}
+  body.mapview #mtoggle{bottom:14px}
+  body.mapview #mapctl{bottom:70px}
+  body.mapview #hud{display:flex}
+}
