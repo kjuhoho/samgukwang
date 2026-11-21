@@ -4,6 +4,11 @@
   var L = I.lang;
   // [키, en, ja]
   var W = [
+    ['왕조를 이어 계속 통치하기 (후계 시대 +20년)', 'Carry on the dynasty (Successor Era, +20 years)', '王朝を受け継いで統治を続ける(後継の時代 +20年)'],
+    ['왕조는 이어집니다.', 'The dynasty continues.', '王朝は続きます。'],
+    ['다음 왕이 뒤를 이었습니다.', 'The next king has succeeded to the throne.', '次の王が後を継ぎました。'],
+    ['이제부터는 사료에 없는 길입니다.', 'From here on, the road is one the records do not hold.', 'ここからは史料にない道です。'],
+    ['후계 시대 — 왕조가 이어지다', 'Successor Era — the dynasty continues', '後継の時代――王朝が続く'],
     ['가능한 명령 중 아무거나 골라 올해 정무를 처리하고 해를 넘깁니다.', 'Pick any available command at random to handle this year, then end the year.', '実行可能な命令からランダムに選んで今年の政務を処理し、年を越します。'],
     ['사건이 생기거나 사료 속 해가 올 때까지 해를 넘깁니다 (그동안 정무 명령은 내리지 않음)', 'Skip years until an event occurs or a year from the records arrives (no commands in the meantime).', '事件が起きるか史料上の年が来るまで年を送ります(その間は政務命令を出しません)。'],
     ['승산 ○○○ 매우 불리', 'Odds ○○○ Very unfavorable', '勝算 ○○○ 非常に不利'], ['승산 ●○○ 불리', 'Odds ●○○ Unfavorable', '勝算 ●○○ 不利'], ['승산 ●●○ 박빙(우세)', 'Odds ●●○ Close (slight edge)', '勝算 ●●○ 接戦(やや優勢)'], ['승산 ●●● 유리', 'Odds ●●● Favorable', '勝算 ●●● 有利'],
