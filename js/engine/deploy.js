@@ -141,7 +141,7 @@
     var self = this, g = this.g, m = g.map, list = this.targets(), bar = $('#pickbar');
     if (!list.length) { this.s.last = '공략할 곳이 남아 있지 않습니다.'; return this.renderTurn(); }
     this.drawDeploy(); m.pick = {};
-    list.forEach(function (t) { m.pick[t.place] = t; m.markPlace(t.place, 'atk', true); });
+    list.forEach(function (t) { m.pick[t.place] = t; m.markPlace(t.place, 'atk', true); var e = m.placeEls[t.place]; if (e && e.parentNode) e.parentNode.appendChild(e); }); // 공격 가능한 성을 맨 위로
     m.setCls('picking', true);
     bar.innerHTML = '<span>⚔ <b>공격할 성</b>을 지도에서 누르세요 <small>(붉게 빛나는 ' + list.length + '곳 — 어느 나라 성이든 공격할 수 있습니다)</small></span><button class="btn" id="pk-list">목록으로</button><button class="btn" id="pk-x">취소</button>';
     bar.style.display = 'flex';
