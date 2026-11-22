@@ -91,6 +91,7 @@ window.SG = window.SG || {}; SG.data = SG.data || {};
       var p = px(pl.lon, pl.lat);
       var g = el('g', { 'class': 'pl k-' + pl.kind + ' s-' + (pl.side || 'neutral') + ' r' + (pl.rank || 3), transform: 'translate(' + p[0].toFixed(1) + ',' + p[1].toFixed(1) + ')', 'data-id': pl.id }, self.gPlaces);
       var inv = el('g', { 'class': 'inv' }, g);
+      el('circle', { 'class': 'hit', r: 15, fill: 'transparent', 'pointer-events': 'all' }, inv); // 누르기 쉽게 넓은 판정(화면 크기 고정)
       var ic = el('g', { 'class': 'icon' }, inv); ic.innerHTML = ICON[pl.kind] || ICON.other;
       el('text', { 'class': 'plabel', x: 11, y: 4 }, inv, pl.name);
       g.addEventListener('click', function (e) { e.stopPropagation(); if (self.onPlace) self.onPlace(pl); });
@@ -215,9 +216,18 @@ window.SG = window.SG || {}; SG.data = SG.data || {};
   Map.prototype._bind = function () {
     var self = this, svg = this.svg, ptrs = {}, last = null, pinch = 0;
     svg.addEventListener('wheel', function (e) { e.preventDefault(); self.zoomBy(e.deltaY > 0 ? 1.15 : 1 / 1.15, e.clientX, e.clientY); }, { passive: false });
-    svg.addEventListener('pointerdown', function (e) { svg.setPointerCapture(e.pointerId); ptrs[e.pointerId] = e; last = { x: e.clientX, y: e.clientY }; pinch = 0; });
+    // 포인터 캡처는 "끌기"가 확정된 뒤에만 건다 (처음부터 걸면 성을 누른 클릭이 성에 전달되지 않는다)
+    var down = {};
+    svg.addEventListener('pointerdown', function (e) { ptrs[e.pointerId] = e; down[e.pointerId] = { x: e.clientX, y: e.clientY, cap: false }; last = { x: e.clientX, y: e.clientY }; pinch = 0; });
     svg.addEventListener('pointermove', function (e) {
-      if (!ptrs[e.pointerId]) return; ptrs[e.pointerId] = e;
+      if (!ptrs[e.pointerId]) return;
+      var d0 = down[e.pointerId];
+      if (d0 && !d0.cap) {
+        if (Math.hypot(e.clientX - d0.x, e.clientY - d0.y) < 6 && Object.keys(ptrs).length < 2) return;
+        d0.cap = true; try { svg.setPointerCapture(e.pointerId); } catch (_) { }
+        last = { x: e.clientX, y: e.clientY };
+      }
+      ptrs[e.pointerId] = e;
       var ids = Object.keys(ptrs);
       if (ids.length === 2) {
         var a = ptrs[ids[0]], b = ptrs[ids[1]], d = Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY);
@@ -228,7 +238,7 @@ window.SG = window.SG || {}; SG.data = SG.data || {};
       self.view.cx -= (e.clientX - last.x) * k; self.view.cy -= (e.clientY - last.y) * k;
       last = { x: e.clientX, y: e.clientY }; self._apply(); cancelAnimationFrame(self._raf);
     });
-    function up(e) { delete ptrs[e.pointerId]; pinch = 0; var ids = Object.keys(ptrs); if (ids.length === 1) last = { x: ptrs[ids[0]].clientX, y: ptrs[ids[0]].clientY }; }
+    function up(e) { delete ptrs[e.pointerId]; delete down[e.pointerId]; pinch = 0; var ids = Object.keys(ptrs); if (ids.length === 1) last = { x: ptrs[ids[0]].clientX, y: ptrs[ids[0]].clientY }; }
     svg.addEventListener('pointerup', up); svg.addEventListener('pointercancel', up);
   };
 
