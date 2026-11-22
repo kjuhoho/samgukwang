@@ -4,6 +4,16 @@
   var L = I.lang;
   // [키, en, ja]
   var W = [
+    ['왕권이 약해 귀족들이 명을 따르지 않았습니다.', 'Royal authority was weak and the nobles did not follow the order.', '王権が弱く、貴族たちが命に従いませんでした。'],
+    ['민심이 흉흉해 백성을 동원하기 어려웠습니다.', 'Public sentiment was uneasy and it was hard to mobilize the people.', '民心が荒れており、民を動員するのが難しかったです。'],
+    ['재정이 바닥나 일을 뒷받침할 재물이 모자랐습니다.', 'The treasury ran dry and there was not enough wealth to support the work.', '財政が底をつき、事業を支える財が足りませんでした。'],
+    ['농정 기반이 허약해 일이 현장까지 닿지 않았습니다.', 'The agricultural base was weak and the work did not reach the field.', '農政の基盤が脆弱で、事が現場まで届きませんでした。'],
+    ['군의 훈련과 기강이 부족해 장수들이 명을 소화하지 못했습니다.', 'Training and discipline in the army were lacking and the generals could not carry out the order.', '軍の訓練と規律が不足し、将軍たちが命を消化できませんでした。'],
+    ['방비 체계가 허술해 공사가 제대로 진척되지 않았습니다.', 'The defense system was shoddy and the works did not progress properly.', '防備体制が手薄で、工事が思うように進みませんでした。'],
+    ['수군 기반이 약해 배와 인력이 따라 주지 않았습니다.', 'The naval base was weak and ships and manpower fell short.', '水軍の基盤が弱く、船と人手が追いつきませんでした。'],
+    ['첩보망이 허술해 정보와 연락이 어긋났습니다.', 'The intelligence network was shoddy and information and contact went awry.', '諜報網が手薄で、情報と連絡が食い違いました。'],
+    ['군의 사기가 가라앉아 호응이 없었습니다.', 'The army was low in spirits and there was no response.', '軍の士気が沈み、呼応がありませんでした。'],
+    ['예상치 못한 작은 차질들이 겹쳤습니다.', 'Small unforeseen setbacks piled up.', '予想外の小さな支障が重なりました。'],
     ['왕조를 이어 계속 통치하기 (후계 시대 +20년)', 'Carry on the dynasty (Successor Era, +20 years)', '王朝を受け継いで統治を続ける(後継の時代 +20年)'],
     ['왕조는 이어집니다.', 'The dynasty continues.', '王朝は続きます。'],
     ['다음 왕이 뒤를 이었습니다.', 'The next king has succeeded to the throne.', '次の王が後を継ぎました。'],
