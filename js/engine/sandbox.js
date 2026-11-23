@@ -18,7 +18,7 @@ window.SG = window.SG || {}; SG.data = SG.data || {}; SG.scenarios = SG.scenario
     wa: { levy: 'wa_levy', line: 'wa_line', elite: 'wa_line', horse: 'wa_line', archer: 'wa_archer', guard: 'wa_line', garrison: 'wa_garrison', navy: 'wa_navy', scout: 'wa_archer', siege: 'wa_archer' }
   };
   var ROLE_OF = { baekje_levy: 'levy', baekje_bangun: 'line', baekje_gyebaek: 'elite', baekje_horse: 'horse', baekje_archer: 'archer', baekje_guard: 'guard', baekje_garrison: 'garrison', baekje_navy: 'navy', baekje_scout: 'scout' };
-  var REALM_N = { royal: '왕권', train: '훈련', defense: '방비', navy: '수군력', econ: '산업', intel: '첩보' };
+  var REALM_N = { royal: '왕권', train: '훈련', defense: '방비', navy: '수군력', econ: '산업', intel: '첩보', b_line: '보병 숙련', b_elite: '정예 숙련', b_cav: '기병 숙련', b_rng: '궁노 숙련', b_siege: '공성 숙련' };
   var RES_N = { troops: '병력', food: '군량', gold: '금', people: '민심', morale: '사기' };
   var NONFIELD = { garrison: 1, navy_war: 1, navy_transport: 1, scout: 1, guard: 1 };
   SG.sideRoles = SIDE_ROLES;
@@ -159,6 +159,7 @@ window.SG = window.SG || {}; SG.data = SG.data || {}; SG.scenarios = SG.scenario
     var t = cfg.turnTitle ? cfg.turnTitle(s.year) : (this.cfg.country || '') + ' ' + s.year + '년';
     var body = [];
     body.push('<div class="realm">' + ['royal', 'train', 'defense', 'econ', 'intel', 'navy'].map(function (k) { return bar(REALM_N[k], s.realm[k]); }).join('') + '</div>');
+    if (SG.branchPanel) body.push(SG.branchPanel(this));
     body.push(this.dipHtml());
     if (s.last) body.push('<div class="quote">' + s.last + '</div>');
     var adv = SG.advisor ? SG.advisor.advise(this) : null;

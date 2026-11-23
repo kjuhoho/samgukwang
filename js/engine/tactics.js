@@ -55,7 +55,7 @@
   }
   function genCmd(f) { var g = f.gen ? SG.generalById(f.gen) : null; return g ? g.stats.cmd : 5; }
 
-  SG.TACT = { GN: GN, TK: TK, ST: ST, comp: comp, shares: shares, mu: mu, autoStance: autoStance, trainF: trainF };
+  SG.TACT = { BR_NM: { line: '보병', elite: '정예병', cav: '기병', rng: '궁·노병', siege: '공성기', navy: '수군' }, GN: GN, TK: TK, ST: ST, comp: comp, shares: shares, mu: mu, autoStance: autoStance, trainF: trainF };
 
   SG.battle = function (A, B, opt) {
     opt = opt || {};
@@ -73,6 +73,7 @@
     var trA = A.train == null ? 50 : A.train, trB = B.train == null ? 50 : B.train;
     var cmdA = genCmd(A), cmdB = genCmd(B);
     var ctA = (CT[sA] || {})[sB] || 1, ctB = (CT[sB] || {})[sA] || 1;
+    var eliA = clamp(0.05 * ((A.bl || {}).elite || 0) * Math.min(1, (shA.elite || 0) * 3), 0, 0.25), eliB = clamp(0.05 * ((B.bl || {}).elite || 0) * Math.min(1, (shB.elite || 0) * 3), 0, 0.25);
     var fortAny = !!(A.fort || B.fort || field === TK.fort);
 
     function season_(g, isAtt, st) {
@@ -84,13 +85,15 @@
     function power(f, c, side, ctx, r) { // 해당 합의 공격력/방어력
       var atk = 0, def = 0, st = ST[side.st] || ST.balanced, isAtt = side.att;
       for (var g in c) {
-        if (g === 'N') continue; var e = c[g], tf = trainF(g, f.train), m = tf * season_(g, isAtt);
+        if (g === 'N') continue; var e = c[g], tf = trainF(g, f.train), m = tf * season_(g, isAtt), bl = f.bl || {}, Lv = bl[g] || 0, fbl = ctx.fbl || {};
+        m *= 1 + 0.04 * Lv; if (g === 'line' && side.st === 'hold') m *= 1 + 0.02 * Lv;
         var tkm = g === 'cav' ? field.cav : g === 'rng' ? field.rng : 1;
         if (g === 'navy') tkm = field === TK.sea || field === TK.coast ? 1.25 : 0.7;
         if (g === 'cav' && st.cav) tkm *= (r >= 4 || side.st !== 'flank' ? st.cav : 1);
         if (g === 'rng' && st.rng) tkm *= st.rng;
-        if (g === 'rng') tkm *= r === 1 ? 1.7 : 0.8; else if (g === 'cav' && r === 4) tkm *= 1.15; else tkm *= r === 1 ? 0.5 : 1.05;
-        if (g === 'siege') tkm *= (fortAny ? 1.8 : 0.6) * (side.st === 'siege' ? 1.25 : 1);
+        if (g === 'rng') { tkm *= r === 1 ? 1.7 * (1 + 0.05 * Lv) : 0.8; if (side.st === 'attrition') tkm *= 1 + 0.03 * Lv; } else if (g === 'cav' && r === 4) tkm *= 1.15 * (1 + 0.03 * Lv); else tkm *= r === 1 ? 0.5 : 1.05;
+        if (g === 'cav') tkm *= 1 - 0.03 * (fbl.line || 0);
+        if (g === 'siege') tkm *= (fortAny ? 1.8 * (1 + 0.06 * Lv) : 0.6) * (side.st === 'siege' ? 1.25 : 1);
         atk += e.atk * m * tkm; def += e.def * m;
       }
       return { atk: atk * st.atk * ctx.ct, def: def * st.def };
@@ -104,7 +107,7 @@
     var stT = ST[sA], stU = ST[sB];
     for (var r = 1; r <= rounds; r++) {
       var na = tot(a), nb = tot(b); if (!na || !nb) break;
-      var ca2 = comp(a), cb2 = comp(b), pA = power(A, ca2, iA, { ct: ctA }, r), pB = power(B, cb2, iB, { ct: ctB }, r);
+      var ca2 = comp(a), cb2 = comp(b), pA = power(A, ca2, iA, { ct: ctA, fbl: B.bl }, r), pB = power(B, cb2, iB, { ct: ctB, fbl: A.bl }, r);
       var fatA = (1 - 0.022 * (r - 1) * (1.3 - trA / 100)), fatB = (1 - 0.022 * (r - 1) * (1.3 - trB / 100));
       var contA = r <= 3 ? 1 - resA : 1, contB = r <= 3 ? 1 - resB : 1;
       var fpA = r >= 4 ? (1 - resA) * fatA + resA : fatA * contA, fpB = r >= 4 ? (1 - resB) * fatB + resB : fatB * contB;
@@ -126,7 +129,7 @@
       var na2 = tot(a), nb2 = tot(b), dA = (na - na2) / (na || 1), dB = (nb - nb2) / (nb || 1);
       var rA = na2 / (s0a || 1), rB = nb2 / (s0b || 1);
       var cmA = 1 - Math.min(0.3, (cmdA - 5) * 0.05), cmB = 1 - Math.min(0.3, (cmdB - 5) * 0.05);
-      mA -= (3 + dA * 45 + (rA < rB ? 3 : 0)) * (stT.mor || 1) * cmA; mB -= (3 + dB * 45 + (rB < rA ? 3 : 0)) * (stU.mor || 1) * cmB;
+      mA -= (3 + dA * 45 + (rA < rB ? 3 : 0)) * (stT.mor || 1) * cmA * (1 - eliA); mB -= (3 + dB * 45 + (rB < rA ? 3 : 0)) * (stU.mor || 1) * cmB * (1 - eliB);
       if (r === 4 && resA) { mA += 8; log.push('제4합 — ' + A.name + '의 예비대 ' + Math.round(resA * 100) + '%가 새 힘으로 가담합니다.'); }
       if (r === 4 && resB) { mB += 8; log.push('제4합 — ' + B.name + '의 예비대가 가담합니다.'); }
       var phase = r === 1 ? '원거리 교전' : r <= 3 ? '정면 충돌' : r === 4 ? '측면·예비대 투입' : '결전';
@@ -140,7 +143,7 @@
     var routed = null;
     if (flee) { // 패주: 추격 피해
       var win = flee === 'a' ? sB : sA, wc = flee === 'a' ? shB : shA, loser = flee === 'a' ? a : b, wname = flee === 'a' ? B.name : A.name, lname = flee === 'a' ? A.name : B.name;
-      var pur = 0.07 + 0.22 * (wc.cav || 0) + (flee === 'a' ? (trB - trA) : (trA - trB)) / 800; pur = clamp(pur, 0.04, 0.3);
+      var pur = 0.07 + 0.22 * (wc.cav || 0) + (flee === 'a' ? (trB - trA) : (trA - trB)) / 800; pur += 0.02 * (((flee === 'a' ? B.bl : A.bl) || {}).cav || 0) * Math.min(1, (wc.cav || 0) * 4); pur = clamp(pur, 0.04, 0.32);
       loser.forEach(function (u) { u.n = Math.max(0, Math.round(u.n * (1 - pur))); });
       routed = flee; log.push(lname + '군이 무너져 패주합니다. ' + wname + '의 추격으로 ' + Math.round(pur * 100) + '%를 더 잃습니다' + ((wc.cav || 0) > 0.2 ? '(기병 추격).' : '.'));
     }
@@ -149,6 +152,8 @@
     // ── 요인 설명 ──
     var tfA = trainF('line', trA), tfB = trainF('line', trB);
     if (Math.abs(tfA / tfB - 1) > 0.04) fac.push('<b>훈련</b> 아군 ' + Math.round(trA) + ' · 적 ' + Math.round(trB) + ' → 전투력 ' + (tfA >= tfB ? '아군' : '적군') + ' 쪽이 약 ' + Math.round(Math.abs(tfA / tfB - 1) * 100) + '% 우세. 훈련이 낮으면 쉽게 무너집니다.');
+    (function () { var NM = SG.TACT.BR_NM, la = [], lb = []; for (var g in NM) { if ((A.bl || {})[g] > 0 && (shA[g] || 0) > 0.05) la.push(NM[g] + ' Lv' + A.bl[g]); if ((B.bl || {})[g] > 0 && (shB[g] || 0) > 0.05) lb.push(NM[g] + ' Lv' + B.bl[g]); }
+      if (la.length || lb.length) fac.push('<b>병과 숙련</b> 아군 ' + (la.join(' · ') || '없음') + ' / 적 ' + (lb.join(' · ') || '없음') + ' — 숙련 등급이 높을수록 해당 병과의 공방·특기(궁병 첫 사격, 기병 추격, 정예 사기 유지, 공성기)가 강해집니다.'); })();
     if (Math.abs(muA - muB) > 0.05) { var best = function (c, sh) { var bg = '', bv = 0; for (var g in c) if (g !== 'N' && c[g].atk > bv && MU[g]) { bv = c[g].atk; bg = g; } return GN[bg] || ''; };
       fac.push('<b>병종 상성</b> 아군 ' + muA.toFixed(2) + ' : 적 ' + muB.toFixed(2) + ' — ' + (muA > muB ? '아군 ' + best(ca) + '이(가) 적 편성을 잘 상대합니다.' : '적 ' + best(cb) + '이(가) 아군 편성을 잘 상대합니다.')); }
     if (sA !== 'balanced' || sB !== 'balanced') fac.push('<b>작전</b> 아군 「' + ST[sA].nm + '」 대 적 「' + ST[sB].nm + '」' + (ctA !== 1 || ctB !== 1 ? ' → ' + (ctA > ctB ? '아군 작전이 적 태세를 찔렀습니다 (×' + ctA.toFixed(2) + ')' : ctB > ctA ? '적 태세가 아군 작전을 받아쳤습니다 (×' + ctB.toFixed(2) + ')' : '맞물림') : ''));
