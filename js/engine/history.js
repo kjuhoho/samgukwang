@@ -57,15 +57,15 @@
   P.afterFight = function (bt, kind, r, bribe) {
     var self = this, s = this.s, me = this.side, foe = (bt.enemy && bt.enemy.side) || this.sides.silla, anc = this._anc, extra = '';
     this._anc = null; s.owners = s.owners || {};
-    if (kind === 'lose') { s.lostAt = s.year; s.lostVs = s.lostVs || {}; s.lostVs[foe] = s.year; }
+    if (kind === 'lose' || kind === 'abandon') { s.lostAt = s.year; s.lostVs = s.lostVs || {}; s.lostVs[foe] = s.year; }
     else { s.wonVs = s.wonVs || {}; s.wonVs[foe] = s.year; }
     var pid = bt.place || (anc && anc.place), pl = pid && SG.placeById(pid), cap = this.cfg.capPlace;
     if (!bribe && pl && !pl.offmap && CASTLE[pl.kind]) {
-      if (kind !== 'lose' && !bt.defense && this.ownerOf(pl) === foe && foe !== me) {
+      if (kind !== 'lose' && kind !== 'abandon' && !bt.defense && this.ownerOf(pl) === foe && foe !== me) {
         s.owners[pl.id] = me; extra = '<div class="note">🏯 <b>' + pl.name + '</b>을(를) 차지했습니다. 지도에 반영됩니다.</div>'; if (this.capitalFall) this.capitalFall(pl, foe);
       }
     }
-    if (kind === 'lose' && bt.defense && !bt.loseEnd && !bt.raid && foe !== me) {
+    if ((kind === 'lose' || kind === 'abandon') && bt.defense && !bt.loseEnd && !bt.raid && foe !== me) {
       var tgt = pl && CASTLE[pl.kind] && this.ownerOf(pl) === me && pl.id !== cap ? pl : null;
       if (!tgt) { // 수도이거나 내 성이 아니면: 그곳에서 가장 가까운 내 변경 성
         var ref = pl || this.foeOrigin(foe) || SG.placeById(cap), mine = this.places().filter(function (p) { return self.ownerOf(p) === me && p.id !== cap; });

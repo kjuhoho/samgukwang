@@ -225,7 +225,7 @@ form.free input:focus{outline:none;border-color:var(--gold)}
 .pl.pick-ok{cursor:crosshair}
 .sgmap.picking .pl:not(.atk) .icon{opacity:.5}
 /* 공격 선택 중: 군대 깃발·공격 불가 성이 클릭을 가로채지 않게 한다 */
-.sgmap.picking .tokens,.sgmap.picking .tokens *{pointer-events:none}
+.sgmap .tokens,.sgmap .tokens *{pointer-events:none}  /* 군대 깃발은 클릭을 받지 않는다(깃발 밑의 성을 누를 수 있게) */
 .sgmap.picking .pl:not(.atk){pointer-events:none}
 .sgmap.picking .pl.atk .hit{r:16px}
 .tk .tk-banner{stroke-width:1.6}

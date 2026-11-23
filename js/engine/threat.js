@@ -141,7 +141,7 @@
 
   // 연합군을 물리친 횟수 기록
   var _after = P.afterFight;
-  P.afterFight = function (bt, kind) { if (bt && bt.coalition && this.s.coal && kind !== 'lose') this.s.coal.beaten++; return _after.apply(this, arguments); };
+  P.afterFight = function (bt, kind) { if (bt && bt.coalition && this.s.coal && kind !== 'lose' && kind !== 'abandon') this.s.coal.beaten++; return _after.apply(this, arguments); };
 
   // 강해질수록 대국이 경계한다 + 연합 중임을 알린다
   var _ye = P.yearEnd;

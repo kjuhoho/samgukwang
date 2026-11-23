@@ -91,7 +91,7 @@ window.SG = window.SG || {}; SG.data = SG.data || {};
       var p = px(pl.lon, pl.lat);
       var g = el('g', { 'class': 'pl k-' + pl.kind + ' s-' + (pl.side || 'neutral') + ' r' + (pl.rank || 3), transform: 'translate(' + p[0].toFixed(1) + ',' + p[1].toFixed(1) + ')', 'data-id': pl.id }, self.gPlaces);
       var inv = el('g', { 'class': 'inv' }, g);
-      el('circle', { 'class': 'hit', r: 15, fill: 'transparent', 'pointer-events': 'all' }, inv); // 누르기 쉽게 넓은 판정(화면 크기 고정)
+      if (!/^(river|mountain|region)$/.test(pl.kind)) el('circle', { 'class': 'hit', r: 15, fill: 'transparent', 'pointer-events': 'all' }, inv); // 누르기 쉽게 넓은 판정(화면 크기 고정). 강·산·지역 이름표는 제외(성 클릭을 가로채지 않게)
       var ic = el('g', { 'class': 'icon' }, inv); ic.innerHTML = ICON[pl.kind] || ICON.other;
       el('text', { 'class': 'plabel', x: 11, y: 4 }, inv, pl.name);
       g.addEventListener('click', function (e) { e.stopPropagation(); if (self.onPlace) self.onPlace(pl); });

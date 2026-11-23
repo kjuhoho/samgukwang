@@ -113,7 +113,7 @@ window.SG = window.SG || {}; SG.data = SG.data || {}; SG.scenarios = SG.scenario
     if (pl) { sc.place = a.place; sc.anchor = a; sc.setup = function (g) { self.situation(a); }; }
     if (a.battle) {
       var bt = a.battle; bt.last = a.last;
-      sc.choices = function () { return bt.tactics.map(function (t) { var o = ''; if (self.simFight && !t.special) { try { o = ' · 승산 ' + self.odds(self.simFight(bt, t, a)); } catch (e) { } } return { label: self.L(t.label), hint: self.L(t.hint) + o, tag: t.tag, place: t.place, run: function (g) { self.fight(bt, t, a); }, next: '__none__' }; }); };
+      sc.choices = function () { return self.withAbandon(bt).map(function (t) { var o = ''; if (self.simFight && !t.special) { try { o = ' · 승산 ' + self.odds(self.simFight(bt, t, a)); } catch (e) { } } return { label: self.L(t.label), hint: self.L(t.hint) + o, tag: t.tag, place: t.place, run: function (g) { self.fight(bt, t, a); }, next: '__none__' }; }); };
       var bt0 = sc.text; sc.text = function () { var r = bt0.slice(); try { var f = self.simFight(bt, bt.tactics[0], a); r.push('<div class="note">' + self.forceLine(f.myN, f.foeN) + '</div>'); } catch (e) { } return r; };
     } else {
       var ch = [];
@@ -364,7 +364,16 @@ window.SG = window.SG || {}; SG.data = SG.data || {}; SG.scenarios = SG.scenario
     var side = e.side || this.sides.silla;
     return { name: this.L(e.name), side: side, units: this.enemyUnits(side, total, e.mix), gen: e.gen, terrain: e.terrain || 1, morale: e.morale || 70, ambush: !!e.ambush, fort: !!e.fort };
   };
+  // 방어전에서 싸우지 않고 성을 버리고 물러나는 선택(병력 보존). 사료상 반드시 패망하는 마지막 전투에는 붙이지 않는다.
+  P.withAbandon = function (bt) {
+    var list = bt.tactics.slice();
+    if (!bt.defense || bt.loseEnd || bt.last || list.some(function (t) { return t.special === 'abandon'; })) return list;
+    if (!bt.abandon) bt.abandon = { text: ['성을 비우고 병력과 백성을 거두어 물러났습니다. 싸우지 않았으니 군은 온전하나, 성은 적의 손에 넘어갔고 사람들의 마음이 가라앉았습니다.'], fx: { people: -3, morale: -5 }, realm: { defense: -4, royal: -2 } };
+    list.push({ label: '성을 버리고 병력을 보존한다', hint: '싸우지 않는다. 병력은 그대로이나 그 방면의 성을 내주고 민심·사기가 떨어진다. 나중에 공격해 되찾을 수 있다.', special: 'abandon', tag: '퇴' });
+    return list;
+  };
   P.fight = function (bt, tac, anchor) {
+    if (tac.special === 'abandon') return this.afterFight(bt, 'abandon', null, false);
     var self = this, g = this.g, s = this.s, m = tac.ours || {};
     var def = !!bt.defense, frac = bt.commit || (def ? 1 : 0.75), base = def ? (bt.terrain || 1) * (1 + s.realm.defense / 400) : 1;
     var ours = { name: this.cfg.armyName || (this.cfg.country || '아군'), side: this.side, units: this.fieldUnits(frac, def), gen: bt.gen || this.cfg.gen, morale: this.myMorale(m.morale), terrain: (m.terrain || base) * (def ? 1 : 1), ambush: !!m.ambush, fort: false };
@@ -390,10 +399,10 @@ window.SG = window.SG || {}; SG.data = SG.data || {}; SG.scenarios = SG.scenario
     if (kind === 'win' || kind === 'costly') { s.stats.defended++; }
     chips = this.eff(o);
     var self0 = this; if (o.captureTargets) o.captureTargets.forEach(function (t) { s.captured[t] = s.year; self0.capturePlace(self0.targetById(t)); });
-    this.log(this.L(bt.title || '전투') + ' — ' + ({ win: '승리', costly: '고전 끝에 승리', lose: '패배' }[kind]));
+    this.log(this.L(bt.title || '전투') + ' — ' + ({ win: '승리', costly: '고전 끝에 승리', lose: '패배', abandon: '성을 버리고 퇴각' }[kind]));
     var body = (o.text || []).map(this.L, this); body.push(chips);
     if (bribe) body.unshift('화친의 사신을 보냈습니다.');
-    g.page({ era: this.L(o.era || (s.year + '년')), title: this.L(o.title || ({ win: '승전', costly: '피로 얻은 승리', lose: '패전' }[kind])), body: body, note: this.L(o.note) });
+    g.page({ era: this.L(o.era || (s.year + '년')), title: this.L(o.title || ({ win: '승전', costly: '피로 얻은 승리', lose: '패전', abandon: '성을 버리다' }[kind])), body: body, note: this.L(o.note) });
     if (kind === 'lose' && bt.loseEnd) { return this.finish(bt.loseEnd.kind || 'conquered', bt.loseEnd); }
     if (bt.last) { var selfL = this; return g.choices([{ c: { label: '재위의 끝으로', tag: '▶' }, run: function () { selfL.finish(null); } }]); }
     var self = this; g.choices([{ c: { label: '계속', tag: '▶' }, run: function () { if (g.state.res.people <= 0 || s.realm.royal <= 0) return self.collapse(); if (bt.inChain) self.nextEvent(); else g.go('__turn__'); } }]);
@@ -507,7 +516,7 @@ window.SG = window.SG || {}; SG.data = SG.data || {}; SG.scenarios = SG.scenario
     var body = [inv.intro]; if (this.summary) { body.unshift('<div class="chron-log">' + this.summary + '</div>'); this.summary = null; }
     g.page({ era: s.year + '년 · 침공', title: inv.title, body: body, note: '' });
     var pl = SG.placeById(this.cfg.capPlace); if (pl) g.map.focus(pl.lon, pl.lat, 1500, 700);
-    g.choices(inv.tactics.map(function (t) { return { c: { label: t.label, hint: t.hint, disabled: t.gold && g.state.res.gold < t.gold }, run: function () { self.fight(inv, t); } }; }));
+    g.choices(this.withAbandon(inv).map(function (t) { return { c: { label: t.label, hint: t.hint, disabled: t.gold && g.state.res.gold < t.gold }, run: function () { self.fight(inv, t); } }; }));
     inv.inChain = true;
   };
   P.nextYear = function () {

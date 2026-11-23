@@ -114,14 +114,18 @@
     return { id: 'p_' + pl.id, name: pl.name, short: pl.name.replace(/\(.*?\)/g, '').trim(), place: pl.id, side: ow, garrison: Math.round(kb[0] * f * rf * (pl.garMul || 1) / 500) * 500, terrain: kb[1], gold: Math.round(kb[3] * (pl.garMul || 1)), people: 2, power: kb[2], hist: '사료에 이 시기 이 성을 공략한 기록은 없음 [가상]', dyn: true, oversea: !peninsula(pl) && (ow === 'wa' || pl.kind === 'island' || (pl.lon < 123 && pl.lat < 39.5)) };
   };
   P.targets = function () {
-    var self = this, s = this.s, y = s.year, rs = this.sides.silla, list = [], seen = {};
+    var self = this, s = this.s, y = s.year, list = [], seen = {};
+    // 목표는 "지금 누가 쥐고 있는가"로 정한다. 한 번 점령했다가 다시 빼앗긴 성(예: 당이 차지한 평양성)도 다시 공격 목록에 올라온다.
     (this.cfg.targets || []).forEach(function (t) {
-      if (s.captured[t.id] || (t.from && y < t.from) || (t.to && y > t.to)) return;
-      var pl = SG.placeById(t.place); if (!pl || (s.owners && s.owners[pl.id] === self.side)) return;
+      if ((t.from && y < t.from) || (t.to && y > t.to)) return;
+      var pl = SG.placeById(t.place); if (!pl) return;
+      var ow = self.ownerOf(pl);
+      if (ow === self.side || (s.owners && s.owners[pl.id] === self.side)) return;
+      if (s.captured[t.id] || (t.side && ow && ow !== t.side)) return;   // 이미 얻었다가 잃은 곳·주인이 바뀐 곳은 아래 일반 목록에서 현재 주인 기준으로 다룬다
       seen[t.place] = 1; list.push(t);
     });
     this.places().forEach(function (pl) {
-      if (seen[pl.id] || s.captured['p_' + pl.id]) return;
+      if (seen[pl.id]) return;
       var ow = self.ownerOf(pl); if (!ow || ow === self.side) return;
       list.push(self.dynTarget(pl, ow));
     });
@@ -151,6 +155,15 @@
     m.fit(pts, 900, 1100);
   };
   P.onPick = function (t) { this.endPick(); this.run(this.warCmd(), { target: t.id }); };
+  // 정무 화면에서 지도의 적 성을 바로 누르면 공격 확인(출병 준비)이 곧바로 뜬다
+  P.mapAttack = function (pl) {
+    if (!this.s || !document.querySelector('#chron .choices .endyear') || document.querySelector('.modal')) return false;
+    var c = this.warCmd(), t = this.targets().filter(function (x) { return x.place === pl.id; })[0];
+    if (!c || !t) return false;
+    var why = this.cmdAvail(c);
+    if (why) { this.g.tip(pl); var tp = document.querySelector('#tip'); if (tp) tp.insertAdjacentHTML('beforeend', '<div class="note">⚔ 지금은 공격할 수 없습니다 — ' + this.L(String(why)) + '</div>'); return true; }
+    this.onPick(t); return true;
+  };
 
   P.spend = function (c) {
     var s = this.s, g = this.g; this.pay(c.cost); s.ap -= (c.ap || 1); if (c.cd) s.cd[c.id] = c.cd;

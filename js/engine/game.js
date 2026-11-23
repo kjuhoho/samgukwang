@@ -58,7 +58,7 @@ window.SG = window.SG || {}; SG.data = SG.data || {};
   }
   Game.prototype.init = function () {
     var self = this;
-    this.map = new SG.Map($('#map'), { onPlace: function (pl) { if (self.map.pick && self.map.pick[pl.id] && self.sb) return self.sb.onPick(self.map.pick[pl.id]); self.tip(pl); } });
+    this.map = new SG.Map($('#map'), { onPlace: function (pl) { if (self.map.pick && self.map.pick[pl.id] && self.sb) return self.sb.onPick(self.map.pick[pl.id]); if (self.sb && self.sb.mapAttack && self.sb.mapAttack(pl)) return; self.tip(pl); } });
     this.map.padFn = function () {
       var W = window.innerWidth, mob = W <= 820, c = $('#chron'), cw = c && c.innerHTML ? c.getBoundingClientRect() : null;
       var army = $('#army'), aw = army && !mob ? army.getBoundingClientRect().width + 12 : 0;
