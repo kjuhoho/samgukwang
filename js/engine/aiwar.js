@@ -105,6 +105,16 @@
       }
     }
 
+    /* 맹약 파기: 명분이 생기면 한쪽이 맹약을 깨고 옛 맹약국을 친다 */
+    if (this.pactBreak) Object.keys(ai.pact).forEach(function (k) {
+      if (done >= (era ? CFG.eraMaxCamp : CFG.maxCamp + (s.extended ? 2 : 0))) return;
+      var br = self.pactBreak(k); if (!br || d[br.a] || d[br.o]) return;
+      delete ai.pact[k]; ai.grudge[br.o + '>' + br.a] = y;
+      lines.push('<div>💥 <b>' + nm(br.a) + ' · ' + nm(br.o) + ' — </b>' + SG.L3('맹약이 깨졌습니다. ', 'The pact was broken. ', '盟約が破られました。') + br.why + '</div>');
+      self.log('맹약 파기: ' + nm(br.a) + '→' + nm(br.o));
+      if (!era) campaign(br.a, br.o);
+    });
+
     /* 원정: 나라마다 한두 번 */
     function campaign(a, force, tgt) {
       var ra = self.roleOf(a), pa = self.sidePower(a), own = by[a] || [], cand = [];
@@ -134,22 +144,23 @@
       var left = (by[t.o] || []).length, rally = (ai.lostY && y - (ai.lostY[t.o] || -9) <= 1) ? 1.12 : 1, lastStand = left <= 6 ? 1.25 : 1;
       var def = t.pd * (self.milFactor ? Math.pow(self.milFactor(t.o), 0.6) : 1) * (0.92 + (SG.resOf ? SG.resOf(self, t.o) : 40) / 300) * (KM[t.p.kind] || 1.2) * rally * lastStand * (0.85 + Math.random() * 0.3);
       var pw = clamp(1 / (1 + Math.exp(-(att / def - 1.0) * 3.4)) + (t.hm ? 0.15 : 0), 0.06, 0.88);
-      var won = Math.random() < pw; done++; busy[a] = 1; busy[t.o] = 1;
+      var bt = null; try { bt = self.aiBattle ? self.aiBattle(a, t, att, def, KM[t.p.kind] || 1.2) : null; } catch (e) { if (window.console) console.warn('aiBattle', e); }
+      var won = bt ? bt.won : Math.random() < pw; done++; busy[a] = 1; busy[t.o] = 1;
       if (gd.length && !won && Math.random() < 0.6 && SG.INTERCEPT) lines.push('<div><b>' + nm(a) + '</b> ⚔ <b>' + nm(t.o) + '</b> · <u>' + short(t.p) + '</u> · <i>' + SG.INTERCEPT.ai + '</i></div>');
       var mv = { from: t.org.id, to: t.p.id, side: a, win: won ? 1 : 0, def: t.o, joint: force ? 1 : 0 };
       ai.mv.push(mv);
-      if (self.milHit) { if (won) { self.milHit(a, self.deployMax(a) * 0.08); self.milHit(t.o, self.deployMax(t.o) * 0.14); } else { self.milHit(a, self.deployMax(a) * 0.15); self.milHit(t.o, self.deployMax(t.o) * 0.05); } }
+      if (self.milHit) { var la = bt ? bt.lossA : null, lb = bt ? bt.lossB : null; if (won) { self.milHit(a, self.deployMax(a) * (la == null ? 0.08 : 0.03 + 0.1 * la)); self.milHit(t.o, self.deployMax(t.o) * (lb == null ? 0.14 : 0.05 + 0.15 * lb)); } else { self.milHit(a, self.deployMax(a) * (la == null ? 0.15 : 0.05 + 0.2 * la)); self.milHit(t.o, self.deployMax(t.o) * (lb == null ? 0.05 : 0.02 + 0.1 * lb)); } }
       if (won) {
         var seat = self.isSeat && self.isSeat(t.p, t.o);
         if (era && !t.hm) ai.cap++;
         s.owners[t.p.id] = a; (by[a] = by[a] || []).push(t.p); by[t.o] = (by[t.o] || []).filter(function (q) { return q.id !== t.p.id; });
         bump(self, a, 1.5); bump(self, t.o, -2.5); ai.lostY = ai.lostY || {}; ai.lostY[t.o] = y; ai.fat[a] = fat + 1.5; ai.grudge[t.o + '>' + a] = y;
         self.log(nm(a) + ', ' + nm(t.o) + '의 ' + short(t.p) + ' 점령');
-        lines.push('<div><b>' + nm(a) + '</b> ⚔ <b>' + nm(t.o) + '</b> · <u>' + short(t.p) + '</u> · <i>' + M.taken + '</i></div>');
+        lines.push('<div><b>' + nm(a) + '</b> ⚔ <b>' + nm(t.o) + '</b> · <u>' + short(t.p) + '</u> · <i>' + M.taken + '</i>' + (bt ? self.aiNote(bt) : '') + '</div>');
         if (seat && self.capitalFall) self.capitalFall(t.p, t.o, a);
       } else {
         bump(self, a, -1.5); bump(self, t.o, 0.8); ai.fat[a] = fat + 3;
-        if (Math.random() < 0.7) lines.push('<div><b>' + nm(a) + '</b> ⚔ <b>' + nm(t.o) + '</b> · <u>' + short(t.p) + '</u> · <i>' + M.held + '</i></div>');
+        if (Math.random() < 0.7) lines.push('<div><b>' + nm(a) + '</b> ⚔ <b>' + nm(t.o) + '</b> · <u>' + short(t.p) + '</u> · <i>' + M.held + '</i>' + (bt ? self.aiNote(bt) : '') + '</div>');
       }
     }
     shuffle(sides).forEach(function (a) {
@@ -186,9 +197,9 @@
   function tactics(sb) {
     var s = sb.s;
     return [
-      { label: '성에 의지해 막는다', hint: '방비가 높을수록 유리. 피해를 줄이는 정석.', ours: { terrain: 1.35 + s.realm.defense / 300 } },
-      { label: '야전에서 결전한다', hint: '사기와 훈련도가 높으면 큰 승리를 노릴 수 있다.', ours: { morale: 6 } },
-      { label: '요충에 매복한다', hint: '첩보가 30 이상이어야 적의 길목을 안다.', ours: { ambush: s.realm.intel >= 30, terrain: 1.2 } },
+      { label: '성에 의지해 막는다', hint: '방비가 높을수록 유리. 피해를 줄이는 정석.', walls: true, ours: { terrain: 1.35 + s.realm.defense / 300 } },
+      { label: '야전에서 결전한다', hint: '사기와 훈련도가 높으면 큰 승리를 노릴 수 있다.', field: 'plain', ours: { morale: 6 } },
+      { label: '요충에 매복한다', hint: '첩보가 30 이상이어야 적의 길목을 안다.', field: 'hill', ours: { ambush: s.realm.intel >= 30, terrain: 1.2 } },
       { label: '재물을 주어 돌려보낸다 (금 10)', hint: '싸우지 않고 넘긴다. 실패하면 처참하다.', special: 'bribe', gold: 10 }
     ];
   }
@@ -198,7 +209,7 @@
     var mine = this.myPlaces().filter(function (p) { return p.id !== self.cfg.capPlace; }); if (!mine.length) return null;
     var away = this.awayNow ? this.awayNow() : null, mor = this.g.state.res.morale, dom = this.dominance ? this.dominance() : 0, st = this.stations(), share = {};
     st.forEach(function (x) { share[x.pl.id] = x.share; });
-    var picked = null;
+    var picked = null, ext = this.extStrike ? this.extStrike() : 1;   // 후계 시대에는 공세가 잦아진다
     shuffle(this.aliveRoles()).some(function (r) {
       var side = self.sides[r], w = s.world[r]; if (!side || side === self.side || (s.coal && s.coal.members.indexOf(r) >= 0)) return false;
       var org = self.foeOrigin(side); if (!org) return false;
@@ -207,10 +218,14 @@
       if (near > 3.2 && r !== 'tang' && r !== 'wa') return false;
       var pwr = self.sidePower(side), why = null;
       var opp = 1 + (away && away.frac >= 0.3 ? 0.7 : 0) + clamp((55 - mor) / 80, 0, 0.4) + clamp((pwr - 50) / 150, -0.2, 0.4) + clamp(dom / 12, 0, 0.5);
-      var pr = (0.02 + aggr * 0.07) * relF * opp * CFG.strike * (r === 'tang' ? 0.6 : 1);
+      var pr = (0.02 + aggr * 0.07) * relF * opp * CFG.strike * ext * (r === 'tang' ? 0.6 : 1), cb = null;
+      if (rel >= 55 && self.casusBelli) {   // 동맹은 명분 없이 치지 않는다: 명분이 있을 때만, 그것도 드물게 — 치면 동맹이 깨진다
+        cb = self.casusBelli(r, side, { rel: rel, dom: dom, away: away, mor: mor }); if (!cb) return false;
+        pr = clamp(0.008 + 0.03 * (cb.w - 0.5), 0.004, 0.06) * (rel >= 80 ? 0.5 : rel >= 70 ? 0.75 : 1) * opp * CFG.strike * ext * (r === 'tang' ? 0.6 : 1);
+      }
       if (Math.random() >= pr) return false;
       why = away && away.frac >= 0.3 ? M.r1 : mor < 35 ? M.r2 : rel < 40 ? M.r3 : dom >= 5 ? M.r5 : null;
-      picked = { r: r, side: side, w: w, org: org, pwr: pwr, why: why, opp: opp }; return true;
+      picked = { r: r, side: side, w: w, org: org, pwr: pwr, why: why, opp: opp, cb: cb }; return true;
     });
     if (!picked) return null;
     var sea = picked.r === 'wa' || (picked.r === 'tang' && !this.places().some(function (p) { return self.ownerOf(p) === picked.side && p.lon >= 124 && p.lon <= 130.6 && p.lat >= 33 && p.lat <= 43; }));
@@ -223,13 +238,13 @@
     var w = picked.w, r = picked.r, nmv = N[r], tot = r === 'tang' ? Math.round(7000 + w.commit * 330) : Math.round(picked.pwr * 230 * (0.8 + w.hostility / 220));
     var gd = this.pathGuards ? this.pathGuards(picked.org, best.p, this.side) : [];
     if (this.deployMax) { tot = Math.min(tot, Math.max(1500, this.deployMax(picked.side))); }
-    tot = Math.round(tot * (0.9 + (SG.resOf ? SG.resOf(this, picked.side) : 40) / 280) * (0.85 + Math.random() * 0.3) * (picked.opp > 1.5 ? 1.1 : 1) * clamp(1 - 0.08 * gd.length, 0.7, 1));
+    tot = Math.round(tot * (0.9 + (SG.resOf ? SG.resOf(this, picked.side) : 40) / 280) * (0.85 + Math.random() * 0.3) * (picked.opp > 1.5 ? 1.1 : 1) * clamp(1 - 0.08 * gd.length, 0.7, 1) * (this.extSize ? this.extSize() : 1) * (1 + 0.5 * (this.nat(picked.side).armB || 0)));
     var wk = function (v1, v2) { var o = {}; if (r === 'tang') o['tang.commit'] = v1 * 2; else { o[r + '.p'] = v1; o[r + '.hostility'] = v2; } return o; };
     var I = SG.i18n && SG.i18n.dict, en = (I && I.en && I.en[nmv]) || nmv, ja = (I && I.ja && I.ja[nmv]) || nmv;
     T(nmv + M.ttl, en + "'s Surprise Offensive", ja + 'の奇襲攻勢');
     s.ai.strikeY = y; s.threat.last = y; if (this.milHit) this.milHit(picked.side, tot * 0.06);
     var inv = {
-      title: nmv + M.ttl, defense: true, terrain: 1.1, coast: sea, place: best.p.id,
+      title: nmv + M.ttl, defense: true, walls: true, terrain: 1.1, coast: sea, place: best.p.id,
       enemy: { name: nmv + ' 군', side: picked.side, total: tot, terrain: 1, morale: 70 },
       intro: '<b>' + nmv + ' — </b>' + picked.why + M.place + '<b>' + best.p.name + '</b>' + T(' 방면입니다.', ' direction.', ' 方面です。'),
       tactics: tactics(this),
@@ -238,6 +253,8 @@
       lose: { text: [M.lose], fx: { people: -6, morale: -6, food: -8 }, realm: { defense: -6, royal: -3 }, world: wk(2, 2) }
     };
     inv.tactics.forEach(function (t) { if (t.special) return; try { t.hint += ' · 승산 ' + self.odds(self.simFight(inv, t)); } catch (e) { } });
+    inv.ai = true;
+    if (picked.cb && this.breakAlliance) this.breakAlliance(picked.r, picked.cb, inv, best.p);   // 동맹을 깨고 치는 공세: 이유를 알리고 관계를 끊는다
     this.log(nmv + ' 기습 공세: ' + short(best.p));
     return inv;
   };
@@ -265,7 +282,7 @@
     var tot = Math.round(3000 + Math.random() * 2500 + (this.g.state.res.people < 50 ? 1800 : 0) + (this.nat(rb.side).train - 45) * 40);
     s.ai.rebel = null; s.threat = s.threat || {}; s.threat.last = s.year; s.ai.strikeY = s.year;
     var inv = {
-      title: nmv + M.rebTtl, defense: true, terrain: 1.15, place: pl.id, rebel: rb.side,
+      title: nmv + M.rebTtl, defense: true, walls: true, terrain: 1.15, place: pl.id, rebel: rb.side,
       enemy: { name: nmv + ' 부흥군', side: rb.side, total: tot, terrain: 1, morale: 72, mix: { levy: .45, line: .3, archer: .15, horse: .1 } },
       intro: '<b>' + nmv + ' — </b>' + M.rebWhy + M.place + '<b>' + pl.name + '</b>' + T(' 방면입니다.', ' direction.', ' 方面です。'),
       tactics: tactics(this),

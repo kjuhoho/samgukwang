@@ -87,15 +87,16 @@
     var preset = ctx.tac && ctx.tac.special ? null : this.stanceOf(ctx.tac), sel = { stance: preset || 'balanced', reserve: 0 }, cms = this.cmdrs(), TN = SG.data.traitName || {}, TD = SG.data.traitDesc || {};
     sel.gen = (ctx.bt && ctx.bt.gen && SG.generalById(ctx.bt.gen) ? ctx.bt.gen : this.bestGen());
     var gopts = cms.map(function (c) { return '<option value="' + c.id + '"' + (c.id === sel.gen ? ' selected' : '') + '>' + c.name + ' — 통솔 ' + c.cmd + ' · 무용 ' + c.val + ' · ' + TN[c.trait] + '</option>'; }).join('') + '<option value=""' + (sel.gen ? '' : ' selected') + '>국왕 친정 — 통솔 5 · 사기 +4</option>';
+    if (self.foeLook) self.foeLook(ours, en, bo, ctx);   // 적 지휘관도 작전을 고른다(foestrat.js)
     var ec = T_.comp(en.units), N = ec.N || 1, i = s.realm.intel, rows = [];
     for (var k in ec) if (k !== 'N') rows.push([k, ec[k].n / N]);
     rows.sort(function (a, b) { return b[1] - a[1]; });
     var recon = i < 10 ? '적 편성을 전혀 알 수 없습니다.' : rows.slice(0, 4).map(function (r) { var p = Math.round(r[1] * 100 / (i >= 50 ? 5 : 10)) * (i >= 50 ? 5 : 10); return GN[r[0]] + ' ' + (i >= 25 ? '약 ' + p + '%' : (p >= 40 ? '많음' : '일부')); }).join(' · ');
-    var est = T_.autoStance(en, ours), estTxt = i >= 40 ? '「' + ST[en.stance || est].nm + '」 예상' : i >= 20 ? '(추정) 「' + ST[est].nm + '」 경향' : '알 수 없음';
+    var est = en.estSt || T_.autoStance(en, ours), estTxt = i >= 40 ? '「' + ST[en.stance || est].nm + '」 예상' : i >= 20 ? '(추정) 「' + ST[est].nm + '」 경향' : '알 수 없음';
     var sea = this.seasonOf(ctx.anchor), tkn = T_.TK[tk].nm;
     var fixed = ctx.tac && ctx.tac.special;
     card.innerHTML = '<h2>⚔ 군사 회의 — ' + (ctx.title || '결전') + '</h2><div class="sub">지형 <b>' + tkn + '</b>' + (sea ? ' · 계절 <b>' + sea + '</b>' : '') + ' · 아군 훈련 <b>' + Math.round(s.realm.train) + '</b> · 적 훈련 ' + (i >= 40 ? '<b>' + Math.round(en.train == null ? 48 : en.train) + '</b>' : '?') + '</div>' +
-      '<div class="note">🔎 <b>정찰</b> — 적 편성: ' + recon + ' · 적 작전 ' + estTxt + (i < 25 ? ' <small>(첩보가 낮아 부정확)</small>' : '') + '</div>' +
+      '<div class="note">🔎 <b>정찰</b> — 적 편성: ' + recon + ' · 적 작전 ' + estTxt + (i < 25 ? ' <small>(첩보가 낮아 부정확)</small>' : '') + '</div>' + (self.foeNote ? self.foeNote(en, i) : '') +
       '<div class="cn-gen">🎖 <b>지휘관</b> <select id="cn-g">' + gopts + '</select> <small id="cn-gn"></small></div>' +
       '<div class="cn-pick"><small>※ 승산은 어림입니다. 실제 전투에는 날씨·우연 같은 <b>전운</b>이 끼어들어 유리해 보여도 질 수 있습니다.</small></div><div class="cn-pick">① 작전을 고르고 ② 아래 <b>교전 시작</b>을 누르세요. 지금 선택: <b id="cn-cur"></b></div><div id="cn-st"></div><div class="cn-foot"><div class="cn-res">예비대 <input type="range" id="cn-r" min="0" max="30" step="10" value="0"> <b id="cn-rv">0%</b> <small>(4합에 투입)</small></div><button class="btn pri" id="cn-go">⚔ 교전 시작</button></div>';
     var box = $1('#cn-st', card), btns = {};

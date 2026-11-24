@@ -228,10 +228,9 @@
         chips += this.eff({ fx: { gold: tg, food: tf }, world: (function () { var o = {}; o[role + '.p'] = -2; return o; })() });
         out.push('💰 <b>' + nm + ' — </b>' + T('주둔한 대군에 겁을 먹고 사신을 보내 조공과 화친을 청했습니다.', 'Frightened by the massed army, it sent envoys with tribute and a plea for peace.', '駐屯する大軍に怯え、使者を送って貢ぎ物と和睦を申し出ました。'));
         this.log(T('주둔 압박으로 조공을 받음', 'Tribute extracted by troop pressure', '駐屯圧迫で貢ぎ物を得る'));
-      } else if (w.hostility >= 70 && Math.random() < 0.3) {
-        var loss = Math.round(p.n * 0.04); var A = this.g.state.army; Object.keys(A).forEach(function (k) { var U = SG.unitById(k); if (U && !STAY[U.base]) A[k] = Math.max(0, A[k] - Math.round(A[k] * 0.03)); });
-        chips += this.eff({ fx: { morale: -3 } });
-        out.push('⚔ <b>' + nm + ' — </b>' + F('국경의 대치가 격해져 작은 충돌이 벌어졌고 우리 병력 약 {n}명이 상했습니다.', 'The standoff grew heated and a skirmish broke out; about {n} of our troops were hurt.', '国境の対峙が激化して小競り合いが起き、我が軍のおよそ{n}名が傷つきました。', loss));
+      } else if ((role === 'tang' ? w.commit >= 45 : w.hostility >= 55) && Math.random() < this.campOdds(p, Tg, role)) {
+        var cc = this.campClash(p, pl, Tg, role); chips += cc.chips;
+        out.push('⚔ <b>' + nm + ' — </b>' + cc.text);
       }
     }
     this.pre = (this.pre || '') + '<div class="freehd">🚩 <b>' + PX.title + ' — </b>' + '<b>' + short(pl) + ' — </b>' + F('병력 약 {n}명을 주둔시켜 압박 중입니다 (군량 {n}).', 'Pressing with about {n} troops stationed there (food {n}).', '兵およそ{n}名を駐屯させて圧迫中です(食糧{n})。', p.n, upkeep) + chips + (out.length ? '<br>' + out.join('<br>') : '') + '</div>';

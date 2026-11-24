@@ -84,7 +84,7 @@
       s.threat.lastCoal = y;
       var tot = 0, lead = c.members[0], lp = -1;
       c.members.forEach(function (k) { var w = s.world[k], n = k === 'tang' ? 12000 + w.commit * 350 : k === 'wa' ? w.p * 120 : w.p * 230; tot += n; if (n > lp) { lp = n; lead = k; } });
-      tot = Math.round(tot * clamp(0.8 + dom / 30, 0.8, 1.4));
+      tot = Math.round(tot * clamp(0.8 + dom / 30, 0.8, 1.4) * (this.extSize ? this.extSize() : 1));
       var names = c.members.map(function (k) { return N[k]; }).join('·'), wk = {}; c.members.forEach(function (k) { wk[k + '.p'] = -4; if (k !== 'tang') wk[k + '.hostility'] = -6; });
       s.threat.last = y;
       return this.finishInv({

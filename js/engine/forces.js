@@ -138,9 +138,10 @@
   (function () {
     var TRm = SG.data.tr6 = SG.data.tr6 || { en: {}, ja: {} };
     function T2(k, e, j) { TRm.en[k] = e; TRm.ja[k] = j; var I = SG.i18n; if (I && I.dict && I.dict.en) { I.dict.en[k] = e; I.dict.ja[k] = j; } return k; }
+    var SUF = [' 크게 사들이면 이웃 나라도 군비를 늘려 맞선다.', ' Buying big makes the neighbors arm in response.', ' 大量に買えば隣国も軍備を増やして対抗する。'];
     function amt(ctx, base) { var ec = (ctx.realm && ctx.realm.econ) || 50; return Math.round(base * (1 + Math.max(0, ec - 50) / 100) / 100) * 100; }
     function buy(id, nm, ds, cost, unit, base, extra, ln) {
-      return { id: id, cat: '군사', name: T2(nm[0], nm[1], nm[2]), desc: T2(ds[0], ds[1], ds[2]), cost: cost, hist: '가상', eff: {}, lines: [T2(ln[0], ln[1], ln[2])],
+      return { id: id, cat: '군사', name: T2(nm[0], nm[1], nm[2]), desc: T2(ds[0] + SUF[0], ds[1] + SUF[1], ds[2] + SUF[2]), cost: cost, hist: '가상', eff: {}, lines: [T2(ln[0], ln[1], ln[2])],
         fn: function (g, ctx) { var o = { army: {} }; o.army[unit] = amt(ctx, base); o.fx = { food: -Math.round((g.sb ? g.sb.armyTotal() : 0) / 1000 * 0.8) };   // 군세가 클수록 새 병력을 먹이고 입히는 군량이 더 든다
          if (extra) for (var k in extra) { if (k === 'fx') { for (var q in extra.fx) o.fx[q] = (o.fx[q] || 0) + extra.fx[q]; } else o[k] = extra[k]; } return o; } };
     }

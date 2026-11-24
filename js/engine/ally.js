@@ -179,7 +179,7 @@
       }
       self.renderTurn(); if (!aid) setTimeout(function () { jointPick(self); }, 100);
     });
-    btn(aid ? M.refuse : M.decl, aid ? M.refuseH : M.declH, function () { s.rel[r] = clamp((s.rel[r] || 0) - (aid ? 8 : 2), 0, 100); s.last = aid ? nm + M.refused : ''; self.renderTurn(); });
+    btn(aid ? M.refuse : M.decl, aid ? M.refuseH : M.declH, function () { a.refused = a.refused || {}; a.declined = a.declined || {}; if (aid) a.refused[r] = s.year; else a.declined[r] = s.year; s.rel[r] = clamp((s.rel[r] || 0) - (aid ? 8 : 2), 0, 100); s.last = aid ? nm + M.refused : ''; self.renderTurn(); });
     card.appendChild(box); wrap.appendChild(card); this.g.root.appendChild(wrap);
   };
 

@@ -196,8 +196,9 @@
     var tacs = [
       { id: 'front', label: '정면 공격', hint: '정직한 야전·공성. 변수가 적다.', m: {} },
       { id: 'ambush', label: '기습·야습', hint: '첫 합 큰 타격. 첩보 30 미만이면 역습 위험.', m: { ambush: true } },
-      { id: 'siege', label: '장기 포위·공성', hint: '성을 에워싸 서서히 압박. 군량 5 추가 소모, 공성에 유리.', m: { fort: true, pace: 0.9 }, food: 5 }
+      { id: 'siege', label: '장기 포위·공성', hint: '성을 에워싸 서서히 압박. 군량 5 추가 소모. 공성기가 없어도 성벽을 조금씩 허물고, 공성기가 있으면 훨씬 빠르다.', m: { fort: true, pace: 0.9 }, food: 5 }
     ];
+    if (self.moreTacs) self.moreTacs(T).forEach(function (t) { tacs.push(t); });
     tacs.forEach(function (t) {
       var b = h('button', 'ch', t.label + '<small>' + t.hint + '</small>');
       if (t.food && g.state.res.food < t.food) b.disabled = true;
@@ -208,7 +209,7 @@
       $('#wf-t', card).appendChild(b);
     });
     var btns = [].slice.call($('#wf-t', card).querySelectorAll('.ch'));
-    function upd() { var fr = +$('#wf-r', card).value / 100; btns.forEach(function (b, i) { var r = self.simWar(T, fr, tacs[i]), o = r.win ? (r.aEnd / r.aStart >= 0.6 ? '●●● 유리' : '●●○ 박빙(우세)') : (r.aEnd / (r.bEnd + 1) > 0.5 ? '●○○ 불리' : '○○○ 매우 불리'); var sm = b.querySelector('small'); sm.innerHTML = tacs[i].hint + ' <b>· 승산 ' + o + '</b>'; }); }
+    function upd() { var fr = +$('#wf-r', card).value / 100; btns.forEach(function (b, i) { var r = self.simWar(T, fr, tacs[i]), o = r.win ? (r.aEnd / r.aStart >= 0.6 ? '●●● 유리' : '●●○ 박빙(우세)') : (r.aEnd / (r.bEnd + 1) > 0.5 ? '●○○ 불리' : '○○○ 매우 불리'); var sm = b.querySelector('small'); sm.innerHTML = tacs[i].hint + (r.oddsHtml || ' <b>· 승산 ' + o + '</b>'); }); }
     $('#wf-r', card).oninput = function () { $('#wf-v', card).textContent = this.value + '%'; upd(); }; upd();
     $('#wf-x', card).onclick = function () { wrap.remove(); s.last = '출병을 거두었습니다. (행동력은 쓰이지 않았습니다)'; self.renderTurn(); };
     wrap.appendChild(card); g.root.appendChild(wrap);

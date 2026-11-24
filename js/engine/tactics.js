@@ -80,7 +80,10 @@
   }
   function genCmd(f) { var g = f.gen ? SG.generalById(f.gen) : null; return g ? g.stats.cmd : 5; }
 
-  SG.TACT = { SPEC: SPEC, T: T, BR_NM: { line: '보병', elite: '정예병', cav: '기병', rng: '궁·노병', siege: '공성기', navy: '수군' }, GN: GN, TK: TK, ST: ST, comp: comp, shares: shares, mu: mu, autoStance: autoStance, trainF: trainF };
+  // 성벽 모델 계수: def·atk 수비군의 방어·공격 배율(성벽 강도×서 있는 비율에 비례), rng·cav·levy·line 수비 병종별 이점, acav·aline 공격군 불리,
+  // tire 성벽 앞 공격군 사기 소모, imp 임시 공성(사다리·충차) 비율, impS 장기 포위 때 배수, held 성벽이 버티면 함락 못 하는 근소 승리 한계
+  var WALLK = { def: 0.7, atk: 0.3, rng: 0.4, cav: 0.25, levy: 0.28, line: 0.22, acav: 0.2, aline: 0.06, tire: 2, imp: 0.012, impS: 5, held: 1.35, mdef: -6, matt: 5 };
+  SG.TACT = { WALLK: WALLK, SPEC: SPEC, T: T, BR_NM: { line: '보병', elite: '정예병', cav: '기병', rng: '궁·노병', siege: '공성기', navy: '수군' }, GN: GN, TK: TK, ST: ST, comp: comp, shares: shares, mu: mu, autoStance: autoStance, trainF: trainF };
 
   SG.battle = function (A, B, opt) {
     opt = opt || {};
@@ -99,7 +102,15 @@
     var cmdA = genCmd(A), cmdB = genCmd(B);
     var ctA = (CT[sA] || {})[sB] || 1, ctB = (CT[sB] || {})[sA] || 1;
     var eliA = clamp(0.05 * ((A.bl || {}).elite || 0) * Math.min(1, (shA.elite || 0) * 3), 0, 0.25), eliB = clamp(0.05 * ((B.bl || {}).elite || 0) * Math.min(1, (shB.elite || 0) * 3), 0, 0.25);
-    var fortAny = !!(A.fort || B.fort || field === TK.fort);
+    var fortAny = !!(A.fort || B.fort || field === TK.fort), K = WALLK;
+    // 성벽(공성전): 수비측에 walls = {w, hp0, nat, nd, eng, apr, nm} 가 있으면 성벽 체력 모델을 쓴다.
+    // 공성기가 성벽을 허물수록 수비측의 이점(성벽 위의 사격·방벽)이 사라지고, 성벽이 서 있는 동안 공격군은 사기와 병력을 잃는다.
+    var wDef = A.walls ? A : B.walls ? B : null, WL = null, L3 = SG.L3 || function (k, e, j) { var l = SG.i18n && SG.i18n.lang; return l === 'en' ? e : l === 'ja' ? j : k; };
+    if (wDef && wDef.walls.hp0 > 0) {
+      var wq = wDef.walls, cAt = wDef === A ? cb : ca;
+      WL = { w: wq.w || 1, hp0: wq.hp0, hp: wq.hp0, nat: wq.nat || 'plain', nd: wq.nd || 1, eng: wq.eng == null ? 1 : wq.eng, apr: wq.apr == null ? 1 : wq.apr, nm: wq.nm || null, side: wDef === A ? 'a' : 'b', breach: 0, dmg: 0, sg0: cAt.siege ? cAt.siege.n : 0 };
+      fortAny = true;
+    }
 
     function season_(g, isAtt, st) {
       var m = 1;
@@ -108,7 +119,7 @@
       return m;
     }
     function power(f, c, side, ctx, r) { // 해당 합의 공격력/방어력
-      var atk = 0, def = 0, st = ST[side.st] || ST.balanced, isAtt = side.att, def_bonus;
+      var atk = 0, def = 0, sg = 0, st = ST[side.st] || ST.balanced, isAtt = side.att, def_bonus;
       for (var g in c) {
         if (g === 'N') continue; def_bonus = 1; var e = c[g], tf = trainF(g, f.train), m = tf * season_(g, isAtt), bl = f.bl || {}, Lv = bl[g] || 0, fbl = ctx.fbl || {};
         m *= 1 + 0.04 * Lv; if (g === 'line' && side.st === 'hold') m *= 1 + 0.02 * Lv;
@@ -128,9 +139,13 @@
         if (g === 'cav') { if (sn === 'wedge') tkm *= r === 2 ? 1.6 : r === 3 ? 1.1 : 1; if (sn === 'feign') tkm *= r <= 2 ? 0.8 : r === 3 ? 1.5 : 1.15; if (sn === 'harass') tkm *= 0.92; if (e.spec && e.spec.goguryeo_gaemamusa && sn === 'charge' && field === TK.plain) tkm *= 1.1; }
         if (sn === 'feign' && g !== 'cav') m *= r <= 2 ? 0.9 : 1.1;
         if (g === 'siege') tkm *= (fortAny ? 1.8 * (1 + 0.06 * Lv) : 0.6) * (side.st === 'siege' ? 1.25 : 1);
+        if (ctx.wl) { var wz = ctx.wl.w * ctx.wf;
+          if (ctx.wd) { if (g === 'rng') tkm *= 1 + K.rng * wz; else if (g === 'cav') tkm *= 1 - K.cav * wz; else if (g === 'levy') def_bonus *= 1 + K.levy * wz; else if (g === 'line' || g === 'elite') def_bonus *= 1 + K.line * wz; }
+          else { if (g === 'cav') tkm *= 1 - K.acav * wz; else if (g === 'levy' || g === 'line' || g === 'elite') m *= 1 - K.aline * wz; } }
+        if (g === 'siege') sg += e.atk * m * tkm;
         atk += e.atk * m * tkm; def += e.def * m * def_bonus;
       }
-      return { atk: atk * st.atk * ctx.ct, def: def * st.def };
+      return { atk: atk * st.atk * ctx.ct, def: def * st.def, sg: sg * st.atk * ctx.ct };
     }
     function side(st, att, res) { return { st: st, att: att, res: res }; }
     var iA = side(sA, !aDef, resA), iB = side(sB, aDef, resB);
@@ -141,7 +156,9 @@
     var stT = ST[sA], stU = ST[sB];
     for (var r = 1; r <= rounds; r++) {
       var na = tot(a), nb = tot(b); if (!na || !nb) break;
-      var ca2 = comp(a), cb2 = comp(b), pA = power(A, ca2, iA, { ct: ctA, fbl: B.bl, esh: shares(cb2), est: sB }, r), pB = power(B, cb2, iB, { ct: ctB, fbl: A.bl, esh: shares(ca2), est: sA }, r);
+      var ca2 = comp(a), cb2 = comp(b), wfr = WL ? WL.hp / WL.hp0 : 0, cxA = { ct: ctA, fbl: B.bl, esh: shares(cb2), est: sB }, cxB = { ct: ctB, fbl: A.bl, esh: shares(ca2), est: sA };
+      if (WL && wfr > 0.001) { cxA.wl = cxB.wl = WL; cxA.wf = cxB.wf = wfr; cxA.wd = WL.side === 'a'; cxB.wd = WL.side === 'b'; }
+      var pA = power(A, ca2, iA, cxA, r), pB = power(B, cb2, iB, cxB, r);
       var fatA = (1 - 0.022 * (r - 1) * (1.3 - trA / 100)), fatB = (1 - 0.022 * (r - 1) * (1.3 - trB / 100));
       var contA = r <= 3 ? 1 - resA : 1, contB = r <= 3 ? 1 - resB : 1;
       var fpA = r >= 4 ? (1 - resA) * fatA + resA : fatA * contA, fpB = r >= 4 ? (1 - resB) * fatB + resB : fatB * contB;
@@ -150,6 +167,8 @@
       var atkA = pA.atk * muA * mfA * gA * fpA * (terA > 1 ? 1 + (terA - 1) * 0.5 : terA) * (opt.luckA || 1);
       var atkB = pB.atk * muB * mfB * gB * fpB * (terB > 1 ? 1 + (terB - 1) * 0.5 : terB) * (opt.luckB || 1);
       var defA = pA.def * mfA * gA * terA, defB = pB.def * mfB * gB * terB;
+      if (WL) { var wD = 1 + K.def * WL.w * wfr, wA = 1 + K.atk * WL.w * wfr, ndA = WL.nd > 1 ? 1 + (WL.nd - 1) * 0.5 : WL.nd, ap = r <= 2 ? WL.apr : 1;
+        if (WL.side === 'a') { defA *= wD * WL.nd; atkA *= wA * ndA; atkB *= ap; } else { defB *= wD * WL.nd; atkB *= wA * ndA; atkA *= ap; } }
       var engA = A.cap && na > A.cap ? A.cap / na : 1, engB = B.cap && nb > B.cap ? B.cap / nb : 1;
       var am = r === 1 && (sA === 'ambush') ? (field === TK.hill || field === TK.pass || field === TK.river ? 1.7 : 1.35) : 1, bm = r === 1 && sB === 'ambush' ? (field === TK.hill || field === TK.pass || field === TK.river ? 1.7 : 1.35) : 1;
       var fm = 1; // 화공
@@ -167,10 +186,18 @@
       if (sA === 'harass') mB -= 2.5 + 3 * (shA.cav || 0); if (sB === 'harass') mA -= 2.5 + 3 * (shB.cav || 0);
       if (r === 2 && sA === 'wedge') mB -= 3 + 8 * (shA.cav || 0); if (r === 2 && sB === 'wedge') mA -= 3 + 8 * (shB.cav || 0);
       if (r === 3 && sA === 'feign') mB -= 4 + 4 * (shA.cav || 0); if (r === 3 && sB === 'feign') mA -= 4 + 4 * (shB.cav || 0);
+      if (WL && WL.hp > 0) { // 공성기의 위력 + 임시 사다리·충차(장기 포위에서는 더 많이)
+        var pAt = WL.side === 'a' ? pB : pA, stAt = WL.side === 'a' ? sB : sA, fAt = WL.side === 'a' ? mfB * gB * fpB : mfA * gA * fpA, akAt = WL.side === 'a' ? atkB : atkA;
+        var dm = (pAt.sg * fAt * (stAt === 'siege' ? 1.15 : 1) + akAt * K.imp * (stAt === 'siege' ? K.impS : 1)) * WL.eng;
+        WL.dmg += Math.min(WL.hp, dm); WL.hp = Math.max(0, WL.hp - dm);
+        if (wfr > 0.5) { if (WL.side === 'a') mB -= K.tire * WL.w * wfr; else mA -= K.tire * WL.w * wfr; }
+        if (!WL.breach && WL.hp / WL.hp0 < 0.25) { WL.breach = r; if (WL.side === 'a') { mA += K.mdef; mB += K.matt; } else { mB += K.mdef; mA += K.matt; } log.push(L3('제' + r + '합 — 공성기가 성벽을 허물었습니다. 성벽이 무너져 공격군이 성 안으로 밀려듭니다.', 'Round ' + r + ' — the engines brought the walls down and the attackers pour into the fortress.', '第' + r + '合 — 攻城器が城壁を崩し、攻め手が城内へなだれ込みます。')); }
+      }
       if (r === 4 && resA) { mA += 8; log.push('제4합 — ' + A.name + '의 예비대 ' + Math.round(resA * 100) + '%가 새 힘으로 가담합니다.'); }
       if (r === 4 && resB) { mB += 8; log.push('제4합 — ' + B.name + '의 예비대가 가담합니다.'); }
-      var phase = r === 1 ? '원거리 교전' : r <= 3 ? '정면 충돌' : r === 4 ? '측면·예비대 투입' : '결전';
+      var phase = r === 1 ? '원거리 교전' : r <= 3 ? '정면 충돌' : r === 4 ? '측면·예비대 투입' : '결전', wallLine = WL ? L3('  └ 성벽 ' + Math.round(100 * WL.hp / WL.hp0) + '% 남음', '  └ Walls ' + Math.round(100 * WL.hp / WL.hp0) + '% standing', '  └ 城壁 残り' + Math.round(100 * WL.hp / WL.hp0) + '%') : '';
       log.push('제' + r + '합(' + phase + ') — ' + A.name + ' ' + na2.toLocaleString() + ' (사기 ' + Math.round(clamp(mA, 0, 100)) + ') / ' + B.name + ' ' + nb2.toLocaleString() + ' (사기 ' + Math.round(clamp(mB, 0, 100)) + ')');
+      if (wallLine) log.push(wallLine);
       if (r >= 3) { // 패주 판정
         var thA = 26 + (55 - trA) * 0.25 + (sA === 'hold' ? -4 : 0) - (cmdA - 5) * 1.2, thB = 26 + (55 - trB) * 0.25 + (sB === 'hold' ? -4 : 0) - (cmdB - 5) * 1.2;
         var brA = mA < thA || rA < 0.3, brB = mB < thB || rB < 0.3;
@@ -182,9 +209,10 @@
       var win = flee === 'a' ? sB : sA, wc = flee === 'a' ? shB : shA, loser = flee === 'a' ? a : b, wname = flee === 'a' ? B.name : A.name, lname = flee === 'a' ? A.name : B.name;
       var pur = 0.07 + 0.22 * (wc.cav || 0) + (flee === 'a' ? (trB - trA) : (trA - trB)) / 800; pur += 0.02 * (((flee === 'a' ? B.bl : A.bl) || {}).cav || 0) * Math.min(1, (wc.cav || 0) * 4); if ((flee === 'a' ? sB : sA) === 'feign' || (flee === 'a' ? sB : sA) === 'wedge') pur += 0.03; pur = clamp(pur, 0.04, 0.32);
       loser.forEach(function (u) { u.n = Math.max(0, Math.round(u.n * (1 - pur))); });
-      routed = flee; log.push(lname + '군이 무너져 패주합니다. ' + wname + '의 추격으로 ' + Math.round(pur * 100) + '%를 더 잃습니다' + ((wc.cav || 0) > 0.2 ? '(기병 추격).' : '.'));
+      routed = flee; log.push(lname.replace(/군$/, '') + '군이 무너져 패주합니다. ' + wname + '의 추격으로 ' + Math.round(pur * 100) + '%를 더 잃습니다' + ((wc.cav || 0) > 0.2 ? '(기병 추격).' : '.'));
     }
-    var ra = tot(a) / (s0a || 1), rb = tot(b) / (s0b || 1), winner = routed ? (routed === 'a' ? 'b' : 'a') : (ra > rb ? 'a' : 'b');
+    var ra = tot(a) / (s0a || 1), rb = tot(b) / (s0b || 1), winner = routed ? (routed === 'a' ? 'b' : 'a') : (ra > rb ? 'a' : 'b'), held = false;
+    if (WL && !routed && winner !== WL.side && WL.hp / WL.hp0 > 0.5 && (WL.side === 'b' ? ra / (rb || 0.01) : rb / (ra || 0.01)) < K.held) { winner = WL.side; held = true; log.push(L3('성벽이 끝까지 버텨 공격군은 성을 함락하지 못했습니다.', 'The walls held to the end and the attackers could not take the fortress.', '城壁は最後まで持ちこたえ、攻め手は城を落とせませんでした。')); }
 
     // ── 요인 설명 ──
     var tfA = trainF('line', trA), tfB = trainF('line', trB);
@@ -201,9 +229,13 @@
       fac.push('<b>병종 상성</b> 아군 ' + muA.toFixed(2) + ' : 적 ' + muB.toFixed(2) + ' — ' + (muA > muB ? '아군 ' + best(ca) + '이(가) 적 편성을 잘 상대합니다.' : '적 ' + best(cb) + '이(가) 아군 편성을 잘 상대합니다.')); }
     if (sA !== 'balanced' || sB !== 'balanced') fac.push('<b>작전</b> 아군 「' + ST[sA].nm + '」 대 적 「' + ST[sB].nm + '」' + (ctA !== 1 || ctB !== 1 ? ' → ' + (ctA > ctB ? '아군 작전이 적 태세를 찔렀습니다 (×' + ctA.toFixed(2) + ')' : ctB > ctA ? '적 태세가 아군 작전을 받아쳤습니다 (×' + ctB.toFixed(2) + ')' : '맞물림') : ''));
     if (field !== TK.plain) fac.push('<b>지형</b> ' + field.nm + ' — 기병 ×' + field.cav.toFixed(2) + ', 궁·노 ×' + field.rng.toFixed(2) + (shA.cav > 0.25 || shB.cav > 0.25 ? '. 기병이 많은 쪽이 제 힘을 못 씁니다.' : ''));
+    if (WL) { var atN0 = WL.side === 'a' ? B.name : A.name, atN = SG.i18n && SG.i18n.lang !== 'ko' ? SG.i18n.t(atN0) : atN0, lpct = Math.round(100 * WL.hp / WL.hp0), nmT = WL.nm ? (SG.i18n && SG.i18n.lang === 'en' ? WL.nm[1] : SG.i18n && SG.i18n.lang === 'ja' ? WL.nm[2] : WL.nm[0]) : '';
+      fac.push('<b>' + L3('성벽', 'Walls', '城壁') + '</b> ' + L3('수비군은 성벽 뒤에서 싸웁니다', 'The defenders fight from behind the walls', '守備軍は城壁の後ろで戦います') + ' (' + L3('성벽 강도', 'wall strength', '城壁の強さ') + ' ' + WL.w.toFixed(2) + (nmT ? ' · ' + nmT + (Math.abs(WL.nd - 1) > 0.02 ? ' ×' + WL.nd.toFixed(2) : '') : '') + '). ' +
+        L3(atN + ' 공성기 ' + WL.sg0.toLocaleString() + '명', atN + ' siege engines: ' + WL.sg0.toLocaleString(), atN + ' 攻城器 ' + WL.sg0.toLocaleString() + '名') + ' → ' +
+        (WL.breach ? L3('제' + WL.breach + '합에 성벽이 무너졌습니다.', 'the walls fell in round ' + WL.breach + '.', '第' + WL.breach + '合に城壁が崩れました。') : L3('성벽이 ' + lpct + '% 남은 채 싸움이 끝났습니다. 공성기가 많을수록 성벽이 빨리 무너집니다.', lpct + '% of the walls still stood when the fighting ended. More engines bring the walls down faster.', '城壁は' + lpct + '%残ったまま戦いが終わりました。攻城器が多いほど城壁は早く崩れます。')) + (held ? ' ' + L3('성벽이 버텨 함락하지 못했습니다.', 'The walls held, so the fortress did not fall.', '城壁が持ちこたえ、城は落ちませんでした。') : '')); }
     if (season) fac.push('<b>계절</b> ' + season + (season === '겨울' ? ' — 공격측 사기·궁병 약화' : season === '여름' ? ' — 장마로 활줄·진창에 불리' : season === '가을' ? ' — 건조해 화공이 잘 번집니다' : ' — 특이사항 없음'));
     if (resA || resB) fac.push('<b>예비대</b> ' + (resA ? '아군 ' + Math.round(resA * 100) + '%' : '') + (resA && resB ? ' · ' : '') + (resB ? '적 ' + Math.round(resB * 100) + '%' : '') + ' — 처음 3합 동안 아껴 두었다가 4합에 투입.');
     if (routed) fac.push('<b>패주</b> ' + (routed === 'a' ? '아군' : '적군') + '의 사기가 꺾여 진형이 무너졌습니다. 훈련·지휘관·병력 잔존율이 버티는 힘을 좌우합니다.');
-    return { a: A, b: B, aStart: s0a, bStart: s0b, aEnd: tot(a), bEnd: tot(b), aLeft: a, bLeft: b, winner: winner, ratio: ra / (rb || 0.01), log: log, factors: fac, routed: routed, stanceA: sA, stanceB: sB };
+    return { a: A, b: B, aStart: s0a, bStart: s0b, aEnd: tot(a), bEnd: tot(b), aLeft: a, bLeft: b, winner: winner, ratio: ra / (rb || 0.01), log: log, factors: fac, routed: routed, stanceA: sA, stanceB: sB, wall: WL ? { left: WL.hp / WL.hp0, breach: WL.breach, sg0: WL.sg0, dmg: WL.dmg, hp0: WL.hp0, nat: WL.nat, w: WL.w, side: WL.side, held: held } : null };
   };
 })();

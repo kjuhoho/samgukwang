@@ -24,7 +24,7 @@
       run: function () {
         var s = sb.s; s.extended = (s.extended || 0) + 1; s.shown.__fin = 1;
         s.endNew = Math.max(sb.cfg.end, s.year) + EXT; sb.applyMoved();
-        s.ap = 3; s.last = '<b>왕조는 이어집니다.</b> 다음 왕이 뒤를 이었습니다. 이제부터는 사료에 없는 길입니다.';
+        s.ap = 3; s.last = '<b>왕조는 이어집니다.</b> 다음 왕이 뒤를 이었습니다. 이제부터는 사료에 없는 길입니다.<br><small>' + SG.L3('이웃 나라들도 이 시대에는 쉬지 않고 자라나며, 우리의 형편에 맞춰 더 거세게 나옵니다.', 'The neighboring states will keep growing in this age, and press harder the stronger we become.', '隣国もこの時代には休まず成長し、我が国の情勢に合わせてより激しく出てきます。') + '</small>';
         sb.log('후계 시대 — 왕조가 이어지다');
         self.hud(); self.go('__turn__');
       }
