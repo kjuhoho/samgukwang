@@ -159,13 +159,13 @@ window.SG = window.SG || {}; SG.data = SG.data || {}; SG.scenarios = SG.scenario
     var t = cfg.turnTitle ? cfg.turnTitle(s.year) : (this.cfg.country || '') + ' ' + s.year + '년';
     var body = [];
     body.push('<div class="realm">' + ['royal', 'train', 'defense', 'econ', 'intel', 'navy'].map(function (k) { return bar(REALM_N[k], s.realm[k]); }).join('') + '</div>');
-    if (SG.branchPanel) body.push(SG.branchPanel(this));
-    body.push(this.dipHtml());
     if (s.last) body.push('<div class="quote">' + s.last + '</div>');
+    if (SG.branchPanel) body.push(SG.branchPanel(this));
     var adv = SG.advisor ? SG.advisor.advise(this) : null;
     if (adv) body.push('<div class="note"><b>참모의 말</b><br>' + adv + '</div>');
     var lg = s.log.slice(-5).reverse(); if (lg.length) body.push('<div class="chron-log"><b>최근 기록</b><br>' + lg.join('<br>') + '</div>');
     var laws = Object.keys(s.laws).map(function (k) { return self.lawById(k).name; }); if (laws.length) body.push('<div class="chron-log"><b>시행 중인 법령</b> ' + laws.join(' · ') + '</div>');
+    body.push(this.dipHtml());
     g.page({ era: s.year + '년 · 정무 행동력 ' + this.pips(), title: this.L(t), body: body });
     s.last = '';
     this.drawChoices();

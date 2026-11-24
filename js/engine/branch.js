@@ -98,12 +98,12 @@
   /* ── 화면: 병과 숙련 막대 ── */
   var HD = T('병과 숙련', 'Branch mastery', '兵科の熟練');
   SG.branchPanel = function (sb) {
-    var bl = sb.myBL(), r = sb.s.realm, h = '<div class="realm brs" title="' + HD + '">';
+    var bl = sb.myBL(), r = sb.s.realm, h = '<details class="brd"' + (sb.s.brOpen ? ' open' : '') + ' ontoggle="try{SG.game.sb.s.brOpen=this.open}catch(e){}"><summary style="cursor:pointer;font-weight:700;padding:4px 0">' + HD + '</summary><div class="realm brs" title="' + HD + '">';
     ['line', 'elite', 'cav', 'rng', 'siege', 'navy'].forEach(function (g) {
       var v = g === 'navy' ? r.navy || 0 : r[KEYS[g]] || 0, L = bl[g];
       h += '<div class="rb" title="' + PERK[g] + '"><i>' + NM[g] + '</i><span><u style="width:' + clamp(v, 0, 100) + '%"></u></span><b>Lv' + L + '</b></div>';
     });
-    return h + '</div>';
+    return h + '</div></details>';
   };
 
   /* ── 군사 명령: 병과 조련 ── */
