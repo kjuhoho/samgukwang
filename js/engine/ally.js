@@ -43,6 +43,7 @@
     cJ: T('공동 출병 제안', 'Propose a Joint Campaign', '共同出兵の提案'), cJd: T('우호국에 함께 적을 치자고 청합니다. 최근 우리가 노린 나라(없으면 가장 적대적인 나라)가 목표가 되며, 우호국이 올해와 이듬해 그 나라를 공격합니다.', 'Ask a friendly state to strike a common foe with us. The target is the state we last attacked (or the most hostile); the partner attacks it this year and next.', '友好国に共に敵を討とうと求めます。目標は最近攻めた国(なければ最も敵対的な国)で、友好国が今年と来年その国を攻めます。'),
     cJl: T('사신들이 함께 칠 계책을 나누었습니다.', 'Envoys worked out a plan to strike together.', '使者たちは共に討つ策を練りました。')
   };
+  T('고구려가 올해와 이듬해 신라의 성을 실제로 공격한다.', 'Goguryeo will actually attack Silla’s castles this year and next.', '高句麗が今年と来年、新羅の城を実際に攻撃する。');
   var PROFILE = { // 나라별 편제 비율
     goguryeo: { line: .26, garrison: .12, levy: .08, archer: .14, horse: .16, elite: .1, siege: .02 },
     tang: { line: .26, garrison: .08, levy: .06, archer: .1, horse: .14, elite: .1, crossbow: .1, siege: .03 },
@@ -91,6 +92,12 @@
     setJoint(sb, r, foe); s.rel[r] = clamp(rel + 2, 0, 100); sb.log('공동 출병: ' + nmRole(sb, r) + ' → ' + nmSide(sb, foe));
     return { text: nm + M.jyes1 + '<b>' + nmSide(sb, foe) + '</b>' + M.jyes2 };
   }
+  /* 사건·시나리오 선택지에서 쓰는 공동 출병 시작: 우호국이 실제로 같은 적의 성을 친다 */
+  SG.ALLY_start = function (sb, role, foeRole) {
+    var foe = sb.sides[foeRole], s = sb.s; if (!sb.sides[role] || !foe || foe === sb.side || (s.destroyed && s.destroyed[foe])) return '';
+    setJoint(sb, role, foe); sb.log('공동 출병: ' + nmRole(sb, role) + ' → ' + nmSide(sb, foe));
+    return '<b>' + nmRole(sb, role) + '</b>' + M.jyes1 + '<b>' + nmSide(sb, foe) + '</b>' + M.jyes2;
+  };
   SG.data.commands = (SG.data.commands || []).concat([
     { id: 'ask_aid', cat: '외교', name: M.cA, desc: M.cAd, cost: { gold: 8 }, cd: 3, hist: '가상', eff: {}, lines: [M.cAl], req: function (ctx) { var sb = ctx.sb; return !A_(sb).aid && partners(sb, 40).length > 0; }, fn: function (g, ctx) { return doAid(ctx.sb); } },
     { id: 'joint_war', cat: '외교', name: M.cJ, desc: M.cJd, cost: { gold: 6 }, cd: 3, hist: '가상', eff: {}, lines: [M.cJl], req: function (ctx) { var sb = ctx.sb, f = foeSide(sb); return !A_(sb).joint && !!f && partners(sb, 45, f).length > 0; }, fn: function (g, ctx) { return doJoint(ctx.sb); } }

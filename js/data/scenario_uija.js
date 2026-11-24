@@ -6,7 +6,7 @@ window.SG = window.SG || {}; SG.data = SG.data || {}; SG.scenarios = SG.scenario
   // 전투 창 제목 번역(전투 창은 코드에서 열리므로 시나리오 문자열 목록에 들어가지 않는다)
   (function () {
     var I = SG.i18n, tr = [
-      ['탄현 전투 (가상)', 'Battle of Tanhyeon (hypothetical)', '炭峴の戦い(仮想)'], ['기벌포 전투 (가상)', 'Battle of Gibeolpo (hypothetical)', '伎伐浦の戦い(仮想)'],
+      ['서해 해전 (가상)', 'West Sea Naval Battle (hypothetical)', '西海の海戦(仮想)'], ['탄현 전투 (가상)', 'Battle of Tanhyeon (hypothetical)', '炭峴の戦い(仮想)'], ['기벌포 전투 (가상)', 'Battle of Gibeolpo (hypothetical)', '伎伐浦の戦い(仮想)'],
       ['황산벌 — 네 번의 접전', 'Hwangsanbeol — Four Clashes', '黄山の野 — 四度の接戦'], ['황산벌 — 총공격', 'Hwangsanbeol — The General Assault', '黄山の野 — 総攻撃'],
       ['사비 성외 전투 (가상)', 'Battle Outside Sabi (hypothetical)', '泗沘城外の戦い(仮想)'], ['사비성 농성 (가상)', 'Siege of Sabi (hypothetical)', '泗沘城籠城(仮想)'],
       ['웅진성 농성 (가상)', 'Siege of Ungjin (hypothetical)', '熊津城籠城(仮想)'], ['주류성 공방 (가상)', 'Siege of Juryuseong (hypothetical)', '周留城攻防(仮想)'], ['백강 전투', 'Battle of Baekgang', '白江の戦い']
@@ -176,14 +176,15 @@ window.SG = window.SG || {}; SG.data = SG.data || {}; SG.scenarios = SG.scenario
     note: '배치 병력 3만은 5방군·결사대·기병·궁수 가운데 야전에 동원할 수 있는 규모를 추정한 값이며, 사료 수치가 아닙니다.',
     alloc: {
       title: '야전군 배치', sub: '요충별 배치 (천 명)',
-      pool: function (g) { return Math.max(10, Math.min(45, Math.round(g.sb.fieldTotal() / 1000))); },
+      pool: function (g) { return Math.max(10, Math.min(70, Math.round(Math.max(g.sb.fieldTotal(), g.sb.armyTotal() * 0.95) / 1000))); },
       stations: [
-        { id: 'tanhyeon', name: '탄현', place: 'tanhyeon', desc: '신라군 5만이 오는 좁은 길목 (지형 ×1.9, 적은 일부만 교전)', max: 20, def: 0 },
-        { id: 'gibeolpo', name: '기벌포·백강', place: 'gibeolpo', desc: '당 상륙군 (갯벌 ×1.7, 상륙 폭 제한)', max: 20, def: 0 },
-        { id: 'sabi', name: '사비 본성', place: 'sabi', desc: '예비·성 방어 (최후의 보루)', max: 20, def: 0 }
+        { id: 'tanhyeon', name: '탄현', place: 'tanhyeon', desc: '신라군 5만이 오는 좁은 길목 (지형 ×1.9, 적은 일부만 교전). 전 병력을 보낼 수도 있다', max: 99, def: 0 },
+        { id: 'navy', name: '수군 요격 (서해 어귀)', place: 'gibeolpo', desc: '상륙 전 당 함대를 바다에서 맞받는다. 이기면 상륙군이 약해진다 (수군 ×1.25)', max: 99, def: 0 },
+        { id: 'gibeolpo', name: '기벌포·백강', place: 'gibeolpo', desc: '당 상륙군 (갯벌 ×1.7, 상륙 폭 제한)', max: 99, def: 0 },
+        { id: 'sabi', name: '사비 본성', place: 'sabi', desc: '예비·성 방어 (최후의 보루)', max: 99, def: 0 }
       ],
       feedback: function (g, a, left) {
-        var t = '탄현 ' + a.tanhyeon + '천 · 기벌포 ' + a.gibeolpo + '천 · 사비 ' + a.sabi + '천 (미배치 ' + left + '천).';
+        var t = '탄현 ' + a.tanhyeon + '천 · 기벌포 ' + a.gibeolpo + '천 · 수군 ' + a.navy + '천 · 사비 ' + a.sabi + '천 (미배치 ' + left + '천).';
         t += '<br><small>신라군 5만, 당 상륙군 약 9만이 접근합니다. 병력이 적어도 한 곳을 확실히 막아 시간을 버는 것이 목적일 수 있습니다.</small>';
         return t;
       },
@@ -197,6 +198,15 @@ window.SG = window.SG || {}; SG.data = SG.data || {}; SG.scenarios = SG.scenario
         if (a.tanhyeon <= 0) res.tanhyeon = 'broken';
         if (a.gibeolpo <= 0) res.gibeolpo = 'broken';
         g.state.flags.pass = res; g.state.flags.allocSabi = a.sabi;
+        var nIn = a.navy > 0 ? [{ id: 'baekje_navy', n: a.navy * 1000 }] : null, tangScale = 1, tangMor = plan === 'uijik' ? 52 : 68;
+        function fightN(done) {
+          var nTitle = '서해 해전 (가상)';
+          duel(g, force('백제 수군', 'baekje', nIn, 'uija', 1.1 * prep * seong * dm, mm, { ambush: plan === 'uijik' }), force('당 함대', 'tang', scaleHost([{ id: 'tang_navy', n: 14000 }, { id: 'tang_archer', n: 3000 }], KT), 'sojeongbang', 1, 70, { cap: 20000 }), { rounds: 6 }, { title: nTitle, tk: 'sea', gen: 'uija', def: true, place: 'gibeolpo' }, function (rn) {
+            var o = outcomeOf(rn); tangScale = o === 'held' ? 0.55 : o === 'delayed' ? 0.8 : 1; tangMor = o === 'held' ? tangMor - 10 : o === 'delayed' ? tangMor - 4 : tangMor;
+            if (o === 'held') g.state.flags.seaWin = true;
+            g.battleUI(rn, nTitle, '서해 — ' + (o === 'held' ? '당 함대를 격파해 상륙군이 크게 줄었습니다' : o === 'delayed' ? '당 함대에 타격을 주어 상륙이 지연됩니다' : '수군이 패해 당군이 그대로 상륙합니다'), function () { g.map.markPlace('gibeolpo', 'hot'); done(); });
+          });
+        }
         function fightT(done) {
           var tTitle = '탄현 전투 (가상)';
           duel(g, force('탄현 방어군', 'baekje', tIn, 'heungsu', 1.9 * prep * seong * tMod * dm, mm, { ambush: plan === 'sangyeong' || plan === 'heungsu' }), force('신라군', 'silla', sillaHost(), 'gim_yusin', 1, 72, { cap: 20000 }), { rounds: 6 }, { title: tTitle, tk: 'pass', gen: 'heungsu', def: true, place: 'tanhyeon' }, function (rt) {
@@ -206,14 +216,15 @@ window.SG = window.SG || {}; SG.data = SG.data || {}; SG.scenarios = SG.scenario
         }
         function fightG(done) {
           var gTitle = '기벌포 전투 (가상)';
-          duel(g, force('기벌포 방어군', 'baekje', gIn, 'uija', 1.7 * prep * seong * bMod * dm, mm, { ambush: plan === 'uijik' }), force('당 상륙군', 'tang', tangHost(), 'sojeongbang', 1, plan === 'uijik' ? 52 : 68, { cap: 30000 }), { rounds: 6 }, { title: gTitle, tk: 'coast', gen: 'uija', def: true, place: 'gibeolpo' }, function (rg) {
+          duel(g, force('기벌포 방어군', 'baekje', gIn, 'uija', 1.7 * prep * seong * bMod * dm, mm, { ambush: plan === 'uijik' }), force('당 상륙군', 'tang', scaleHost(tangHost(), tangScale), 'sojeongbang', 1, tangMor, { cap: 30000 }), { rounds: 6 }, { title: gTitle, tk: 'coast', gen: 'uija', def: true, place: 'gibeolpo' }, function (rg) {
             res.gibeolpo = outcomeOf(rg);
             g.battleUI(rg, gTitle, '기벌포 — ' + OUT[res.gibeolpo], function () { casualties(g, gBefore, rg.aLeft); g.map.markPlace('gibeolpo', 'hot'); done(); });
           });
         }
-        function finish() { g.go(res.tanhyeon === 'broken' && res.gibeolpo === 'broken' ? 's_hwangsan' : (res.tanhyeon !== 'broken' && res.gibeolpo !== 'broken') ? 's_stall' : 's_split'); }
+        function finish() { if (res.gibeolpo === 'broken' && g.f('seaWin') && a.navy > 0) res.gibeolpo = 'delayed'; g.go(res.tanhyeon === 'broken' && res.gibeolpo === 'broken' ? 's_hwangsan' : (res.tanhyeon !== 'broken' && res.gibeolpo !== 'broken') ? 's_stall' : 's_split'); }
         // 전투 창이 화면에 뜨므로 우선 장면 이동을 막는다
-        setTimeout(function () { (a.tanhyeon > 0 ? fightT : function (d) { d(); })(function () { (a.gibeolpo > 0 ? fightG : function (d) { d(); })(finish); }); }, 0);
+        var nop = function (d) { d(); }; g.state.flags.seaWin = false;
+        setTimeout(function () { (a.tanhyeon > 0 ? fightT : nop)(function () { (a.navy > 0 ? fightN : nop)(function () { (a.gibeolpo > 0 ? fightG : nop)(finish); }); }); }, 0);
         return '__none__';
       }
     }

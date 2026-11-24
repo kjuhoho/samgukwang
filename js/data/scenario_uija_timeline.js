@@ -69,9 +69,9 @@
   T.push({ y: 648, m: '3~4월', place: 'daeyaseong', title: '요거 십여 성과 옥문곡', hint: '이 무렵 신라 김춘추가 당 태종을 만나 군사 동맹을 맺은 것으로 알려져 있습니다.',
     text: ['의직이 신라 서쪽의 <b>요거</b> 등 십여 성을 쳐 취합니다. 기세를 몰아 <b>옥문곡</b>으로 나아가려는 참입니다. 그곳엔 김유신이 기다리고 있습니다.', '한편 신라의 <b>김춘추</b>가 당에 건너가 당 태종과 만난 일이 첩자의 입으로 전해집니다. 신라는 당의 관복을 입고 연호를 따르기로 했다고 합니다.'],
     note: '백제본기 648년: 3월 의직이 신라 서쪽 요거 등 십여 성을 습격해 취했고, 4월 옥문곡으로 진격하다가 유신에게 크게 패했습니다. 같은 해 신라 김춘추가 당 태종과 회견해 군사 동맹을 맺은 것은 신라본기·구당서의 기사입니다.', src: SRC + ' 9년 · 신라본기 진덕왕 2년',
-    hist: { label: '요거 등을 취한 기세를 몰아 옥문곡으로 진격한다', hint: '성과를 얻지만 큰 패배도 맛본다.', fx: { gold: 8, food: -6, morale: -4 }, army: { baekje_bangun: -900 }, world: { 'silla.hostility': 6, 'silla.p': -2, 'tang.commit': 6 }, result: '십여 성을 얻었으나 옥문곡에서 유신의 군에게 크게 패했습니다. 이 무렵 김춘추가 당 태종과 동맹을 약속했다는 소식이 사비에 전해졌습니다.' },
+    hist: { label: '요거 등을 취한 기세를 몰아 옥문곡으로 진격한다', hint: '성과를 얻지만 큰 패배도 맛본다.', fx: { gold: 8, food: -6, morale: -4 }, army: { baekje_bangun: -900 }, world: { 'silla.hostility': 6, 'silla.p': -2, 'tang.commit': 6 }, fn: function (g, S) { cap(S, ['w_west'], 648); }, result: '십여 성을 얻었으나 옥문곡에서 유신의 군에게 크게 패했습니다. 이 무렵 김춘추가 당 태종과 동맹을 약속했다는 소식이 사비에 전해졌습니다.' },
     alts: [
-      { label: '요거 등 십여 성을 취한 선에서 멈추고 군을 쉬게 한다', hint: '[가상] 성과를 지키고 손실을 줄인다.', fx: { gold: 8, morale: 3 }, realm: { train: 4 }, world: { 'silla.hostility': 5, 'tang.commit': 5 }, result: '군은 큰 손실 없이 돌아왔습니다. 신라는 이를 갈았습니다.' },
+      { label: '요거 등 십여 성을 취한 선에서 멈추고 군을 쉬게 한다', hint: '[가상] 성과를 지키고 손실을 줄인다.', fx: { gold: 8, morale: 3 }, realm: { train: 4 }, world: { 'silla.hostility': 5, 'tang.commit': 5 }, fn: function (g, S) { cap(S, ['w_west'], 648); }, result: '군은 큰 손실 없이 돌아왔습니다. 신라는 이를 갈았습니다.' },
       { label: '김춘추의 당 방문 소식을 듣고 당에 사신을 보내 선수를 친다', hint: '[가상] 당의 인식을 돌리려는 외교전.', fx: { gold: -8 }, rel: { tang: 12 }, world: { 'tang.commit': -10 }, realm: { intel: 5 }, result: '백제 사신이 장안에서 황제를 알현했습니다. 신라의 호소를 상쇄하려는 시도입니다.' }
     ] });
 
@@ -90,7 +90,7 @@
     hist: { label: '조서를 받고도 점령한 성을 돌려주지 않는다', hint: '당 조정이 백제를 적대 쪽으로 분류하는 계기가 된다.', realm: { royal: 3 }, rel: { tang: -8, silla: -3 }, world: { 'tang.commit': 9 }, result: '왕은 조서를 정중히 받았으나 성을 돌려주지는 않았습니다. 장안은 이 대답을 오래 기억할 것입니다.' },
     alts: [
       { label: '점령한 신라 성을 돌려주고 평화를 택한다', hint: '[가상] 당의 호감이 오르고 신라의 적의가 꺾인다. 전과는 잃는다.', rel: { tang: 20, silla: 14 }, world: { 'tang.commit': -14, 'silla.hostility': -12 }, realm: { royal: -4 }, fx: { morale: -3 }, flags: { returned: true }, fn: function (g, S) { Object.keys(S.captured).forEach(function (k) { delete S.captured[k]; }); }, result: '성들이 신라에 돌아갔습니다. 장안은 백제의 도리를 칭찬했으나 군 안에서는 불만이 새어 나옵니다.' },
-      { label: '일부 성만 돌려주고 포로를 교환하는 협상을 연다', hint: '[가상] 절충안.', fx: { gold: -6 }, rel: { tang: 8, silla: 7 }, world: { 'tang.commit': -6, 'silla.hostility': -5 }, result: '신라는 일부 성과 포로를 돌려받고 당 사신을 안심시켰습니다.' }
+      { label: '일부 성만 돌려주고 포로를 교환하는 협상을 연다', hint: '[가상] 절충안.', fx: { gold: -6 }, rel: { tang: 8, silla: 7 }, world: { 'tang.commit': -6, 'silla.hostility': -5 }, fn: function (g, S) { delete S.captured.w_west; }, result: '신라는 일부 성과 포로를 돌려받고 당 사신을 안심시켰습니다.' }
     ] });
 
   T.push({ y: 653, m: '봄 · 8월', place: 'sabi', title: '큰 가뭄 — 왜와 통호하다', hint: '올해는 비가 적을 조짐이 있다는 일관의 말이 있습니다.',

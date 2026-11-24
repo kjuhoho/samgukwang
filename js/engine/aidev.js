@@ -73,7 +73,7 @@
     n.food = clamp(n.food + 4 + n.econ * 0.14 + places * 0.6 - P_ * 0.12, -20, 300); if (n.food > 100) n.food *= 0.97;
     // 해마다 새는 것들
     n.train = clamp(n.train - 2, 15, 95); n.defense = clamp(n.defense - 2, 15, 95); n.intel = clamp(n.intel - 1, 5, 95);
-    if (n.econ > 65) n.econ -= 1;
+    if (n.econ > 84) n.econ -= 1;
     BR.forEach(function (k) { if (n.bl[k] > 40) n.bl[k] -= 1; });
     // 위기와 행운
     var crisis = null;
@@ -82,17 +82,19 @@
     else if (Math.random() < 0.06) { n.food = clamp(n.food + 25, -20, 300); n.people = clamp(n.people + 4, 5, 100); crisis = M.boom; }
     n.people = clamp(n.people + (n.food > 20 ? 1 : -1) + (atWar ? -1 : 0), 5, 100);
     // 행동력만큼 필요한 일을 고른다
+    // 시대가 흐를수록 나라의 눈높이도 오른다: 목표치가 올라가 후반에도 계속 성장하고, 쌓인 금은 투자로 쓴다
+    var prog = clamp((s.year - this.cfg.start) / 45, 0, 1), goal = 62 + 22 * prog, rich = n.gold > 30 ? 0.5 : 0, extra = n.gold > 45 ? 1 : 0;
     var threat = atWar ? 1 : 0.3, coastal = side === 'wa' || side === 'tang' || side === 'baekje' || side === 'silla', sc = {};
-    sc.farm = (65 - n.econ) / 40 + (n.food < 25 ? 0.6 : 0);
+    sc.farm = (goal + 3 - n.econ) / 40 + (n.food < 25 ? 0.6 : 0) + rich * 0.4;
     sc.relief = n.people < 55 ? (55 - n.people) / 22 : -1;
-    sc.drill = (62 - n.train) / 30 + threat * 0.5;
-    sc.fort = (58 - n.defense) / 35 + threat * 0.4;
+    sc.drill = (goal - n.train) / 30 + threat * 0.5 + rich * 0.4;
+    sc.fort = (goal - 4 - n.defense) / 35 + threat * 0.4 + rich * 0.4;
     sc.recruit = (n.gold > 14 && n.food > 12 && P_ < 105) ? 0.25 + threat * 0.5 + (P_ < this.natTarget(side) ? 0.25 : 0) : -1;
     sc.branch = 0.3 + threat * 0.3;
-    sc.navy = coastal ? (55 - n.navy) / 50 : (35 - n.navy) / 60;
-    sc.scout = (36 - n.intel) / 50;
+    sc.navy = coastal ? (goal - 7 - n.navy) / 50 : (goal - 27 - n.navy) / 60;
+    sc.scout = (goal - 24 - n.intel) / 50;
     var order = Object.keys(sc).sort(function (a, b) { return (sc[b] + Math.random() * 0.25) - (sc[a] + Math.random() * 0.25); }), done = [];
-    for (var i = 0; i < order.length && done.length < CFG.aps; i++) {
+    for (var i = 0; i < order.length && done.length < CFG.aps + extra; i++) {
       var k = order[i], A = ACTS[k]; if (sc[k] <= -0.5 || n.gold < A.gold || n.food < A.food + 3) continue;
       if (Math.random() < 0.25) continue; // 관료의 늑장·불발
       n.gold -= A.gold; n.food -= A.food; done.push(k);
