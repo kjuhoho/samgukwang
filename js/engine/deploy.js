@@ -101,7 +101,7 @@
       pool.forEach(function (pl) { if (picks.length < shares.length && picks.every(function (q) { return dist(q, pl) > 0.5; })) picks.push(pl); });
       var hostile = k === 'tang' ? w.commit >= 40 : w.hostility >= 40;
       picks.forEach(function (pl, i) {
-        m.setToken('foe_' + k + '_' + pl.id, side, '', self.fuzz(total * shares[i], pl.id), pl.lon, pl.lat, hostile ? 'foe' : 'friend'); m.markPlace(pl.id, 'act', true);
+        m.setToken('foe_' + k + '_' + pl.id, side, '', (self.tokenGar ? self.tokenGar(pl, side) : self.fuzz(total * shares[i], pl.id)), pl.lon, pl.lat, hostile ? 'foe' : 'friend'); m.markPlace(pl.id, 'act', true);
       });
     });
   };
