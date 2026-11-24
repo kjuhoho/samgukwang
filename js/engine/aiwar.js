@@ -130,14 +130,15 @@
       var t = cand[0], help = 0;
       Object.keys(ai.pact).forEach(function (k) { var m = k.split('|'); if (m.indexOf(a) < 0) return; var b = m[0] === a ? m[1] : m[0]; if (!d[b] && b !== me && !busy[b]) help += self.sidePower(b) * 0.2; });
       var fat = ai.fat[a] || 0, gd = self.pathGuards ? self.pathGuards(t.org, t.p, t.o) : [], gk = gd.length * (t.p.kind === 'capital' ? 1.5 : 1);
-      var att = (pa + help) * (0.92 + (SG.resOf ? SG.resOf(self, a) : 40) / 300) * clamp(1 - 0.07 * gk, 0.6, 1) * clamp(1 - Math.max(0, own.length - 16) * 0.03, 0.55, 1) * (0.85 + Math.random() * 0.3) * clamp(1 - fat / 60, 0.6, 1) * clamp(1 - t.bd * 0.1, 0.6, 1);
+      var att = (pa + help) * (self.milFactor ? self.milFactor(a) : 1) * (0.92 + (SG.resOf ? SG.resOf(self, a) : 40) / 300) * clamp(1 - 0.07 * gk, 0.6, 1) * clamp(1 - Math.max(0, own.length - 16) * 0.03, 0.55, 1) * (0.85 + Math.random() * 0.3) * clamp(1 - fat / 60, 0.6, 1) * clamp(1 - t.bd * 0.1, 0.6, 1);
       var left = (by[t.o] || []).length, rally = (ai.lostY && y - (ai.lostY[t.o] || -9) <= 1) ? 1.12 : 1, lastStand = left <= 6 ? 1.25 : 1;
-      var def = t.pd * (0.92 + (SG.resOf ? SG.resOf(self, t.o) : 40) / 300) * (KM[t.p.kind] || 1.2) * rally * lastStand * (0.85 + Math.random() * 0.3);
+      var def = t.pd * (self.milFactor ? Math.pow(self.milFactor(t.o), 0.6) : 1) * (0.92 + (SG.resOf ? SG.resOf(self, t.o) : 40) / 300) * (KM[t.p.kind] || 1.2) * rally * lastStand * (0.85 + Math.random() * 0.3);
       var pw = clamp(1 / (1 + Math.exp(-(att / def - 1.0) * 3.4)) + (t.hm ? 0.15 : 0), 0.06, 0.88);
       var won = Math.random() < pw; done++; busy[a] = 1; busy[t.o] = 1;
       if (gd.length && !won && Math.random() < 0.6 && SG.INTERCEPT) lines.push('<div><b>' + nm(a) + '</b> ⚔ <b>' + nm(t.o) + '</b> · <u>' + short(t.p) + '</u> · <i>' + SG.INTERCEPT.ai + '</i></div>');
       var mv = { from: t.org.id, to: t.p.id, side: a, win: won ? 1 : 0, def: t.o, joint: force ? 1 : 0 };
       ai.mv.push(mv);
+      if (self.milHit) { if (won) { self.milHit(a, self.deployMax(a) * 0.08); self.milHit(t.o, self.deployMax(t.o) * 0.14); } else { self.milHit(a, self.deployMax(a) * 0.15); self.milHit(t.o, self.deployMax(t.o) * 0.05); } }
       if (won) {
         var seat = self.isSeat && self.isSeat(t.p, t.o);
         if (era && !t.hm) ai.cap++;
@@ -221,11 +222,12 @@
     if (!picked.why) picked.why = (best.sh == null || best.sh < 12) ? M.r4 : M.r6;
     var w = picked.w, r = picked.r, nmv = N[r], tot = r === 'tang' ? Math.round(7000 + w.commit * 330) : Math.round(picked.pwr * 230 * (0.8 + w.hostility / 220));
     var gd = this.pathGuards ? this.pathGuards(picked.org, best.p, this.side) : [];
+    if (this.deployMax) { tot = Math.min(tot, Math.max(1500, this.deployMax(picked.side))); }
     tot = Math.round(tot * (0.9 + (SG.resOf ? SG.resOf(this, picked.side) : 40) / 280) * (0.85 + Math.random() * 0.3) * (picked.opp > 1.5 ? 1.1 : 1) * clamp(1 - 0.08 * gd.length, 0.7, 1));
     var wk = function (v1, v2) { var o = {}; if (r === 'tang') o['tang.commit'] = v1 * 2; else { o[r + '.p'] = v1; o[r + '.hostility'] = v2; } return o; };
     var I = SG.i18n && SG.i18n.dict, en = (I && I.en && I.en[nmv]) || nmv, ja = (I && I.ja && I.ja[nmv]) || nmv;
     T(nmv + M.ttl, en + "'s Surprise Offensive", ja + 'の奇襲攻勢');
-    s.ai.strikeY = y; s.threat.last = y;
+    s.ai.strikeY = y; s.threat.last = y; if (this.milHit) this.milHit(picked.side, tot * 0.06);
     var inv = {
       title: nmv + M.ttl, defense: true, terrain: 1.1, coast: sea, place: best.p.id,
       enemy: { name: nmv + ' 군', side: picked.side, total: tot, terrain: 1, morale: 70 },

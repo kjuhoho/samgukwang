@@ -170,6 +170,7 @@
     if (kind === 'capital') { m.elite += 0.08; m.guard = 0.06; m.line -= 0.05; m.levy = Math.max(0.02, (m.levy || 0) - 0.05); }
     if (kind === 'fortress' || kind === 'pass') { m.archer += 0.05; m.siege = (m.siege || 0) + 0.02; m.garrison += 0.06; m.horse = Math.max(0.02, m.horse - 0.05); }
     if (kind === 'port') { m.navy = 0.06; }
+    if (kind === 'patrol') { m.garrison = 0.02; m.horse += 0.1; m.archer += 0.04; m.levy = Math.max(0.02, (m.levy || 0) - 0.04); m.siege = 0; }
     for (k in m) { if (m[k] < 0) m[k] = 0; sum += m[k]; } for (k in m) m[k] = m[k] / sum;
     return m;
   }
@@ -197,5 +198,6 @@
     } catch (e) { }
     return _wf.apply(this, arguments);
   };
+  SG.mixFor = function (sb, side, kind) { return mixFor(sb, side, kind, sb.nat(side)); };
   SG.ALLY = M;
 })();

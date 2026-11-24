@@ -8,16 +8,16 @@
   // 나라별 특기 병종(게임 추상화): 공격·방어 배율. 일반 병종보다 확실히 강하다.
   var SPEC = {
     baekje_gyebaek: { a: 1.22, d: 1.0 }, silla_hwarang: { a: 1.22, d: 0.95 }, silla_seodang: { a: 1.1, d: 1.08 }, goguryeo_gaemamusa: { a: 1.3, d: 1.2 },
-    tang_elite: { a: 1.15, d: 1.1 }, tang_cavalry: { a: 1.15, d: 1.05 }, silla_crossbow: { a: 1.22, d: 1.0 }, goguryeo_archer: { a: 1.15, d: 1.0 }, baekje_archer: { a: 1.1, d: 1.0 }, tang_crossbow: { a: 1.1, d: 1.0 }
+    tang_elite: { a: 1.15, d: 1.1 }, tang_cavalry: { a: 1.15, d: 1.05 }, silla_crossbow: { a: 1.22, d: 1.0 }, goguryeo_archer: { a: 1.15, d: 1.0, ha: 1 }, baekje_archer: { a: 1.1, d: 1.0 }, tang_crossbow: { a: 1.1, d: 1.0 }
   };
   var GRP = { inf_levy: 'levy', inf_line: 'line', guard: 'line', garrison: 'line', inf_elite: 'elite', cav_light: 'cav', cav_heavy: 'cav', archer: 'rng', crossbow: 'rng', siege: 'siege', navy_war: 'navy', navy_transport: 'sup', scout: 'sup' };
   var GN = { levy: '징집병', line: '정병 보병', elite: '정예병', cav: '기병', rng: '궁·노병', siege: '공성기', navy: '수군', sup: '보조병' };
   var MU = { // 공격 병종 → 상대 병종 (1 = 대등)
-    cav: { levy: 1.35, line: 0.95, elite: 0.88, cav: 1, rng: 1.25, siege: 1.3, navy: 0.8, sup: 1.3 },
-    rng: { levy: 1.2, line: 1.0, elite: 0.92, cav: 1.15, rng: 1, siege: 1.1, navy: 1, sup: 1.1 },
-    line: { levy: 1.1, line: 1, elite: 0.92, cav: 1.12, rng: 1.1, siege: 1.2, navy: 1, sup: 1.2 },
+    cav: { levy: 1.45, line: 0.93, elite: 0.85, cav: 1, rng: 1.3, siege: 1.35, navy: 0.8, sup: 1.35 },
+    rng: { levy: 1.25, line: 1.04, elite: 0.88, cav: 1.12, rng: 1, siege: 1.1, navy: 1, sup: 1.1 },
+    line: { levy: 1.12, line: 1, elite: 0.92, cav: 1.15, rng: 1.15, siege: 1.2, navy: 1, sup: 1.2 },
     elite: { levy: 1.15, line: 1.05, elite: 1, cav: 1.02, rng: 1.15, siege: 1.2, navy: 1, sup: 1.2 },
-    levy: { levy: 1, line: 0.9, elite: 0.85, cav: 0.85, rng: 1.05, siege: 1.1, navy: 1, sup: 1.1 }
+    levy: { levy: 1, line: 0.9, elite: 0.85, cav: 0.75, rng: 1.1, siege: 1.1, navy: 1, sup: 1.1 }
   };
   var TK = { // 지형 종류별 병종 보정
     plain: { nm: '평지', cav: 1.15, rng: 1.0 }, hill: { nm: '구릉·산지', cav: 0.85, rng: 1.1 }, pass: { nm: '좁은 길목', cav: 0.7, rng: 1.05 },
@@ -50,6 +50,11 @@
     harass: { balanced: 1.05, charge: 1.05, hold: 1.0, attrition: 0.85 }, forlorn: { balanced: 1.08, attrition: 1.15, charge: 1.05, hold: 0.92 }
   };
   CT.attrition.harass = 1.12; CT.attrition.wedge = 0.9; CT.hold.wedge = 1.15; CT.charge.feign = 0.8; CT.hold.forlorn = 1.1; CT.hold.feign = 1.1;
+  var TH = { t: T('역사적 상성', 'Historical matchups', '歴史的相性'), a: T('아군', 'Our', '味方'), b: T('적군', 'The enemy’s', '敵軍'),
+    c1: T(' 기병이 훈련 덜 된 징집병 대열을 휩쓸었습니다 — 갑옷·대형이 없는 보병은 기병 돌격에 쉽게 무너진 것이 동서양 전사의 공통점입니다.', ' cavalry swept the poorly drilled levies — across history, unarmored and unformed infantry broke easily under a cavalry charge.', ' 騎兵が訓練の浅い徴発兵を蹴散らしました。甲冑も陣形もない歩兵は騎兵の突撃に崩れやすいのが古今東西の通例です。'),
+    c2: T(' 기병이 방패와 창을 세운 방진 정면에 막혔습니다 — 밀집한 창벽은 정면 기병 돌격을 막고, 옆구리나 후방을 칠 때 비로소 뚫립니다.', ' cavalry was stopped by the shield-and-spear wall — a dense spear line holds against a frontal charge and breaks only from the flank or rear.', ' 騎兵は盾と槍を立てた方陣に正面から阻まれました。密集した槍衾は正面突撃を防ぎ、側背を突かれて初めて崩れます。'),
+    c3: T(' 노병의 강한 쇠뇌가 갑옷과 중장기병을 꿰뚫었습니다 — 석궁·쇠뇌는 갑옷을 입은 적에 특히 효과적입니다.', ' crossbows punched through armor and heavy horse — crossbows excel against armored foes.', ' 弩兵の強弩が甲冑と重装騎兵を貫きました。弩は甲冑を着た敵に特に有効です。'),
+    c4: T(' 기마 궁수가 치고 빠지며 활을 쏘았습니다 — 기병이 적은 적은 기마 궁수의 일방적 사격에 시달립니다.', ' horse archers shot and withdrew — foes with little cavalry suffer one-sided fire from mounted archers.', ' 騎馬弓兵が撃っては退きました。騎兵の少ない敵は騎射の一方的な射撃に苦しみます。') };
   function U(id) { return SG.unitById(id); }
   function clamp(v, a, b) { return Math.max(a, Math.min(b, v)); }
   function tot(x) { return x.reduce(function (s, u) { return s + u.n; }, 0); }
@@ -60,7 +65,7 @@
     var c = {}, N = 0;
     units.forEach(function (u) {
       var Un = U(u.id); if (!Un || !u.n) return; var b = BASE[Un.base] || [8, 8], g = GRP[Un.base] || 'line', e = c[g] || (c[g] = { n: 0, atk: 0, def: 0 });
-      var sp = SPEC[u.id]; e.n += u.n; e.atk += u.n * b[0] * (1 + 0.1 * Un.atk) * (sp ? sp.a : 1); e.def += u.n * b[1] * (1 + 0.1 * Un.def) * (sp ? sp.d : 1); if (sp) { e.spec = e.spec || {}; e.spec[u.id] = (e.spec[u.id] || 0) + u.n; } N += u.n;
+      var sp = SPEC[u.id]; if (Un.base === 'crossbow') e.xb = (e.xb || 0) + u.n; if (sp && sp.ha) e.ha = (e.ha || 0) + u.n; e.n += u.n; e.atk += u.n * b[0] * (1 + 0.1 * Un.atk) * (sp ? sp.a : 1); e.def += u.n * b[1] * (1 + 0.1 * Un.def) * (sp ? sp.d : 1); if (sp) { e.spec = e.spec || {}; e.spec[u.id] = (e.spec[u.id] || 0) + u.n; } N += u.n;
     });
     c.N = N; return c;
   }
@@ -103,9 +108,9 @@
       return m;
     }
     function power(f, c, side, ctx, r) { // 해당 합의 공격력/방어력
-      var atk = 0, def = 0, st = ST[side.st] || ST.balanced, isAtt = side.att;
+      var atk = 0, def = 0, st = ST[side.st] || ST.balanced, isAtt = side.att, def_bonus;
       for (var g in c) {
-        if (g === 'N') continue; var e = c[g], tf = trainF(g, f.train), m = tf * season_(g, isAtt), bl = f.bl || {}, Lv = bl[g] || 0, fbl = ctx.fbl || {};
+        if (g === 'N') continue; def_bonus = 1; var e = c[g], tf = trainF(g, f.train), m = tf * season_(g, isAtt), bl = f.bl || {}, Lv = bl[g] || 0, fbl = ctx.fbl || {};
         m *= 1 + 0.04 * Lv; if (g === 'line' && side.st === 'hold') m *= 1 + 0.02 * Lv;
         var tkm = g === 'cav' ? field.cav : g === 'rng' ? field.rng : 1;
         if (g === 'navy') tkm = field === TK.sea || field === TK.coast ? 1.25 : 0.7;
@@ -113,12 +118,17 @@
         if (g === 'rng' && st.rng) tkm *= st.rng;
         if (g === 'rng') { tkm *= r === 1 ? 1.7 * (1 + 0.05 * Lv) : 0.8; if (side.st === 'attrition') tkm *= 1 + 0.03 * Lv; } else if (g === 'cav' && r === 4) tkm *= 1.15 * (1 + 0.03 * Lv); else tkm *= r === 1 ? 0.5 : 1.05;
         if (g === 'cav') tkm *= 1 - 0.03 * (fbl.line || 0);
-        var sn = side.st;
+        var sn = side.st, esh = ctx.esh || {};
+        // 역사적 상호작용: 방진(창·방패)은 정면 기병 돌격을 막고, 석궁은 갑옷을 뚫고, 기마 궁수는 기병 없는 적을 끌어다 쏜다
+        if (g === 'cav' && ctx.est === 'hold' && sn !== 'flank' && sn !== 'wedge' && sn !== 'feign' && (esh.line || 0) + (esh.elite || 0) > 0.3) tkm *= 0.84;
+        if ((g === 'line' || g === 'elite') && sn === 'hold') def_bonus = 1 + 0.4 * (esh.cav || 0);
+        if (g === 'rng' && e.xb) m *= 1 + 0.14 * (e.xb / e.n) * Math.min(1, ((esh.elite || 0) + (esh.cav || 0)) * 3);
+        if (g === 'rng' && e.ha && field === TK.plain) m *= 1 + 0.2 * (e.ha / e.n) * (esh.cav > 0.25 ? 0.4 : 1);
         if (g === 'elite') { if (r >= 2 && r <= 4) m *= 1.08; if (sn === 'forlorn' && r >= 2 && r <= 4) m *= 1.4; }
         if (g === 'cav') { if (sn === 'wedge') tkm *= r === 2 ? 1.6 : r === 3 ? 1.1 : 1; if (sn === 'feign') tkm *= r <= 2 ? 0.8 : r === 3 ? 1.5 : 1.15; if (sn === 'harass') tkm *= 0.92; if (e.spec && e.spec.goguryeo_gaemamusa && sn === 'charge' && field === TK.plain) tkm *= 1.1; }
         if (sn === 'feign' && g !== 'cav') m *= r <= 2 ? 0.9 : 1.1;
         if (g === 'siege') tkm *= (fortAny ? 1.8 * (1 + 0.06 * Lv) : 0.6) * (side.st === 'siege' ? 1.25 : 1);
-        atk += e.atk * m * tkm; def += e.def * m;
+        atk += e.atk * m * tkm; def += e.def * m * def_bonus;
       }
       return { atk: atk * st.atk * ctx.ct, def: def * st.def };
     }
@@ -131,7 +141,7 @@
     var stT = ST[sA], stU = ST[sB];
     for (var r = 1; r <= rounds; r++) {
       var na = tot(a), nb = tot(b); if (!na || !nb) break;
-      var ca2 = comp(a), cb2 = comp(b), pA = power(A, ca2, iA, { ct: ctA, fbl: B.bl }, r), pB = power(B, cb2, iB, { ct: ctB, fbl: A.bl }, r);
+      var ca2 = comp(a), cb2 = comp(b), pA = power(A, ca2, iA, { ct: ctA, fbl: B.bl, esh: shares(cb2), est: sB }, r), pB = power(B, cb2, iB, { ct: ctB, fbl: A.bl, esh: shares(ca2), est: sA }, r);
       var fatA = (1 - 0.022 * (r - 1) * (1.3 - trA / 100)), fatB = (1 - 0.022 * (r - 1) * (1.3 - trB / 100));
       var contA = r <= 3 ? 1 - resA : 1, contB = r <= 3 ? 1 - resB : 1;
       var fpA = r >= 4 ? (1 - resA) * fatA + resA : fatA * contA, fpB = r >= 4 ? (1 - resB) * fatB + resB : fatB * contB;
@@ -184,6 +194,9 @@
     (function () { var la = [], lb = []; function sp(c, o) { for (var g in c) { if (g === 'N' || !c[g].spec) continue; for (var id in c[g].spec) { var Un = U(id), q = SPEC[id]; if (Un && q && c[g].spec[id] / (c.N || 1) > 0.04) o.push('<i>' + Un.name + '</i> ×' + Math.max(q.a, q.d).toFixed(2)); } } }
       sp(ca, la); sp(cb, lb);
       if (la.length || lb.length) fac.push('<b>특수병</b> <u>아군</u> ' + (la.join(' · ') || '없음') + ' / <u>적</u> ' + (lb.join(' · ') || '없음') + ' <i>' + T('나라별 특기 병종은 일반 병종보다 공방이 높습니다.', 'The signature troops of each nation fight harder than ordinary ones.', '国ごとの特技兵種は一般兵種より攻守が高い。') + '</i>'); })();
+    (function () { var out = []; function chk(c, sh, esh, who) { if ((sh.cav || 0) > 0.2 && (esh.levy || 0) > 0.25) out.push(who + TH.c1); if ((sh.cav || 0) > 0.2 && sB && (esh.line || 0) + (esh.elite || 0) > 0.3 && (who === TH.a ? sB : sA) === 'hold') out.push(who + TH.c2); if (c.rng && c.rng.xb && (esh.elite || 0) + (esh.cav || 0) > 0.25) out.push(who + TH.c3); if (c.rng && c.rng.ha && (sh.rng || 0) > 0.2) out.push(who + TH.c4); }
+      chk(ca, shA, shB, TH.a); chk(cb, shB, shA, TH.b);
+      if (out.length) fac.push('<b>' + TH.t + '</b> ' + out.join(' ')); })();
     if (Math.abs(muA - muB) > 0.05) { var best = function (c, sh) { var bg = '', bv = 0; for (var g in c) if (g !== 'N' && c[g].atk > bv && MU[g]) { bv = c[g].atk; bg = g; } return GN[bg] || ''; };
       fac.push('<b>병종 상성</b> 아군 ' + muA.toFixed(2) + ' : 적 ' + muB.toFixed(2) + ' — ' + (muA > muB ? '아군 ' + best(ca) + '이(가) 적 편성을 잘 상대합니다.' : '적 ' + best(cb) + '이(가) 아군 편성을 잘 상대합니다.')); }
     if (sA !== 'balanced' || sB !== 'balanced') fac.push('<b>작전</b> 아군 「' + ST[sA].nm + '」 대 적 「' + ST[sB].nm + '」' + (ctA !== 1 || ctB !== 1 ? ' → ' + (ctA > ctB ? '아군 작전이 적 태세를 찔렀습니다 (×' + ctA.toFixed(2) + ')' : ctB > ctA ? '적 태세가 아군 작전을 받아쳤습니다 (×' + ctB.toFixed(2) + ')' : '맞물림') : ''));
