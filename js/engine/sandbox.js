@@ -464,7 +464,7 @@ window.SG = window.SG || {}; SG.data = SG.data || {}; SG.scenarios = SG.scenario
     var s = this.s, cfg = this.cfg, wd = s.world, y = s.year, self = this;
     ['silla', 'goguryeo', 'tang', 'wa'].forEach(function (k) {
       var w = wd[k], dr = (cfg.drift || {})[k] || {};
-      w.p = clamp(w.p + (dr.p == null ? 0.5 : dr.p) + (Math.random() - 0.5) * 1.6, 5, 150);
+      w.p = clamp(w.p + (dr.p == null ? 0.5 : dr.p) + (Math.random() - 0.5) * 1.6, 5, 400);
       var ct = dr.commitTarget == null ? 0 : (y >= (dr.from || 0) ? dr.commitTarget : 0);
       if (dr.sched) { var ks = Object.keys(dr.sched).map(Number).sort(function (m, n) { return m - n; }); ks.forEach(function (yy) { if (yy <= y) ct = dr.sched[yy]; }); }
       var target = k === 'tang' ? ct : clamp(100 - s.rel[k], 5, 90);

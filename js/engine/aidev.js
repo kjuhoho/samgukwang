@@ -38,7 +38,7 @@
     low: T('낮음', 'Low', '低い'), mid: T('보통', 'Average', '普通'), high: T('높음', 'High', '高い'), unk: T('불명', 'Unknown', '不明'),
     res: T('예비군', 'Reserves', '予備軍'), econ: T('농업', 'Farming', '農業'), train: T('훈련', 'Training', '訓練'), def: T('방비', 'Defense', '防備'), navy: T('수군', 'Navy', '水軍')
   };
-  function dm(v, g) { return g * clamp(1 - (v - 55) / 45, 0.2, 1); } // 높을수록 오르기 어렵다
+  function dm(v, g) { return g * clamp(1 - (v - 55) / 120, 0.4, 1); } // 높을수록 오르기 어렵다
   var BR = ['line', 'elite', 'cav', 'rng', 'siege'];
 
   P.nat = function (side) {
@@ -54,7 +54,7 @@
   // 나라의 힘을 내정이 어느 쪽으로 끌고 가는가(영토·농업·훈련·방비·민심)
   P.natTarget = function (side) {
     var self = this, n = this.nat(side), c = this.places().filter(function (p) { return self.ownerOf(p) === side; }).length;
-    return clamp(18 + c * 2.4 + (n.econ - 50) * 0.2 + (n.train - 50) * 0.28 + (n.defense - 50) * 0.08 + (n.people - 50) * 0.12, 10, 100);
+    return clamp(18 + c * 2.4 + (n.econ - 50) * 0.3 + (n.train - 50) * 0.4 + (n.defense - 50) * 0.12 + (n.people - 50) * 0.12, 10, 320);
   };
   P.natSides = function () {
     var self = this, s = this.s, me = this.side, d = s.destroyed || {}, out = [], seen = {};
@@ -72,24 +72,24 @@
     n.gold = clamp(n.gold + 2 + n.econ * 0.08 + places * 0.5 - P_ * 0.07, 0, 200);
     n.food = clamp(n.food + 4 + n.econ * 0.14 + places * 0.6 - P_ * 0.12, -20, 300); if (n.food > 100) n.food *= 0.97;
     // 해마다 새는 것들
-    n.train = clamp(n.train - 2 * Math.max(1, n.train / 75), 15, 180); n.defense = clamp(n.defense - 2 * Math.max(1, n.defense / 75), 15, 180); n.intel = clamp(n.intel - Math.max(1, n.intel / 75), 5, 180);
-    if (n.econ > 84) n.econ -= Math.max(1, n.econ / 100);
+    n.train = clamp(n.train - 2 * Math.max(1, n.train / 110), 15, 180); n.defense = clamp(n.defense - 2 * Math.max(1, n.defense / 110), 15, 180); n.intel = clamp(n.intel - Math.max(1, n.intel / 110), 5, 180);
+    if (n.econ > 84) n.econ -= Math.max(1, n.econ / 140);
     BR.forEach(function (k) { if (n.bl[k] > 40) n.bl[k] -= 1; });
     // 위기와 행운
     var crisis = null;
-    if (n.food < 0) { n.food = 8; n.people = clamp(n.people - 8, 5, 100); crisis = M.famine; if (w && role !== 'tang') w.p = clamp(w.p - 3, 4, 150); else if (!role) { var a0 = s.ai; a0.pw = a0.pw || {}; a0.pw[side] = clamp((a0.pw[side] || 20) - 3, 6, 90); } }
-    else if (n.people < 25) { n.people = 40; n.defense = clamp(n.defense - 6, 15, 180); crisis = M.riot; if (w && role !== 'tang') w.p = clamp(w.p - 3, 4, 150); }
+    if (n.food < 0) { n.food = 8; n.people = clamp(n.people - 8, 5, 100); crisis = M.famine; if (w && role !== 'tang') w.p = clamp(w.p - 3, 4, 400); else if (!role) { var a0 = s.ai; a0.pw = a0.pw || {}; a0.pw[side] = clamp((a0.pw[side] || 20) - 3, 6, 90); } }
+    else if (n.people < 25) { n.people = 40; n.defense = clamp(n.defense - 6, 15, 180); crisis = M.riot; if (w && role !== 'tang') w.p = clamp(w.p - 3, 4, 400); }
     else if (Math.random() < 0.06) { n.food = clamp(n.food + 25, -20, 300); n.people = clamp(n.people + 4, 5, 100); crisis = M.boom; }
     n.people = clamp(n.people + (n.food > 20 ? 1 : -1) + (atWar ? -1 : 0), 5, 100);
     // 행동력만큼 필요한 일을 고른다
     // 시대가 흐를수록 나라의 눈높이도 오른다: 목표치가 올라가 후반에도 계속 성장하고, 쌓인 금은 투자로 쓴다
-    var prog = clamp((s.year - this.cfg.start) / 45, 0, 1), goal = 62 + 40 * prog, rich = n.gold > 30 ? 0.5 : 0, extra = n.gold > 45 ? 1 : 0;
+    var prog = clamp((s.year - this.cfg.start) / 45, 0, 1), goal = 62 + 40 * prog + 0.7 * Math.max(0, s.year - this.cfg.start - 45), rich = n.gold > 30 ? 0.5 : 0, extra = n.gold > 45 ? 1 : 0;
     var threat = atWar ? 1 : 0.3, coastal = side === 'wa' || side === 'tang' || side === 'baekje' || side === 'silla', sc = {};
     sc.farm = (goal + 3 - n.econ) / 40 + (n.food < 25 ? 0.6 : 0) + rich * 0.4;
     sc.relief = n.people < 55 ? (55 - n.people) / 22 : -1;
     sc.drill = (goal - n.train) / 30 + threat * 0.5 + rich * 0.4;
     sc.fort = (goal - 4 - n.defense) / 35 + threat * 0.4 + rich * 0.4;
-    sc.recruit = (n.gold > 14 && n.food > 12 && P_ < 105) ? 0.25 + threat * 0.5 + (P_ < this.natTarget(side) ? 0.25 : 0) : -1;
+    sc.recruit = (n.gold > 14 && n.food > 12 && P_ < Math.max(105, this.natTarget(side) + 20)) ? 0.25 + threat * 0.5 + (P_ < this.natTarget(side) ? 0.25 : 0) : -1;
     sc.branch = 0.3 + threat * 0.3;
     sc.navy = coastal ? (goal - 7 - n.navy) / 50 : (goal - 27 - n.navy) / 60;
     sc.scout = (goal - 24 - n.intel) / 50;
@@ -102,7 +102,7 @@
       else if (k === 'relief') n.people = clamp(n.people + 6, 5, 100);
       else if (k === 'drill') n.train = clamp(n.train + dm(n.train, 6), 15, 180);
       else if (k === 'fort') n.defense = clamp(n.defense + dm(n.defense, 6), 15, 180);
-      else if (k === 'recruit') { n.people = clamp(n.people - 2, 5, 100); if (w && role !== 'tang') w.p = clamp(w.p + 2.5, 4, 150); else if (!role) { var a1 = s.ai; a1.pw = a1.pw || {}; a1.pw[side] = clamp((a1.pw[side] || 20) + 2.5, 6, 90); } }
+      else if (k === 'recruit') { n.people = clamp(n.people - 2, 5, 100); if (w && role !== 'tang') w.p = clamp(w.p + 2.5, 4, 400); else if (!role) { var a1 = s.ai; a1.pw = a1.pw || {}; a1.pw[side] = clamp((a1.pw[side] || 20) + 2.5, 6, 90); } }
       else if (k === 'branch') { var b = (BASE[side] || BASE.silla).bl, ws = BR.map(function (g) { return 1 + (b[g] ? 1.5 : 0) + (g === 'siege' ? -0.5 : 0); }), r = Math.random() * ws.reduce(function (t, x) { return t + x; }, 0), g2 = BR[0]; for (var q = 0; q < BR.length; q++) { r -= ws[q]; if (r <= 0) { g2 = BR[q]; break; } } n.bl[g2] = clamp(n.bl[g2] + Math.max(5, 14 - 3 * Math.floor(n.bl[g2] / 20)), 0, 100); }
       else if (k === 'navy') n.navy = clamp(n.navy + dm(n.navy, 6), 5, 180);
       else if (k === 'scout') n.intel = clamp(n.intel + dm(n.intel, 5), 5, 180);
@@ -123,6 +123,10 @@
     });
     if (lines.length) this.pre = (this.pre || '') + '<div class="freehd">🏛 <b>' + M.head + '</b>' + lines.join('') + '</div>';
   };
+
+  // 당(대국)은 세계 수치가 개입도뿐이라 힘이 멈춘다 — 내정이 쌓일수록 국력이 함께 오른다
+  var _sp = P.sidePower;
+  P.sidePower = function (side) { var v = _sp.apply(this, arguments); if (side === 'tang') { var n = this.s.ai && this.s.ai.nat && this.s.ai.nat.tang; if (n) v += Math.max(0, (n.econ - 66) + (n.train - 62)) * 0.4; } return v; };
 
   /* ── 전투·방어에 반영 ── */
   P.foeTrain = function (side) {

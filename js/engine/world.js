@@ -40,12 +40,12 @@
       if (Math.random() < ch) {
         s.wsLast[a] = s.year; var seat = self.isSeat && self.isSeat(t.p, t.o);
         s.owners[t.p.id] = a; by[a].push(t.p);
-        if (wa && ra !== 'tang') wa.p = clamp(wa.p + 2, 5, 150); if (wd && ro2 !== 'tang') wd.p = clamp(wd.p - 3, 4, 150);
+        if (wa && ra !== 'tang') wa.p = clamp(wa.p + 2, 5, 400); if (wd && ro2 !== 'tang') wd.p = clamp(wd.p - 3, 4, 400);
         notes.push('<b>' + jo(nm(a), '이', '가') + '</b> ' + nm(t.o) + '의 <b>' + jo(short(t.p), '을', '를') + '</b> 빼앗았습니다');
         self.log(nm(a) + ', ' + nm(t.o) + '의 ' + short(t.p) + ' 점령');
         if (seat && self.capitalFall) self.capitalFall(t.p, t.o, a);
       } else {
-        if (wa && ra !== 'tang') wa.p = clamp(wa.p - 1, 5, 150);
+        if (wa && ra !== 'tang') wa.p = clamp(wa.p - 1, 5, 400);
         if (Math.random() < 0.6) notes.push(jo(nm(a), '이', '가') + ' ' + nm(t.o) + '의 ' + jo(short(t.p), '을', '를') + ' 쳤으나 물러났습니다');
       }
     });

@@ -170,7 +170,7 @@
     btn(aid ? M.send : M.join, aid ? M.sendH : M.joinH, function () {
       s.rel[r] = clamp((s.rel[r] || 0) + (aid ? 10 : 5), 0, 100);
       if (aid) {
-        self.loseField(1, 0.06); var w = s.world[r]; if (w) w.p = clamp(w.p + 3, 4, 150);
+        self.loseField(1, 0.06); var w = s.world[r]; if (w) w.p = clamp(w.p + 3, 4, 400);
         var back = q.to && Math.random() < 0.6 && s.owners && s.owners[q.to] === q.by; if (back) s.owners[q.to] = self.sides[r];
         s.last = nm + (back ? M.gave : M.gave2); self.log('원군 파견: ' + nmRole(self, r));
       } else {

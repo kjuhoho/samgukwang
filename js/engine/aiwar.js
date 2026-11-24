@@ -60,7 +60,7 @@
   function bump(S, side, dv) {
     var r = S.roleOf(side), w = r && S.s.world[r];
     if (r === 'tang') return;
-    if (w) w.p = clamp(w.p + dv, 4, 150);
+    if (w) w.p = clamp(w.p + dv, 4, 400);
     else { var ai = S.s.ai = S.s.ai || {}; ai.pw = ai.pw || {}; S.sidePower(side); ai.pw[side] = clamp(ai.pw[side] + dv, 6, 90); }
   }
 
@@ -80,7 +80,7 @@
       ai.fat[a] = Math.max(0, (ai.fat[a] || 0) - 3);
       var r0 = self.roleOf(a), tgt = self.natTarget ? self.natTarget(a) : clamp(18 + (by[a] || []).length * 2.4, 10, 95);
       if (!r0) { self.sidePower(a); ai.pw[a] = clamp(ai.pw[a] + (tgt - ai.pw[a]) * 0.1, 6, 90); }
-      else if (r0 !== 'tang' && s.world[r0]) s.world[r0].p = clamp(s.world[r0].p + (tgt - s.world[r0].p) * 0.05, 4, 150);
+      else if (r0 !== 'tang' && s.world[r0]) s.world[r0].p = clamp(s.world[r0].p + (tgt - s.world[r0].p) * 0.05, 4, 400);
     });
     Object.keys(ai.pact).forEach(function (k) { if (ai.pact[k] < y) delete ai.pact[k]; });
     function allied(a, b) { return ai.pact[key(a, b)] >= y; }
@@ -118,7 +118,7 @@
         var hm = SG.ownerAt(p, y + 3) === a;   // 실제 역사에서도 곧 그 나라 손에 들어가는 성
         if (era && !hm && !force && (p.kind === 'capital' || ai.cap >= CFG.eraCap)) return;
         var bd = 9, org = null; own.forEach(function (q) { var x = dist(p, q); if (x < bd) { bd = x; org = q; } });
-        if (bd > 1.5) return;
+        if (bd > (s.extended ? 2.8 : 1.5)) return;
         var pd = Math.max(self.sidePower(o), p.kind === 'capital' ? 35 : 0);
         var sc = (pa - pd) / 55 - bd * 0.9 + (KV[p.kind] || 0) + (ai.grudge[a + '>' + o] ? 0.35 : 0) + (busy[o] ? 0.3 : 0) + ((d[o] || (s.fallen && s.fallen[o])) ? 0.4 : 0) + (o === leader ? 0.25 : 0) + Math.random() * 0.5 + (force ? 1.5 : 0) + (tgt && p.id === tgt ? 8 : 0);
         if (p.kind === 'capital' && pa < pd * 1.25 && !(tgt && p.id === tgt)) sc -= 2;
@@ -153,11 +153,11 @@
       }
     }
     shuffle(sides).forEach(function (a) {
-      if (done >= (era ? CFG.eraMaxCamp : CFG.maxCamp)) return;
+      if (done >= (era ? CFG.eraMaxCamp : CFG.maxCamp + (s.extended ? 2 : 0))) return;
       var ra = self.roleOf(a), pa = self.sidePower(a);
       if (a === 'tang' && (!ra || s.world[ra].commit < 30)) return;
-      var fat = ai.fat[a] || 0, pr = clamp(CFG.camp + (pa - 50) / 250 - fat / 60, 0.08, 0.65) * (era ? CFG.eraCamp : 1), n = (pa > 75 && fat < 4) ? 2 : 1;
-      for (var c = 0; c < n && done < (era ? CFG.eraMaxCamp : CFG.maxCamp); c++) if (Math.random() < pr) campaign(a);
+      var fat = ai.fat[a] || 0, pr = clamp(CFG.camp + (pa - 50) / 250 - fat / 60, 0.08, 0.65) * (era ? CFG.eraCamp : 1) * (s.extended ? 1.6 : 1), n = (pa > 75 && fat < 4) ? 2 : 1;
+      for (var c = 0; c < n && done < (era ? CFG.eraMaxCamp : CFG.maxCamp + (s.extended ? 2 : 0)); c++) if (Math.random() < pr) campaign(a);
     });
     /* 공동 출병: 플레이어와 약속한 우호국이 같은 적을 친다 */
     var jw = self.jointWar && self.jointWar();
