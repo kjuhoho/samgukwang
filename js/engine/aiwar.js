@@ -14,7 +14,7 @@
   var P = SG.Sandbox.prototype, ACT = { baekje: 1, silla: 1, goguryeo: 1, gaya: 1, tang: 1 };
   var KM = { capital: 1.45, city: 1.2, fortress: 1.35, port: 1.1, pass: 1.6 };         // 성의 방어 보정
   var KV = { capital: 0.5, city: 0.2, port: 0.15, fortress: -0.1, pass: -0.2 };        // 성의 매력
-  var CFG = SG.AIWAR = { camp: 0.4, strike: 1, maxCamp: 4 };                          // 조절용: 나라당 원정 확률 / 우리에 대한 공세 배수 / 연간 최대 원정 수
+  var CFG = SG.AIWAR = { camp: 0.4, strike: 1, maxCamp: 4, eraCap: 3, eraCamp: 0.5, eraMaxCamp: 1, revive: 0.14 };                          // 조절용: 나라당 원정 확률 / 우리에 대한 공세 배수 / 연간 최대 원정 수
 
   var M = {
     head: T('천하의 움직임', 'Movements of the Realm', '天下の動き'),
@@ -32,6 +32,13 @@
     place: T(' 급보가 이른 곳은 ', ' The alarm came from ', ' 急報が届いたのは'),
     win: T('기습해 온 적군을 물리쳤습니다. 이웃이 우리를 쉽게 보지 못할 것입니다.', 'You drove off the raiders. The neighbors will not take us lightly.', '奇襲してきた敵軍を退けました。隣国も我が国を軽く見られなくなるでしょう。'),
     costly: T('피해는 컸으나 공세를 막아냈습니다.', 'The blow was costly, but the offensive was stopped.', '損害は大きかったものの、攻勢を防ぎました。'),
+    rev: T('멸망했던 나라의 유민과 옛 신하들이 다시 깃발을 들고 성을 되찾았습니다.', 'Exiles and old ministers of the fallen realm raised the banner again and retook a castle.', '滅びた国の遺民と旧臣が再び旗を掲げ、城を取り戻しました。'),
+    revTag: T('부흥군 봉기', 'Restoration uprising', '復興軍の蜂起'),
+    rebTtl: T(' 부흥군의 봉기', ' Restoration Uprising', 'の復興軍の蜂起'),
+    rebWhy: T('옛 땅의 백성들이 멸망한 나라를 되살리겠다며 들고일어났습니다. 우리가 차지한 성이 그 표적입니다.', 'The people of the old land rose to revive their fallen realm. A castle we hold is their target.', '旧領の民が滅んだ国を蘇らせると蜂起しました。我が軍の占領した城が標的です。'),
+    rebWin: T('봉기를 진압했습니다. 옛 나라의 불씨가 잦아들었습니다.', 'The uprising was crushed. The embers of the old realm have died down.', '蜂起を鎮圧しました。旧国の火種は消えました。'),
+    rebCostly: T('큰 피해를 입었으나 봉기를 가라앉혔습니다.', 'At heavy cost, the uprising was put down.', '大きな損害を出しつつ、蜂起を鎮めました。'),
+    rebLose: T('부흥군이 성을 점거했습니다. 멸망했던 나라가 다시 깃발을 세웠습니다.', 'The rebels seized the castle. The fallen realm has raised its banner again.', '復興軍が城を占拠しました。滅んだ国が再び旗を立てました。'),
     lose: T('방비가 뚫렸습니다. 성이 적의 손에 넘어갈 수 있습니다.', 'The defenses were breached. The castle may fall into enemy hands.', '防備が破られました。城が敵の手に渡るおそれがあります。')
   };
   // 기존 '성을 버린다' 선택지(번역이 빠져 있었음)
@@ -61,7 +68,8 @@
   P.worldSim = function () {
     var self = this, s = this.s, me = this.side, all = this.places(), d = s.destroyed || {}, coal = (s.coal && s.coal.members) || [], y = s.year;
     if (this.aiTurnAll) try { this.aiTurnAll(); } catch (e) { console.warn('aiTurn', e); }
-    var ai = s.ai = s.ai || {}; ai.fat = ai.fat || {}; ai.pact = ai.pact || {}; ai.grudge = ai.grudge || {}; ai.pw = ai.pw || {}; ai.mv = [];
+    var era = y <= (this.cfg.end0 != null ? this.cfg.end0 : this.cfg.end);   // 짜인 역사 구간: 적국의 정복은 연표를 해치지 않을 만큼만
+    var ai = s.ai = s.ai || {}; ai.cap = ai.cap || 0; ai.fat = ai.fat || {}; ai.pact = ai.pact || {}; ai.grudge = ai.grudge || {}; ai.pw = ai.pw || {}; ai.mv = [];
     s.owners = s.owners || {};
     function nm(side) { var r = self.roleOf(side); return r ? self.names[r].replace('(멸망)', '') : ((SG.sideName && SG.sideName[side]) || side); }
     var by = {}; all.forEach(function (p) { var o = self.ownerOf(p); if (o) (by[o] = by[o] || []).push(p); });
@@ -106,27 +114,32 @@
         if (allied(a, o)) return;
         var ro = self.roleOf(o); if (ra && ro && coal.indexOf(ra) >= 0 && coal.indexOf(ro) >= 0) return; // 연합끼리는 싸우지 않는다
         if (a === 'gaya' && p.kind === 'capital') return;
+        var hm = SG.ownerAt(p, y + 3) === a;   // 실제 역사에서도 곧 그 나라 손에 들어가는 성
+        if (era && !hm && (p.kind === 'capital' || ai.cap >= CFG.eraCap)) return;
         var bd = 9, org = null; own.forEach(function (q) { var x = dist(p, q); if (x < bd) { bd = x; org = q; } });
         if (bd > 1.5) return;
         var pd = Math.max(self.sidePower(o), p.kind === 'capital' ? 35 : 0);
         var sc = (pa - pd) / 55 - bd * 0.9 + (KV[p.kind] || 0) + (ai.grudge[a + '>' + o] ? 0.35 : 0) + (busy[o] ? 0.3 : 0) + ((d[o] || (s.fallen && s.fallen[o])) ? 0.4 : 0) + (o === leader ? 0.25 : 0) + Math.random() * 0.5;
         if (p.kind === 'capital' && pa < pd * 1.25) sc -= 2;
-        cand.push({ p: p, o: o, pd: pd, org: org, bd: bd, sc: sc });
+        if (hm) sc += 1.2;
+        cand.push({ p: p, o: o, pd: pd, org: org, bd: bd, sc: sc, hm: hm });
       });
       if (!cand.length) return;
       cand.sort(function (x, z) { return z.sc - x.sc; });
       var t = cand[0], help = 0;
       Object.keys(ai.pact).forEach(function (k) { var m = k.split('|'); if (m.indexOf(a) < 0) return; var b = m[0] === a ? m[1] : m[0]; if (!d[b] && b !== me && !busy[b]) help += self.sidePower(b) * 0.2; });
-      var fat = ai.fat[a] || 0;
-      var att = (pa + help) * clamp(1 - Math.max(0, own.length - 16) * 0.03, 0.55, 1) * (0.85 + Math.random() * 0.3) * clamp(1 - fat / 60, 0.6, 1) * clamp(1 - t.bd * 0.1, 0.6, 1);
+      var fat = ai.fat[a] || 0, gd = self.pathGuards ? self.pathGuards(t.org, t.p, t.o) : [], gk = gd.length * (t.p.kind === 'capital' ? 1.5 : 1);
+      var att = (pa + help) * clamp(1 - 0.07 * gk, 0.6, 1) * clamp(1 - Math.max(0, own.length - 16) * 0.03, 0.55, 1) * (0.85 + Math.random() * 0.3) * clamp(1 - fat / 60, 0.6, 1) * clamp(1 - t.bd * 0.1, 0.6, 1);
       var left = (by[t.o] || []).length, rally = (ai.lostY && y - (ai.lostY[t.o] || -9) <= 1) ? 1.12 : 1, lastStand = left <= 6 ? 1.25 : 1;
       var def = t.pd * (KM[t.p.kind] || 1.2) * rally * lastStand * (0.85 + Math.random() * 0.3);
-      var pw = clamp(1 / (1 + Math.exp(-(att / def - 1.0) * 3.4)), 0.06, 0.88);
+      var pw = clamp(1 / (1 + Math.exp(-(att / def - 1.0) * 3.4)) + (t.hm ? 0.15 : 0), 0.06, 0.88);
       var won = Math.random() < pw; done++; busy[a] = 1; busy[t.o] = 1;
+      if (gd.length && !won && Math.random() < 0.6 && SG.INTERCEPT) lines.push('<div><b>' + nm(a) + '</b> ⚔ <b>' + nm(t.o) + '</b> · <u>' + short(t.p) + '</u> · <i>' + SG.INTERCEPT.ai + '</i></div>');
       var mv = { from: t.org.id, to: t.p.id, side: a, win: won ? 1 : 0, def: t.o };
       ai.mv.push(mv);
       if (won) {
         var seat = self.isSeat && self.isSeat(t.p, t.o);
+        if (era && !t.hm) ai.cap++;
         s.owners[t.p.id] = a; (by[a] = by[a] || []).push(t.p); by[t.o] = (by[t.o] || []).filter(function (q) { return q.id !== t.p.id; });
         bump(self, a, 1.5); bump(self, t.o, -2.5); ai.lostY = ai.lostY || {}; ai.lostY[t.o] = y; ai.fat[a] = fat + 1.5; ai.grudge[t.o + '>' + a] = y;
         self.log(nm(a) + ', ' + nm(t.o) + '의 ' + short(t.p) + ' 점령');
@@ -138,11 +151,24 @@
       }
     }
     shuffle(sides).forEach(function (a) {
-      if (done >= CFG.maxCamp) return;
+      if (done >= (era ? CFG.eraMaxCamp : CFG.maxCamp)) return;
       var ra = self.roleOf(a), pa = self.sidePower(a);
       if (a === 'tang' && (!ra || s.world[ra].commit < 30)) return;
-      var fat = ai.fat[a] || 0, pr = clamp(CFG.camp + (pa - 50) / 250 - fat / 60, 0.08, 0.65), n = (pa > 75 && fat < 4) ? 2 : 1;
-      for (var c = 0; c < n && done < CFG.maxCamp; c++) if (Math.random() < pr) campaign(a);
+      var fat = ai.fat[a] || 0, pr = clamp(CFG.camp + (pa - 50) / 250 - fat / 60, 0.08, 0.65) * (era ? CFG.eraCamp : 1), n = (pa > 75 && fat < 4) ? 2 : 1;
+      for (var c = 0; c < n && done < (era ? CFG.eraMaxCamp : CFG.maxCamp); c++) if (Math.random() < pr) campaign(a);
+    });
+    /* 멸망한 나라의 부활: 몇 해 뒤 유민과 옛 신하들이 옛 땅에서 다시 일어선다 */
+    Object.keys(d).forEach(function (side) {
+      ai.rev = ai.rev || {}; if ((ai.rev[side] || 0) >= 2 || side === 'tang' || side === 'wa') return;
+      if (y - d[side] < 3 || Math.random() > CFG.revive) return;
+      var old = all.filter(function (p) { var o = self.ownerOf(p); return o !== side && (p.side === side || SG.ownerAt(p, d[side] - 1) === side) && p.kind !== 'pass'; });
+      if (!old.length) return;
+      var c0 = old[Math.floor(Math.random() * old.length)];
+      if (self.ownerOf(c0) === me) { if (!ai.rebel) ai.rebel = { side: side, place: c0.id, y: y }; return; }   // 내가 차지한 땅이면 봉기로 맞선다
+      var near = old.filter(function (p) { return p !== c0 && dist(p, c0) < 1.0 && self.ownerOf(p) !== me; }).slice(0, 1), got = [c0].concat(near);
+      got.forEach(function (p) { s.owners[p.id] = side; });
+      self.reviveSide(side, got);
+      lines.push('<div><b>' + nm(side) + '</b> ⚑ ' + got.map(function (p) { return '<u>' + short(p) + '</u>'; }).join(' · ') + ' · <i>' + M.revTag + '</i></div><div><b>' + nm(side) + ' — </b>' + M.rev + '</div>');
     });
     if (lines.length) this.pre = (this.pre || '') + '<div class="freehd">🌏 <b>' + M.head + '</b>' + lines.join('') + ' <small>' + M.tail + '</small></div>';
   };
@@ -186,7 +212,8 @@
     if (!best) return null;
     if (!picked.why) picked.why = (best.sh == null || best.sh < 12) ? M.r4 : M.r6;
     var w = picked.w, r = picked.r, nmv = N[r], tot = r === 'tang' ? Math.round(7000 + w.commit * 330) : Math.round(picked.pwr * 230 * (0.8 + w.hostility / 220));
-    tot = Math.round(tot * (0.85 + Math.random() * 0.3) * (picked.opp > 1.5 ? 1.1 : 1));
+    var gd = this.pathGuards ? this.pathGuards(picked.org, best.p, this.side) : [];
+    tot = Math.round(tot * (0.85 + Math.random() * 0.3) * (picked.opp > 1.5 ? 1.1 : 1) * clamp(1 - 0.08 * gd.length, 0.7, 1));
     var wk = function (v1, v2) { var o = {}; if (r === 'tang') o['tang.commit'] = v1 * 2; else { o[r + '.p'] = v1; o[r + '.hostility'] = v2; } return o; };
     var I = SG.i18n && SG.i18n.dict, en = (I && I.en && I.en[nmv]) || nmv, ja = (I && I.ja && I.ja[nmv]) || nmv;
     T(nmv + M.ttl, en + "'s Surprise Offensive", ja + 'の奇襲攻勢');
@@ -207,8 +234,41 @@
   var _inv = P.invasion;
   P.invasion = function () {
     var inv = _inv.apply(this, arguments); if (inv) return inv;
-    try { return this.aiStrike() || null; } catch (e) { console.warn('aiStrike', e); return null; }
+    try { var rb = this.s.ai && this.s.ai.rebel; if (rb) { if (this.s.year - rb.y > 3) { this.s.ai.rebel = null; } else { var ri = this.rebelInv(rb); if (ri) return ri; this.s.ai.rebel = null; } } return this.aiStrike() || null; } catch (e) { console.warn('aiStrike', e); return null; }
   };
+
+  P.reviveSide = function (side, got) {
+    var s = this.s, ai = s.ai = s.ai || {}, role = this.roleOf(side), w = role && s.world[role];
+    if (s.destroyed) delete s.destroyed[side];
+    ai.rev = ai.rev || {}; ai.rev[side] = (ai.rev[side] || 0) + 1;
+    if (role && this.names[role]) this.names[role] = this.names[role].replace('(멸망)', '').replace('(부흥)', '') + '(부흥)';
+    if (w && role !== 'tang') { w.p = Math.max(w.p, 14); w.hostility = Math.max(w.hostility, 25); } else if (!role) { ai.pw = ai.pw || {}; ai.pw[side] = Math.max(ai.pw[side] || 0, 14); }
+    var n = this.nat(side); n.people = Math.max(n.people, 60); n.train = Math.max(n.train, 45);
+    this.log((SG.sideName && SG.sideName[side] || side) + ' 부흥');
+  };
+  P.rebelInv = function (rb) {
+    var self = this, s = this.s, pl = SG.placeById(rb.place), N = this.names, role = this.roleOf(rb.side);
+    if (!pl || this.ownerOf(pl) !== this.side) return null;
+    var nmv = role ? N[role].replace('(멸망)', '') : ((SG.sideName && SG.sideName[rb.side]) || rb.side);
+    var I = SG.i18n && SG.i18n.dict, en = (I && I.en && I.en[nmv]) || nmv, ja = (I && I.ja && I.ja[nmv]) || nmv;
+    T(nmv + M.rebTtl, en + ' Restoration Uprising', ja + 'の復興軍の蜂起');
+    var tot = Math.round(3000 + Math.random() * 2500 + (this.g.state.res.people < 50 ? 1800 : 0) + (this.nat(rb.side).train - 45) * 40);
+    s.ai.rebel = null; s.threat = s.threat || {}; s.threat.last = s.year; s.ai.strikeY = s.year;
+    var inv = {
+      title: nmv + M.rebTtl, defense: true, terrain: 1.15, place: pl.id, rebel: rb.side,
+      enemy: { name: nmv + ' 부흥군', side: rb.side, total: tot, terrain: 1, morale: 72, mix: { levy: .45, line: .3, archer: .15, horse: .1 } },
+      intro: '<b>' + nmv + ' — </b>' + M.rebWhy + M.place + '<b>' + pl.name + '</b>' + T(' 방면입니다.', ' direction.', ' 方面です。'),
+      tactics: tactics(this),
+      win: { text: [M.rebWin], fx: { morale: 3, people: 2 } },
+      costly: { text: [M.rebCostly], fx: { morale: -1, people: -2 }, realm: { defense: -2 } },
+      lose: { text: [M.rebLose], fx: { people: -4, morale: -4 }, realm: { defense: -4 } }
+    };
+    inv.tactics.forEach(function (t) { if (t.special) return; try { t.hint += ' · 승산 ' + self.odds(self.simFight(inv, t)); } catch (e) { } });
+    this.log(nmv + ' 부흥군 봉기: ' + short(pl));
+    return inv;
+  };
+  var _afterR = P.afterFight;
+  P.afterFight = function (bt, kind) { if (bt && bt.rebel && (kind === 'lose' || kind === 'abandon') && this.s.destroyed && this.s.destroyed[bt.rebel]) { var pl = SG.placeById(bt.place); this.reviveSide(bt.rebel, pl ? [pl] : []); } return _afterR.apply(this, arguments); };
 
   /* ── 지도: 올해 적국들의 진군선과 점령지 표시 ── */
   var _dd = P.drawDeploy;

@@ -61,8 +61,15 @@
       if (!r || !r.a || !r.a.units || r.a.name !== 'a' && !r.a.side) return '';
       var c = T_.comp(r.a.units), N = c.N || 1, win = r.winner === 'a', base = win ? 9 : 5, s = this.s, out = [];
       for (var g in KEYS) {
-        var e = c[g]; if (!e) continue; var sh = e.n / N; if (sh < 0.08) continue;
-        var k = KEYS[g], before = s.realm[k] || 0, add = Math.round(base * Math.min(1, 0.5 + sh) * (before >= 80 ? 0.5 : 1));
+        var e = c[g]; if (!e) continue; var sh = e.n / N; if (sh < 0.04) continue;
+        var k = KEYS[g], before = s.realm[k] || 0, bonus = 1, stn = r.stanceA;
+        // 병과별 실전 가산: 그 병과가 제 몫을 한 전투일수록 더 배운다
+        if (g === 'cav' && (stn === 'charge' || stn === 'flank' || stn === 'wedge' || stn === 'feign' || stn === 'harass' || (win && r.routed === 'b'))) bonus += 0.5;
+        if (g === 'rng' && (stn === 'attrition' || stn === 'hold')) bonus += 0.5;
+        if (g === 'elite' && (stn === 'forlorn' || stn === 'charge')) bonus += 0.5;
+        if (g === 'siege' && stn === 'siege') bonus += 0.6;
+        if (g === 'line' && stn === 'hold') bonus += 0.3;
+        var add = Math.max(1, Math.round(base * bonus * Math.min(1, 0.6 + sh) * (before >= 80 ? 0.5 : 1)));
         s.realm[k] = clamp(before + add, 0, 100);
         out.push('<u>' + NM[g] + '</u> +' + add + (lv(s.realm[k]) > lv(before) ? ' <i>' + XPN.up + '</i> <u>' + LV[lv(s.realm[k])] + '</u>' : ''));
       }
@@ -79,6 +86,12 @@
   var _ye = P.yearEnd;
   P.yearEnd = function () {
     var r = this.s.realm; for (var g in KEYS) { var k = KEYS[g]; if ((r[k] || 0) > 40) r[k] = Math.max(40, r[k] - 1); }
+    // 새로 양성한 병과는 그만큼 조련이 쌓인다(기병을 키우면 기병 숙련도 오른다)
+    try {
+      var cc = T_.comp(this.fieldUnits ? this.fieldUnits(1) : []), prev = this.s.brSnap || {}, snap = {};
+      for (var q in KEYS) { var nn = cc[q] ? cc[q].n : 0; snap[q] = nn; var d = nn - (prev[q] == null ? nn : prev[q]); if (d >= 300) r[KEYS[q]] = clamp((r[KEYS[q]] || 0) + Math.min(6, Math.round(d / 400)), 0, 100); }
+      this.s.brSnap = snap;
+    } catch (x) {}
     return _ye.apply(this, arguments);
   };
 

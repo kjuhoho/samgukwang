@@ -8,7 +8,7 @@ window.SG = window.SG || {}; SG.data = SG.data || {};
 
   // ── 전투 수치 모델(게임 추상화 — 사료 수치 아님) ──
   var BASE = { // atk, def
-    inf_levy: [6, 6], inf_line: [10, 10], inf_elite: [15, 12], cav_light: [12, 8], cav_heavy: [17, 11], archer: [10, 5], crossbow: [13, 5],
+    inf_levy: [5.5, 5.5], inf_line: [10, 10], inf_elite: [17, 13], cav_light: [12, 8], cav_heavy: [17, 11], archer: [10, 5], crossbow: [13, 5],
     siege: [9, 3], navy_war: [11, 10], navy_transport: [2, 4], guard: [13, 14], garrison: [8, 15], scout: [3, 3]
   };
   SG.BASE = BASE;

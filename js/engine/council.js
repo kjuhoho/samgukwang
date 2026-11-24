@@ -23,6 +23,7 @@
     if ((tac.ours && tac.ours.ambush) || /매복|기습|야습|급습/.test(s)) return 'ambush';
     if (/화공|불을/.test(s)) return 'fire'; if (/포위|공성/.test(s)) return 'siege';
     if (/농성|수성|성문을 닫|방어선|버티/.test(s)) return 'hold'; if (/돌격|총공격|맹공|정면/.test(s)) return 'charge';
+    if (/유인|거짓 퇴각|미끼/.test(s)) return 'feign'; if (/결사|죽음을 각오/.test(s)) return 'forlorn';
     if (/우회|측면|협공|양면|동시/.test(s)) return 'flank'; if (/활|쇠뇌|궁/.test(s)) return 'attrition';
     return 'balanced';
   };
@@ -36,6 +37,9 @@
     if (e.stance) en.stance = e.stance;
     if (st === 'attrition' && !this.hasGrp(ours, 'rng')) ours.stance = 'balanced';
     if (st === 'flank' && !this.hasGrp(ours, 'cav')) ours.stance = 'balanced';
+    if ((st === 'feign' || st === 'wedge' || st === 'harass') && !this.hasGrp(ours, 'cav')) ours.stance = 'balanced';
+    if (st === 'forlorn' && !this.hasGrp(ours, 'elite')) ours.stance = 'balanced';
+    if (st === 'wedge' && (tk === 'fort')) ours.stance = 'balanced';
     if (st === 'siege' && tk !== 'fort') ours.stance = 'balanced';
     // 지휘관: 임명한 장수(없으면 사료 속 지휘관, 그도 없으면 가장 뛰어난 장수)
     var gid = sel && sel.gen != null ? sel.gen : ((ctx.bt && ctx.bt.gen) || this.bestGen());
@@ -44,7 +48,7 @@
       ours.gen = gid; var cm = this.cmdr(gid), t = cm && cm.trait, sx = ours.stance;
       if (t === 'def' && def) ours.terrain = (ours.terrain || 1) * 1.1;
       if (t === 'amb' && (sx === 'ambush' || sx === 'flank')) ours.morale += 8;
-      if (t === 'cav' && (sx === 'charge' || sx === 'flank')) ours.morale += 6;
+      if (t === 'cav' && (sx === 'charge' || sx === 'flank' || sx === 'wedge' || sx === 'feign' || sx === 'harass')) ours.morale += 6;
       if (t === 'nav' && (tk === 'coast' || tk === 'sea')) ours.morale += 8;
       if (t === 'siege' && !def && tk === 'fort') ours.morale += 7;
       if (t === 'insp') ours.morale += 5;
@@ -64,6 +68,9 @@
   P.stanceOk = function (st, ours, tk) {
     if (st === 'attrition' && !this.hasGrp(ours, 'rng')) return '궁·노병이 부족합니다.';
     if (st === 'flank' && !this.hasGrp(ours, 'cav')) return '기병이 부족합니다.';
+    if ((st === 'feign' || st === 'wedge' || st === 'harass') && !this.hasGrp(ours, 'cav')) return '기병이 부족합니다.';
+    if (st === 'forlorn' && !this.hasGrp(ours, 'elite')) return T_.T('정예병·결사대가 부족합니다.', 'Not enough elite troops.', '精鋭・決死隊が足りません。');
+    if (st === 'wedge' && tk === 'fort') return T_.T('성곽 앞에서는 기병이 돌파할 수 없습니다.', 'Cavalry cannot break through at the walls.', '城郭の前では騎兵は突破できません。');
     if (st === 'siege' && tk !== 'fort') return '공성할 성곽이 아닙니다.';
     if (st === 'flank' && (tk === 'pass' || tk === 'fort')) return '좁은 지형에서는 우회할 공간이 없습니다.';
     return '';
