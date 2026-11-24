@@ -106,20 +106,21 @@
     }
 
     /* 원정: 나라마다 한두 번 */
-    function campaign(a) {
+    function campaign(a, force) {
       var ra = self.roleOf(a), pa = self.sidePower(a), own = by[a] || [], cand = [];
       if (!own.length) return;
       all.forEach(function (p) {
         var o = self.ownerOf(p); if (!o || o === a || o === me || !ACT[o]) return;
-        if (allied(a, o)) return;
+        if (force && o !== force) return;
+        if (!force && allied(a, o)) return;
         var ro = self.roleOf(o); if (ra && ro && coal.indexOf(ra) >= 0 && coal.indexOf(ro) >= 0) return; // 연합끼리는 싸우지 않는다
         if (a === 'gaya' && p.kind === 'capital') return;
         var hm = SG.ownerAt(p, y + 3) === a;   // 실제 역사에서도 곧 그 나라 손에 들어가는 성
-        if (era && !hm && (p.kind === 'capital' || ai.cap >= CFG.eraCap)) return;
+        if (era && !hm && !force && (p.kind === 'capital' || ai.cap >= CFG.eraCap)) return;
         var bd = 9, org = null; own.forEach(function (q) { var x = dist(p, q); if (x < bd) { bd = x; org = q; } });
         if (bd > 1.5) return;
         var pd = Math.max(self.sidePower(o), p.kind === 'capital' ? 35 : 0);
-        var sc = (pa - pd) / 55 - bd * 0.9 + (KV[p.kind] || 0) + (ai.grudge[a + '>' + o] ? 0.35 : 0) + (busy[o] ? 0.3 : 0) + ((d[o] || (s.fallen && s.fallen[o])) ? 0.4 : 0) + (o === leader ? 0.25 : 0) + Math.random() * 0.5;
+        var sc = (pa - pd) / 55 - bd * 0.9 + (KV[p.kind] || 0) + (ai.grudge[a + '>' + o] ? 0.35 : 0) + (busy[o] ? 0.3 : 0) + ((d[o] || (s.fallen && s.fallen[o])) ? 0.4 : 0) + (o === leader ? 0.25 : 0) + Math.random() * 0.5 + (force ? 1.5 : 0);
         if (p.kind === 'capital' && pa < pd * 1.25) sc -= 2;
         if (hm) sc += 1.2;
         cand.push({ p: p, o: o, pd: pd, org: org, bd: bd, sc: sc, hm: hm });
@@ -129,13 +130,13 @@
       var t = cand[0], help = 0;
       Object.keys(ai.pact).forEach(function (k) { var m = k.split('|'); if (m.indexOf(a) < 0) return; var b = m[0] === a ? m[1] : m[0]; if (!d[b] && b !== me && !busy[b]) help += self.sidePower(b) * 0.2; });
       var fat = ai.fat[a] || 0, gd = self.pathGuards ? self.pathGuards(t.org, t.p, t.o) : [], gk = gd.length * (t.p.kind === 'capital' ? 1.5 : 1);
-      var att = (pa + help) * clamp(1 - 0.07 * gk, 0.6, 1) * clamp(1 - Math.max(0, own.length - 16) * 0.03, 0.55, 1) * (0.85 + Math.random() * 0.3) * clamp(1 - fat / 60, 0.6, 1) * clamp(1 - t.bd * 0.1, 0.6, 1);
+      var att = (pa + help) * (0.92 + (SG.resOf ? SG.resOf(self, a) : 40) / 300) * clamp(1 - 0.07 * gk, 0.6, 1) * clamp(1 - Math.max(0, own.length - 16) * 0.03, 0.55, 1) * (0.85 + Math.random() * 0.3) * clamp(1 - fat / 60, 0.6, 1) * clamp(1 - t.bd * 0.1, 0.6, 1);
       var left = (by[t.o] || []).length, rally = (ai.lostY && y - (ai.lostY[t.o] || -9) <= 1) ? 1.12 : 1, lastStand = left <= 6 ? 1.25 : 1;
-      var def = t.pd * (KM[t.p.kind] || 1.2) * rally * lastStand * (0.85 + Math.random() * 0.3);
+      var def = t.pd * (0.92 + (SG.resOf ? SG.resOf(self, t.o) : 40) / 300) * (KM[t.p.kind] || 1.2) * rally * lastStand * (0.85 + Math.random() * 0.3);
       var pw = clamp(1 / (1 + Math.exp(-(att / def - 1.0) * 3.4)) + (t.hm ? 0.15 : 0), 0.06, 0.88);
       var won = Math.random() < pw; done++; busy[a] = 1; busy[t.o] = 1;
       if (gd.length && !won && Math.random() < 0.6 && SG.INTERCEPT) lines.push('<div><b>' + nm(a) + '</b> ⚔ <b>' + nm(t.o) + '</b> · <u>' + short(t.p) + '</u> · <i>' + SG.INTERCEPT.ai + '</i></div>');
-      var mv = { from: t.org.id, to: t.p.id, side: a, win: won ? 1 : 0, def: t.o };
+      var mv = { from: t.org.id, to: t.p.id, side: a, win: won ? 1 : 0, def: t.o, joint: force ? 1 : 0 };
       ai.mv.push(mv);
       if (won) {
         var seat = self.isSeat && self.isSeat(t.p, t.o);
@@ -157,6 +158,13 @@
       var fat = ai.fat[a] || 0, pr = clamp(CFG.camp + (pa - 50) / 250 - fat / 60, 0.08, 0.65) * (era ? CFG.eraCamp : 1), n = (pa > 75 && fat < 4) ? 2 : 1;
       for (var c = 0; c < n && done < (era ? CFG.eraMaxCamp : CFG.maxCamp); c++) if (Math.random() < pr) campaign(a);
     });
+    /* 공동 출병: 플레이어와 약속한 우호국이 같은 적을 친다 */
+    var jw = self.jointWar && self.jointWar();
+    if (jw && done < 6 && !d[jw.side]) {
+      var before = ai.mv.length; campaign(jw.side, jw.foe); jw.hit++;
+      var jm = ai.mv[ai.mv.length - 1];
+      if (ai.mv.length > before && jm && jm.joint && jm.win) lines.push('<div><b>' + nm(jw.side) + '</b> <i>' + SG.ALLY.jwin + '</i></div>'); else if (ai.mv.length === before) lines.push('<div><b>' + nm(jw.side) + '</b> ' + SG.ALLY.jfail + '</div>');
+    }
     /* 멸망한 나라의 부활: 몇 해 뒤 유민과 옛 신하들이 옛 땅에서 다시 일어선다 */
     Object.keys(d).forEach(function (side) {
       ai.rev = ai.rev || {}; if ((ai.rev[side] || 0) >= 2 || side === 'tang' || side === 'wa') return;
@@ -213,7 +221,7 @@
     if (!picked.why) picked.why = (best.sh == null || best.sh < 12) ? M.r4 : M.r6;
     var w = picked.w, r = picked.r, nmv = N[r], tot = r === 'tang' ? Math.round(7000 + w.commit * 330) : Math.round(picked.pwr * 230 * (0.8 + w.hostility / 220));
     var gd = this.pathGuards ? this.pathGuards(picked.org, best.p, this.side) : [];
-    tot = Math.round(tot * (0.85 + Math.random() * 0.3) * (picked.opp > 1.5 ? 1.1 : 1) * clamp(1 - 0.08 * gd.length, 0.7, 1));
+    tot = Math.round(tot * (0.9 + (SG.resOf ? SG.resOf(this, picked.side) : 40) / 280) * (0.85 + Math.random() * 0.3) * (picked.opp > 1.5 ? 1.1 : 1) * clamp(1 - 0.08 * gd.length, 0.7, 1));
     var wk = function (v1, v2) { var o = {}; if (r === 'tang') o['tang.commit'] = v1 * 2; else { o[r + '.p'] = v1; o[r + '.hostility'] = v2; } return o; };
     var I = SG.i18n && SG.i18n.dict, en = (I && I.en && I.en[nmv]) || nmv, ja = (I && I.ja && I.ja[nmv]) || nmv;
     T(nmv + M.ttl, en + "'s Surprise Offensive", ja + 'の奇襲攻勢');

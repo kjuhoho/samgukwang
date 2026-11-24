@@ -36,7 +36,7 @@
     riot: T('민심이 무너져 민란이 일어나고 국력이 꺾였습니다.', 'Public order collapsed into riots, sapping their strength.', '民心が崩れて民乱が起こり、国力が削がれました。'),
     boom: T('풍년이 들어 곳간이 넉넉해졌습니다.', 'A bumper harvest filled their granaries.', '豊作で蔵が満ちました。'),
     low: T('낮음', 'Low', '低い'), mid: T('보통', 'Average', '普通'), high: T('높음', 'High', '高い'), unk: T('불명', 'Unknown', '不明'),
-    econ: T('농업', 'Farming', '農業'), train: T('훈련', 'Training', '訓練'), def: T('방비', 'Defense', '防備'), navy: T('수군', 'Navy', '水軍')
+    res: T('예비군', 'Reserves', '予備軍'), econ: T('농업', 'Farming', '農業'), train: T('훈련', 'Training', '訓練'), def: T('방비', 'Defense', '防備'), navy: T('수군', 'Navy', '水軍')
   };
   function dm(v, g) { return g * clamp(1 - (v - 55) / 45, 0.2, 1); } // 높을수록 오르기 어렵다
   var BR = ['line', 'elite', 'cav', 'rng', 'siege'];
@@ -149,7 +149,7 @@
     this.natSides().forEach(function (side) {
       var n = s.ai.nat[side]; if (!n) return;
       var f = function (lab, v, lo, hi) { return '<i>' + lab + '</i> ' + (intel >= 50 ? Math.round(v) : intel >= 20 ? tier(v, lo, hi) : M.unk); };
-      out += '<div class="dp"><b>' + nm(side) + '</b><span>' + f(M.econ, n.econ, 45, 62) + ' · ' + f(M.train, n.train, 45, 62) + ' · ' + f(M.def, n.defense, 45, 62) + ' · ' + f(M.navy, n.navy, 30, 50) + '</span></div>';
+      out += '<div class="dp"><b>' + nm(side) + '</b><span>' + f(M.econ, n.econ, 45, 62) + ' · ' + f(M.train, n.train, 45, 62) + ' · ' + f(M.def, n.defense, 45, 62) + ' · ' + f(M.navy, n.navy, 30, 50) + ' · ' + f(M.res, SG.resOf ? SG.resOf(self, side) : 40, 35, 55) + '</span></div>';
     });
     return html + (out ? '<div class="dips aid" title="' + M.head + '">' + out + '</div>' : '');
   };
