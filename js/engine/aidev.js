@@ -72,18 +72,18 @@
     n.gold = clamp(n.gold + 2 + n.econ * 0.08 + places * 0.5 - P_ * 0.07, 0, 200);
     n.food = clamp(n.food + 4 + n.econ * 0.14 + places * 0.6 - P_ * 0.12, -20, 300); if (n.food > 100) n.food *= 0.97;
     // 해마다 새는 것들
-    n.train = clamp(n.train - 2, 15, 95); n.defense = clamp(n.defense - 2, 15, 95); n.intel = clamp(n.intel - 1, 5, 95);
-    if (n.econ > 84) n.econ -= 1;
+    n.train = clamp(n.train - 2 * Math.max(1, n.train / 75), 15, 180); n.defense = clamp(n.defense - 2 * Math.max(1, n.defense / 75), 15, 180); n.intel = clamp(n.intel - Math.max(1, n.intel / 75), 5, 180);
+    if (n.econ > 84) n.econ -= Math.max(1, n.econ / 100);
     BR.forEach(function (k) { if (n.bl[k] > 40) n.bl[k] -= 1; });
     // 위기와 행운
     var crisis = null;
     if (n.food < 0) { n.food = 8; n.people = clamp(n.people - 8, 5, 100); crisis = M.famine; if (w && role !== 'tang') w.p = clamp(w.p - 3, 4, 150); else if (!role) { var a0 = s.ai; a0.pw = a0.pw || {}; a0.pw[side] = clamp((a0.pw[side] || 20) - 3, 6, 90); } }
-    else if (n.people < 25) { n.people = 40; n.defense = clamp(n.defense - 6, 15, 95); crisis = M.riot; if (w && role !== 'tang') w.p = clamp(w.p - 3, 4, 150); }
+    else if (n.people < 25) { n.people = 40; n.defense = clamp(n.defense - 6, 15, 180); crisis = M.riot; if (w && role !== 'tang') w.p = clamp(w.p - 3, 4, 150); }
     else if (Math.random() < 0.06) { n.food = clamp(n.food + 25, -20, 300); n.people = clamp(n.people + 4, 5, 100); crisis = M.boom; }
     n.people = clamp(n.people + (n.food > 20 ? 1 : -1) + (atWar ? -1 : 0), 5, 100);
     // 행동력만큼 필요한 일을 고른다
     // 시대가 흐를수록 나라의 눈높이도 오른다: 목표치가 올라가 후반에도 계속 성장하고, 쌓인 금은 투자로 쓴다
-    var prog = clamp((s.year - this.cfg.start) / 45, 0, 1), goal = 62 + 22 * prog, rich = n.gold > 30 ? 0.5 : 0, extra = n.gold > 45 ? 1 : 0;
+    var prog = clamp((s.year - this.cfg.start) / 45, 0, 1), goal = 62 + 40 * prog, rich = n.gold > 30 ? 0.5 : 0, extra = n.gold > 45 ? 1 : 0;
     var threat = atWar ? 1 : 0.3, coastal = side === 'wa' || side === 'tang' || side === 'baekje' || side === 'silla', sc = {};
     sc.farm = (goal + 3 - n.econ) / 40 + (n.food < 25 ? 0.6 : 0) + rich * 0.4;
     sc.relief = n.people < 55 ? (55 - n.people) / 22 : -1;
@@ -98,14 +98,14 @@
       var k = order[i], A = ACTS[k]; if (sc[k] <= -0.5 || n.gold < A.gold || n.food < A.food + 3) continue;
       if (Math.random() < 0.25) continue; // 관료의 늑장·불발
       n.gold -= A.gold; n.food -= A.food; done.push(k);
-      if (k === 'farm') n.econ = clamp(n.econ + dm(n.econ, 5), 15, 95);
+      if (k === 'farm') n.econ = clamp(n.econ + dm(n.econ, 5), 15, 180);
       else if (k === 'relief') n.people = clamp(n.people + 6, 5, 100);
-      else if (k === 'drill') n.train = clamp(n.train + dm(n.train, 6), 15, 95);
-      else if (k === 'fort') n.defense = clamp(n.defense + dm(n.defense, 6), 15, 95);
+      else if (k === 'drill') n.train = clamp(n.train + dm(n.train, 6), 15, 180);
+      else if (k === 'fort') n.defense = clamp(n.defense + dm(n.defense, 6), 15, 180);
       else if (k === 'recruit') { n.people = clamp(n.people - 2, 5, 100); if (w && role !== 'tang') w.p = clamp(w.p + 2.5, 4, 150); else if (!role) { var a1 = s.ai; a1.pw = a1.pw || {}; a1.pw[side] = clamp((a1.pw[side] || 20) + 2.5, 6, 90); } }
       else if (k === 'branch') { var b = (BASE[side] || BASE.silla).bl, ws = BR.map(function (g) { return 1 + (b[g] ? 1.5 : 0) + (g === 'siege' ? -0.5 : 0); }), r = Math.random() * ws.reduce(function (t, x) { return t + x; }, 0), g2 = BR[0]; for (var q = 0; q < BR.length; q++) { r -= ws[q]; if (r <= 0) { g2 = BR[q]; break; } } n.bl[g2] = clamp(n.bl[g2] + Math.max(5, 14 - 3 * Math.floor(n.bl[g2] / 20)), 0, 100); }
-      else if (k === 'navy') n.navy = clamp(n.navy + dm(n.navy, 6), 5, 95);
-      else if (k === 'scout') n.intel = clamp(n.intel + dm(n.intel, 5), 5, 95);
+      else if (k === 'navy') n.navy = clamp(n.navy + dm(n.navy, 6), 5, 180);
+      else if (k === 'scout') n.intel = clamp(n.intel + dm(n.intel, 5), 5, 180);
     }
     n.did = done; n.crisis = crisis ? 1 : 0;
     return { done: done, crisis: crisis };
@@ -127,7 +127,7 @@
   /* ── 전투·방어에 반영 ── */
   P.foeTrain = function (side) {
     var n = this.nat(side), role = this.roleOf(side), w = role && this.s.world[role];
-    return Math.max(25, Math.min(90, Math.round(n.train + (w && role !== 'tang' ? (w.p - 50) / 10 : 0))));
+    return Math.max(25, Math.min(150, Math.round(n.train + (w && role !== 'tang' ? (w.p - 50) / 10 : 0))));
   };
   P.foeBL = function (side) {
     var n = this.nat(side), o = {}; BR.forEach(function (k) { o[k] = clamp(Math.floor(n.bl[k] / 20), 0, 5); }); o.navy = clamp(Math.floor(n.navy / 20), 0, 5); return o;

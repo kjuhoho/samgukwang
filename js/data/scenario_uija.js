@@ -21,8 +21,9 @@ window.SG = window.SG || {}; SG.data = SG.data || {}; SG.scenarios = SG.scenario
     return f;
   }
   // 신라 5만 / 당 상륙군 (사료의 규모를 게임 병종 비율로 배분한 추정치)
-  var KS = 1, KT = 1; // 660년 진입 시 나라 상태로 정해지는 적 규모 배율
-  SG._uijaScale = function (a, b) { KS = a; KT = b; };
+  var KS = 1, KT = 1, KM = 1; // 660년 진입 시 나라 상태로 정해지는 적 규모 배율
+  SG._uijaScale = function (a, b, m) { KS = a; KT = b; KM = m || 1; };
+  function cp(n) { return Math.round(n * KM / 500) * 500; }
   function scaleHost(a, k) { return a.map(function (u) { return { id: u.id, n: Math.round(u.n * k) }; }); }
   function sillaHost() { return scaleHost([{ id: 'silla_jeong', n: 30000 }, { id: 'silla_seodang', n: 6000 }, { id: 'silla_horse', n: 4000 }, { id: 'silla_crossbow', n: 2000 }, { id: 'silla_hwarang', n: 1000 }, { id: 'silla_levy', n: 7000 }], KS); }
   function tangHost() { return scaleHost([{ id: 'tang_bubyeong', n: 60000 }, { id: 'tang_elite', n: 8000 }, { id: 'tang_cavalry', n: 6000 }, { id: 'tang_archer', n: 10000 }, { id: 'tang_crossbow', n: 8000 }, { id: 'tang_siege', n: 3000 }], KT); }
@@ -53,6 +54,32 @@ window.SG = window.SG || {}; SG.data = SG.data || {}; SG.scenarios = SG.scenario
     return 'broken';
   }
   var OUT = { held: '요충을 지켜냄', delayed: '크게 지연시킴', broken: '돌파당함' };
+
+  // 병력 보충 단계: 어디서든 이 장면을 거쳐 다음 장면으로 간다
+  function toMuster(g, after) { g.setFlags({ after: after, mu_levy: false, mu_garr: false, mu_navy: false, mu_ally: false, mu_drill: false }); g.go('s_muster'); }
+  function homeTotal(g) { var a = g.state.army, n = 0; ['baekje_bangun', 'baekje_gyebaek', 'baekje_horse', 'baekje_archer', 'baekje_guard', 'baekje_garrison'].forEach(function (i) { n += a[i] || 0; }); return n; }
+  function contGo(g, kind) {
+    if (kind === 'alt') g.setFlags({ contWhy: L3('백강구에서 당의 수군이 불길에 휩싸이고, 부흥군은 주류성을 지켜냈습니다. 당은 신라와의 갈등과 고구려 전선을 고려해 웅진 이남의 백제와 휴전합니다.', 'At Baekgang the Tang fleet went up in flames and the restoration army held Juryuseong. Weighing its quarrel with Silla and the Goguryeo front, Tang agrees to a truce with Baekje south of Ungjin.', '白江口で唐の水軍は炎に包まれ、復興軍は周留城を守り抜いた。唐は新羅との対立と高句麗戦線を考え、熊津以南の百済と休戦する。'), contYear: 664 });
+    else g.setFlags({ contWhy: L3('요충과 사비의 굳은 수성으로 당은 군량과 사기가 바닥나 철군을 논하게 되었고, 신라는 홀로 사비를 칠 수 없어 군을 물렸습니다.', 'Stubborn defense at the chokepoints and Sabi drained Tang of supplies and morale, and it began to discuss withdrawal; Silla could not take Sabi alone and pulled back.', '要衝と泗沘の固い守りで唐は軍糧と士気が尽き、撤兵を論じ始めた。新羅は単独で泗沘を攻められず軍を退いた。'), contYear: 661 });
+    g.go('s_cont');
+  }
+
+  function L3(ko, en, ja) { var l = SG.i18n && SG.i18n.lang; return l === 'en' ? en : l === 'ja' ? ja : ko; }
+  (function () {
+    var I = SG.i18n, tr = [
+      ['전국에 징병령을 내린다', 'Issue a nationwide conscription order', '全国に徴兵令を出す'], ['징집병을 모은다(민심이 높을수록 많다). 민심 -6, 군량 -8.', 'Raise levies (more when the people are content). People -6, food -8.', '徴集兵を集める(民心が高いほど多い)。民心-6、軍糧-8。'],
+      ['방령군과 산성 수비대를 소집한다', 'Summon the provincial troops and fortress garrisons', '方領軍と山城守備隊を召集する'], ['수비대 3,500명. 군량 -5. 지방 방비가 얇아진다.', '3,500 garrison troops. Food -5. Local defenses thin out.', '守備隊3,500名。軍糧-5。地方の備えが薄くなる。'],
+      ['서해안 선장을 모아 수군을 증강한다', 'Gather coastal captains and expand the navy', '西海岸の船長を集めて水軍を増強する'], ['수군 2,000명. 금 -8.', '2,000 sailors. Gold -8.', '水軍2,000名。金-8。'],
+      ['고구려에 사신을 보내 기병 원군을 청한다', 'Send envoys to Goguryeo to ask for cavalry', '高句麗に使者を送り騎兵の援軍を求める'], ['관계가 좋을수록 응한다. 금 -6.', 'The warmer our ties, the likelier they answer. Gold -6.', '関係が良いほど応じる。金-6。'],
+      ['군을 급히 조련하고 사기를 북돋는다', 'Drill the army hard and raise morale', '軍を急ぎ調練し士気を高める'], ['훈련 +6, 사기 +4. 군량 -4.', 'Training +6, morale +4. Food -4.', '訓練+6、士気+4。軍糧-4。'],
+      ['준비를 마치고 나아간다', 'Preparations done — advance', '準備を終えて進む'],
+      ['병력을 보충해 다시 맞선다', 'Reinforce and face them again', '兵を補充して再び迎え撃つ'], ['징병·소집으로 전열을 가다듬는다.', 'Rebuild the ranks by conscription and summons.', '徴兵・召集で戦列を立て直す。'],
+      ['웅진성으로 물러나 항전한다', 'Fall back to Ungjin and keep resisting', '熊津城へ退いて抗戦する'], ['사비는 비우고 방령군과 합친다.', 'Abandon Sabi and join the provincial troops.', '泗沘を捨て、方領軍と合流する。'],
+      ['북쪽 임존성으로 빠져나가 부흥을 꾀한다', 'Slip out to Imjonseong in the north and plan a restoration', '北の任存城へ抜け出し復興を図る'], ['[가상] 왕이 직접 부흥군의 구심이 된다.', '[Hypothetical] The king himself becomes the rallying point.', '[仮想] 王自らが復興軍の求心点となる。'],
+      ['백성을 살리기 위해 항복한다', 'Surrender to spare the people', '民を救うため降伏する'], ['백제는 여기서 끝난다.', 'Baekje ends here.', '百済はここで終わる。']
+    ];
+    tr.forEach(function (x) { var d = I && I.dict; if (d && d.en) { d.en[x[0]] = x[1]; d.ja[x[0]] = x[2]; } var T6 = SG.data.tr6 = SG.data.tr6 || { en: {}, ja: {} }; T6.en[x[0]] = x[1]; T6.ja[x[0]] = x[2]; });
+  })();
 
   var S = {};
 
@@ -201,7 +228,7 @@ window.SG = window.SG || {}; SG.data = SG.data || {}; SG.scenarios = SG.scenario
         var nIn = a.navy > 0 ? [{ id: 'baekje_navy', n: a.navy * 1000 }] : null, tangScale = 1, tangMor = plan === 'uijik' ? 52 : 68;
         function fightN(done) {
           var nTitle = '서해 해전 (가상)';
-          duel(g, force('백제 수군', 'baekje', nIn, 'uija', 1.1 * prep * seong * dm, mm, { ambush: plan === 'uijik' }), force('당 함대', 'tang', scaleHost([{ id: 'tang_navy', n: 14000 }, { id: 'tang_archer', n: 3000 }], KT), 'sojeongbang', 1, 70, { cap: 20000 }), { rounds: 6 }, { title: nTitle, tk: 'sea', gen: 'uija', def: true, place: 'gibeolpo' }, function (rn) {
+          duel(g, force('백제 수군', 'baekje', nIn, 'uija', 1.1 * prep * seong * dm, mm, { ambush: plan === 'uijik' }), force('당 함대', 'tang', scaleHost([{ id: 'tang_navy', n: 14000 }, { id: 'tang_archer', n: 3000 }], KT), 'sojeongbang', 1, 70, { cap: cp(20000) }), { rounds: 6 }, { title: nTitle, tk: 'sea', gen: 'uija', def: true, place: 'gibeolpo' }, function (rn) {
             var o = outcomeOf(rn); tangScale = o === 'held' ? 0.55 : o === 'delayed' ? 0.8 : 1; tangMor = o === 'held' ? tangMor - 10 : o === 'delayed' ? tangMor - 4 : tangMor;
             if (o === 'held') g.state.flags.seaWin = true;
             g.battleUI(rn, nTitle, '서해 — ' + (o === 'held' ? '당 함대를 격파해 상륙군이 크게 줄었습니다' : o === 'delayed' ? '당 함대에 타격을 주어 상륙이 지연됩니다' : '수군이 패해 당군이 그대로 상륙합니다'), function () { g.map.markPlace('gibeolpo', 'hot'); done(); });
@@ -209,19 +236,19 @@ window.SG = window.SG || {}; SG.data = SG.data || {}; SG.scenarios = SG.scenario
         }
         function fightT(done) {
           var tTitle = '탄현 전투 (가상)';
-          duel(g, force('탄현 방어군', 'baekje', tIn, 'heungsu', 1.9 * prep * seong * tMod * dm, mm, { ambush: plan === 'sangyeong' || plan === 'heungsu' }), force('신라군', 'silla', sillaHost(), 'gim_yusin', 1, 72, { cap: 20000 }), { rounds: 6 }, { title: tTitle, tk: 'pass', gen: 'heungsu', def: true, place: 'tanhyeon' }, function (rt) {
+          duel(g, force('탄현 방어군', 'baekje', tIn, 'heungsu', 1.9 * prep * seong * tMod * dm, mm, { ambush: plan === 'sangyeong' || plan === 'heungsu' }), force('신라군', 'silla', sillaHost(), 'gim_yusin', 1, 72, { cap: cp(20000) }), { rounds: 6 }, { title: tTitle, tk: 'pass', gen: 'heungsu', def: true, place: 'tanhyeon' }, function (rt) {
             res.tanhyeon = outcomeOf(rt);
             g.battleUI(rt, tTitle, '탄현 — ' + OUT[res.tanhyeon], function () { casualties(g, tBefore, rt.aLeft); g.map.markPlace('tanhyeon', 'hot'); done(); });
           });
         }
         function fightG(done) {
           var gTitle = '기벌포 전투 (가상)';
-          duel(g, force('기벌포 방어군', 'baekje', gIn, 'uija', 1.7 * prep * seong * bMod * dm, mm, { ambush: plan === 'uijik' }), force('당 상륙군', 'tang', scaleHost(tangHost(), tangScale), 'sojeongbang', 1, tangMor, { cap: 30000 }), { rounds: 6 }, { title: gTitle, tk: 'coast', gen: 'uija', def: true, place: 'gibeolpo' }, function (rg) {
+          duel(g, force('기벌포 방어군', 'baekje', gIn, 'uija', 1.7 * prep * seong * bMod * dm, mm, { ambush: plan === 'uijik' }), force('당 상륙군', 'tang', scaleHost(tangHost(), tangScale), 'sojeongbang', 1, tangMor, { cap: cp(30000) }), { rounds: 6 }, { title: gTitle, tk: 'coast', gen: 'uija', def: true, place: 'gibeolpo' }, function (rg) {
             res.gibeolpo = outcomeOf(rg);
             g.battleUI(rg, gTitle, '기벌포 — ' + OUT[res.gibeolpo], function () { casualties(g, gBefore, rg.aLeft); g.map.markPlace('gibeolpo', 'hot'); done(); });
           });
         }
-        function finish() { if (res.gibeolpo === 'broken' && g.f('seaWin') && a.navy > 0) res.gibeolpo = 'delayed'; g.go(res.tanhyeon === 'broken' && res.gibeolpo === 'broken' ? 's_hwangsan' : (res.tanhyeon !== 'broken' && res.gibeolpo !== 'broken') ? 's_stall' : 's_split'); }
+        function finish() { if (res.gibeolpo === 'broken' && g.f('seaWin') && a.navy > 0) res.gibeolpo = 'delayed'; toMuster(g, res.tanhyeon === 'broken' && res.gibeolpo === 'broken' ? 's_hwangsan' : (res.tanhyeon !== 'broken' && res.gibeolpo !== 'broken') ? 's_stall' : 's_split'); }
         // 전투 창이 화면에 뜨므로 우선 장면 이동을 막는다
         var nop = function (d) { d(); }; g.state.flags.seaWin = false;
         setTimeout(function () { (a.tanhyeon > 0 ? fightT : nop)(function () { (a.navy > 0 ? fightN : nop)(function () { (a.gibeolpo > 0 ? fightG : nop)(finish); }); }); }, 0);
@@ -250,7 +277,7 @@ window.SG = window.SG || {}; SG.data = SG.data || {}; SG.scenarios = SG.scenario
     note: '7/10 갈등 사건은 신라본기 7년·김유신전 기사입니다. 처형하려 한 주체는 소정방, 대상은 김문영이며 김유신은 이에 항의했습니다(v0.1의 서술을 정정).',
     src: SRC_S,
     choices: [
-      { label: '사자를 보내 양군의 불화를 부추기고, 소정방에게 철군 교섭을 건다', hint: '[가상] 금 12 소모. 두 요충에서 이미 지친 소정방이 주저할 때 먹힐 수 있다.', fx: { gold: -12 }, flags: { wedge: true }, result: '소정방은 군량선과 신라와의 약속, 두 요충에서 입은 손실을 계산하며 결국 철군 교섭을 받아들입니다. 실제 역사에서도 7월 12일 사비 포위 때 소정방이 망설였고, 김유신이 설득해야 했습니다.', next: 's_end_stall' },
+      { label: '사자를 보내 양군의 불화를 부추기고, 소정방에게 철군 교섭을 건다', hint: '[가상] 금 12 소모. 두 요충에서 이미 지친 소정방이 주저할 때 먹힐 수 있다.', fx: { gold: -12 }, flags: { wedge: true }, result: '소정방은 군량선과 신라와의 약속, 두 요충에서 입은 손실을 계산하며 결국 철군 교섭을 받아들입니다. 실제 역사에서도 7월 12일 사비 포위 때 소정방이 망설였고, 김유신이 설득해야 했습니다.', next: '__cont_stall__' },
       { label: '지연을 이용해 군을 집결, 사비를 굳게 지킨다', hint: '병력 보존.', fx: { food: -3, morale: +4 }, next: 's_sabi_tang' }
     ]
   };
@@ -297,7 +324,7 @@ window.SG = window.SG || {}; SG.data = SG.data || {}; SG.scenarios = SG.scenario
         { label: '성을 굳게 지키며 때를 기다린다', next: 's_siege' },
         { label: '지금 성 밖에서 당군을 선제 공격한다', hint: '[가상] 남은 병력으로 야전을 건다.', next: '__tang_field__' }
       ];
-      if (noSilla && !g.f('wedge')) c.unshift({ label: '신라군이 오지 않는 지금, 소정방에게 사자와 금을 보내 철군을 교섭한다', hint: '[가상] 금 12 소모. 신라와의 약속이 어긋난 당군이 망설일 수 있다.', fx: { gold: -12 }, flags: { wedge: true }, result: '신라군 없이 홀로 도성을 치는 일이 소정방에게도 부담입니다. 군량과 사기를 계산한 소정방은 교섭에 응합니다.', next: 's_end_stall' });
+      if (noSilla && !g.f('wedge')) c.unshift({ label: '신라군이 오지 않는 지금, 소정방에게 사자와 금을 보내 철군을 교섭한다', hint: '[가상] 금 12 소모. 신라와의 약속이 어긋난 당군이 망설일 수 있다.', fx: { gold: -12 }, flags: { wedge: true }, result: '신라군 없이 홀로 도성을 치는 일이 소정방에게도 부담입니다. 군량과 사기를 계산한 소정방은 교섭에 응합니다.', next: '__cont_stall__' });
       return c;
     }
   };
@@ -377,6 +404,37 @@ window.SG = window.SG || {}; SG.data = SG.data || {}; SG.scenarios = SG.scenario
     ]
   };
 
+  S.s_muster = {
+    era: '660년 7월', title: '병력 보충과 군령', focus: [126.9, 36.4, 1300],
+    text: function (g) { var n = homeTotal(g), nv = g.state.army.baekje_navy || 0; return [L3('지금 사비 일대에서 움직일 수 있는 병력은 약 <b>' + n.toLocaleString() + '명</b>, 수군은 <b>' + nv.toLocaleString() + '명</b>입니다. 싸우기 전에, 혹은 싸운 뒤에 병력을 보충하고 군을 정비할 수 있습니다.', 'About <b>' + n.toLocaleString() + '</b> troops and <b>' + nv.toLocaleString() + '</b> sailors can be moved around Sabi right now. Before or after a fight, you can replenish and reorganize the army.', '今、泗沘一帯で動かせる兵力は約<b>' + n.toLocaleString() + '名</b>、水軍は<b>' + nv.toLocaleString() + '名</b>です。戦いの前後に兵を補充し、軍を立て直せます。'), L3('징병과 소집에는 민심과 군량이 들고, 한 번씩만 쓸 수 있습니다. 준비가 끝나면 다음으로 나아갑니다.', 'Conscription and summons cost public support and food, and each can be used only once. When you are ready, move on.', '徴兵や召集には民心と軍糧がかかり、それぞれ一度だけ使えます。準備ができたら先へ進みます。')]; },
+    choices: function (g) {
+      var c = [], a = g.state.res, rel = g.sb ? g.sb.s.rel : {};
+      if (!g.f('mu_levy')) c.push({ label: '전국에 징병령을 내린다', hint: '징집병을 모은다(민심이 높을수록 많다). 민심 -6, 군량 -8.', next: '__mu_levy__' });
+      if (!g.f('mu_garr')) c.push({ label: '방령군과 산성 수비대를 소집한다', hint: '수비대 3,500명. 군량 -5. 지방 방비가 얇아진다.', next: '__mu_garr__' });
+      if (!g.f('mu_navy') && a.gold >= 8) c.push({ label: '서해안 선장을 모아 수군을 증강한다', hint: '수군 2,000명. 금 -8.', next: '__mu_navy__' });
+      if (!g.f('mu_ally') && a.gold >= 6) c.push({ label: '고구려에 사신을 보내 기병 원군을 청한다', hint: '관계가 좋을수록 응한다. 금 -6.', next: '__mu_ally__' });
+      if (!g.f('mu_drill')) c.push({ label: '군을 급히 조련하고 사기를 북돋는다', hint: '훈련 +6, 사기 +4. 군량 -4.', next: '__mu_drill__' });
+      c.push({ label: '준비를 마치고 나아간다', tag: '▶', next: g.f('after') || 's_siege' });
+      return c;
+    }
+  };
+  S.s_fallback = {
+    era: '660년 7월', title: '방어선이 무너지다 — 어찌할 것인가', focus: [126.91, 36.28, 900],
+    text: function (g) { var n = homeTotal(g).toLocaleString(), e = Math.round((g.f('eFrac') || 1) * 100); return [L3('싸움에 졌지만 백제가 끝난 것은 아닙니다. 남은 병력은 약 <b>' + n + '명</b>입니다. 당·신라군도 큰 손실을 입어 <b>남은 적은 처음의 ' + e + '%</b>입니다.', 'We lost the fight, but Baekje is not finished. About <b>' + n + '</b> troops remain. The Tang and Silla armies also took heavy losses: <b>' + e + '%</b> of their original strength is left.', '戦いには敗れたが、百済は終わっていない。残る兵力は約<b>' + n + '名</b>。唐・新羅軍も大きく損耗し、<b>敵は当初の' + e + '%</b>が残る。'), L3('병력을 다시 모아 맞설 수도, 웅진으로 물러나 후일을 도모할 수도 있습니다.', 'You can regroup and face them again, or fall back to Ungjin and plan for later.', '兵を再び集めて迎え撃つことも、熊津へ退いて後日を図ることもできる。')]; },
+    choices: function (g) {
+      var c = [{ label: '병력을 보충해 다시 맞선다', hint: '징병·소집으로 전열을 가다듬는다.', next: '__fb_again__' }];
+      if (g.f('where') !== 'ungjin') c.push({ label: '웅진성으로 물러나 항전한다', hint: '사비는 비우고 방령군과 합친다.', next: 's_ungjin' });
+      else c.push({ label: '북쪽 임존성으로 빠져나가 부흥을 꾀한다', hint: '[가상] 왕이 직접 부흥군의 구심이 된다.', fx: { people: +2, food: -5, morale: -4 }, flags: { surrender: 'no' }, next: 's661' });
+      c.push({ label: '백성을 살리기 위해 항복한다', hint: '백제는 여기서 끝난다.', flags: { surrender: 'late' }, next: 's_end_fall' });
+      return c;
+    }
+  };
+  S.s_cont = {
+    era: '660년 이후', title: '위기를 넘기다 — 그러나 역사는 계속된다', focus: [126.91, 36.28, 1500],
+    text: function (g) { return [g.f('contWhy') || L3('당과 신라는 물러났지만, 고구려 정벌을 벼르는 당은 다시 올 것입니다.', 'Tang and Silla have withdrawn, but Tang, bent on conquering Goguryeo, will come again.', '唐と新羅は退いたが、高句麗征伐を狙う唐はまた来る。'), L3('왕은 살아남았고 나라는 이어집니다. 이제부터는 사료에 없는 길입니다 — 외교와 내정, 군비를 가다듬어 다음 위기를 준비하십시오.', 'The king lives and the realm endures. From here the path is beyond the records — sharpen diplomacy, government and arms for the next crisis.', '王は生き延び、国は続く。ここからは史料にない道――外交・内政・軍備を整え、次の危機に備えよ。')]; },
+    choices: [{ label: '정무로 돌아간다', tag: '▶', next: '__continue__' }]
+  };
+
   S.s_end_fall = {
     kind: 'end', era: '660년 이후', title: '백제의 멸망',
     focus: [126.91, 36.28, 1500],
@@ -414,20 +472,36 @@ window.SG = window.SG || {}; SG.data = SG.data || {}; SG.scenarios = SG.scenario
     note: '사료에서 처형하려 한 사람은 소정방, 대상은 김문영이며 김유신은 항의한 쪽입니다(v0.1 정정). 7/10 각가 파견도 신라본기 기사입니다.',
     src: SRC_S,
     choices: [
-      { tag: '역사', label: '좌평 각가를 보내 퇴군을 간청한다', hint: '효과 없음. 연합군은 사비로 진군한다.', fx: { gold: -3 }, next: 's_siege' },
-      { label: '불화를 이용해 소정방에게 사자와 금을 보낸다', hint: '[가상] 금 소모. 소정방이 성을 칠지 더 망설이게 만든다.', fx: { gold: -12 }, flags: { wedge: true }, next: 's_siege' }
+      { tag: '역사', label: '좌평 각가를 보내 퇴군을 간청한다', hint: '효과 없음. 연합군은 사비로 진군한다.', fx: { gold: -3 }, next: '__to_muster_siege__' },
+      { label: '불화를 이용해 소정방에게 사자와 금을 보낸다', hint: '[가상] 금 소모. 소정방이 성을 칠지 더 망설이게 만든다.', fx: { gold: -12 }, flags: { wedge: true }, next: '__to_muster_siege__' }
     ]
   };
 
   var H = {};
+  H.__cont_stall__ = function (g) { contGo(g, 'stall'); };
+  H.__to_muster_siege__ = function (g) { toMuster(g, 's_siege'); };
+  H.__continue__ = function (g) {
+    var sb = g.sb; if (!sb) return; var s = sb.s, w = s.world;
+    s.year = Math.max(s.year, g.f('contYear') || 661); w.tang.commit = Math.max(8, w.tang.commit - 14); w.silla.p = Math.max(20, w.silla.p - 8);
+    s.extended = (s.extended || 0) + 1; s.shown.__fin = 1; s.endNew = Math.max(sb.cfg.end, s.year) + 25; if (sb.applyMoved) sb.applyMoved();
+    s.ap = 3; s.last = L3('<b>백제는 위기를 넘겼습니다.</b> 이제 사료에 없는 길입니다.', '<b>Baekje has survived the crisis.</b> The path now lies beyond the records.', '<b>百済は危機を越えました。</b>ここからは史料にない道です。'); sb.log('660년의 위기를 넘기다');
+    g.hud(); g.go('__turn__');
+  };
+  H.__mu_levy__ = function (g) { var n = Math.round((3000 + g.state.res.people * 50) / 500) * 500; g.state.army.baekje_bangun = (g.state.army.baekje_bangun || 0) + n; g.apply({ people: -6, food: -8 }); g.setFlags({ mu_levy: true }); g.renderArmy(); g.go('s_muster'); };
+  H.__mu_garr__ = function (g) { g.state.army.baekje_garrison = (g.state.army.baekje_garrison || 0) + 3500; g.apply({ food: -5 }); g.setFlags({ mu_garr: true }); g.renderArmy(); g.go('s_muster'); };
+  H.__mu_navy__ = function (g) { g.state.army.baekje_navy = (g.state.army.baekje_navy || 0) + 2000; g.apply({ gold: -8 }); g.setFlags({ mu_navy: true }); g.renderArmy(); g.go('s_muster'); };
+  H.__mu_ally__ = function (g) { var rel = g.sb ? g.sb.s.rel.goguryeo : 0; g.apply({ gold: -6 }); if (Math.random() < Math.min(0.9, 0.25 + (rel - 30) / 80)) { g.state.army.baekje_horse = (g.state.army.baekje_horse || 0) + 2500; g.renderArmy(); } g.setFlags({ mu_ally: true }); g.go('s_muster'); };
+  H.__mu_drill__ = function (g) { if (g.sb) g.sb.s.realm.train += 6; g.apply({ morale: 4, food: -4 }); g.setFlags({ mu_drill: true }); g.go('s_muster'); };
+  H.__fb_again__ = function (g) { toMuster(g, g.f('where') === 'ungjin' ? 's_ungjin' : 's_siege'); };
   function homeUnits(g) { var a = g.state.army; return ['baekje_bangun', 'baekje_gyebaek', 'baekje_horse', 'baekje_archer', 'baekje_guard', 'baekje_garrison'].filter(function (i) { return a[i] > 0; }).map(function (i) { return { id: i, n: a[i] }; }); }
   function clone(u) { return u.map(function (x) { return { id: x.id, n: x.n }; }); }
-  function enemyAtSabi(g) { var p = g.f('pass') || {}, e = tangHost(); if (!g.f('hwwin') && p.tanhyeon !== 'delayed' && p.tanhyeon !== 'held') e = e.concat(sillaHost()); return e; }
+  function enemyAtSabi(g) { var p = g.f('pass') || {}, e = tangHost(); if (!g.f('hwwin') && p.tanhyeon !== 'delayed' && p.tanhyeon !== 'held') e = e.concat(sillaHost()); return scaleHost(e, Math.max(0.3, g.f('eFrac') || 1)); }
 
   H.__hwangsan_battle__ = function (g) {
-    var amb = g.f('hw') === 'ambush', n = Math.min(5000, g.state.army.baekje_gyebaek || 5000);
-    var A = force('계백 결사대', 'baekje', [{ id: 'baekje_gyebaek', n: n }], 'gyebaek', 1.5, 100, { ambush: amb }), B = force('신라군', 'silla', sillaHost(), 'gim_yusin', 1, 72, { cap: 25000 });
-    var before = [{ id: 'baekje_gyebaek', n: n }];
+    var amb = g.f('hw') === 'ambush', a = g.state.army, n = a.baekje_gyebaek || 5000, units = [{ id: 'baekje_gyebaek', n: n }];
+    ['baekje_bangun', 'baekje_horse', 'baekje_archer'].forEach(function (id) { var k = Math.round((a[id] || 0) * 0.7 / 100) * 100; if (k > 0) units.push({ id: id, n: k }); });   // 계백이 지휘하는 야전군: 가진 병력의 대부분을 쏟는다
+    var A = force('계백과 야전군', 'baekje', units, 'gyebaek', 1.5, 100, { ambush: amb }), B = force('신라군', 'silla', sillaHost(), 'gim_yusin', 1, 72, { cap: cp(25000) });
+    var before = clone(units);
     duel(g, A, B, { rounds: 4 }, { title: '황산벌 — 네 번의 접전', tk: 'plain', gen: 'gyebaek', def: true, place: 'hwangsanbeol' }, function (r) {
       g.state.flags.hw1 = r; casualties(g, before, r.aLeft);
       g.battleUI(r, '황산벌 — 네 번의 접전', '계백의 결사대는 네 번 싸워 신라군에 큰 타격을 주었으나, 힘이 다해 갑니다.', function () { g.go('s_gwanchang'); });
@@ -435,7 +509,7 @@ window.SG = window.SG || {}; SG.data = SG.data || {}; SG.scenarios = SG.scenario
   };
   H.__hwangsan_final__ = function (g) {
     var r1 = g.f('hw1'), spared = g.f('gwan') === 'spared';
-    var A = force('계백 결사대', 'baekje', clone(r1.aLeft), 'gyebaek', 1.5, 55), B = force('신라군', 'silla', clone(r1.bLeft), 'gim_yusin', 1, spared ? 92 : 100, { cap: 25000 });
+    var A = force('계백 결사대', 'baekje', clone(r1.aLeft), 'gyebaek', 1.5, 55), B = force('신라군', 'silla', clone(r1.bLeft), 'gim_yusin', 1, spared ? 92 : 100, { cap: cp(25000) });
     var before = clone(r1.aLeft);
     duel(g, A, B, { rounds: 4 }, { title: '황산벌 — 총공격', tk: 'plain', gen: 'gyebaek', def: true, place: 'hwangsanbeol' }, function (r) {
     casualties(g, before, r.aLeft);
@@ -450,14 +524,14 @@ window.SG = window.SG || {}; SG.data = SG.data || {}; SG.scenarios = SG.scenario
     var A = force('사비 방어군', 'baekje', defUnits, 'uija', terr, morale), B = force('당·신라군', 'tang', enemyAtSabi(g), 'sojeongbang', 1, g.f('wedge') ? 55 : 68);
     A.fort = fort; var before = clone(defUnits);
     duel(g, A, B, { rounds: 6 }, { title: title, tk: fort ? 'fort' : 'plain', gen: 'uija', def: true, place: 'sabi' }, function (r) {
-      casualties(g, before, r.aLeft);
+      casualties(g, before, r.aLeft); g.setFlags({ eFrac: Math.max(0.3, (g.f('eFrac') || 1) * Math.max(0.3, r.bEnd / Math.max(1, r.bStart))) });
       var ok = r.winner === 'a' || (g.f('wedge') && r.aEnd / r.aStart > .05 && r.bEnd / r.bStart < .9);
       g.battleUI(r, title, ok ? '적은 손실이 커지고 군량·사기가 흔들립니다.' : '방어선이 무너졌습니다.', function () { ok ? onWin() : onLose(); });
     });
   }
-  H.__tang_field__ = function (g) { fieldFight(g, '사비 성외 전투 (가상)', homeUnits(g), false, 1.0, g.state.res.morale, function () { g.go('s_end_stall'); }, function () { g.go('s_siege'); }); };
-  H.__ungjin_defense__ = function (g) { fieldFight(g, '웅진성 농성 (가상)', homeUnits(g), true, 1.4, g.state.res.morale + 6, function () { g.setFlags({ surrender: 'no' }); g.go('s661'); }, function () { g.setFlags({ surrender: 'late' }); g.go('s_end_fall'); }); };
-  H.__sabi_defense__ =function (g) { fieldFight(g, '사비성 농성 (가상)', homeUnits(g), true, 1.6, g.state.res.morale + 8, function () { g.go('s_end_stall'); }, function () { g.setFlags({ surrender: 'late' }); g.go('s_end_fall'); }); };
+  H.__tang_field__ = function (g) { fieldFight(g, '사비 성외 전투 (가상)', homeUnits(g), false, 1.0, g.state.res.morale, function () { contGo(g, 'stall'); }, function () { g.setFlags({ where: 'sabi' }); g.go('s_fallback'); }); };
+  H.__ungjin_defense__ = function (g) { fieldFight(g, '웅진성 농성 (가상)', homeUnits(g), true, 1.4, g.state.res.morale + 6, function () { g.setFlags({ surrender: 'no' }); g.go('s661'); }, function () { g.setFlags({ where: 'ungjin' }); g.go('s_fallback'); }); };
+  H.__sabi_defense__ =function (g) { fieldFight(g, '사비성 농성 (가상)', homeUnits(g), true, 1.6, g.state.res.morale + 8, function () { contGo(g, 'stall'); }, function () { g.setFlags({ where: 'sabi' }); g.go('s_fallback'); }); };
   H.__baekgang__ = function (g) {
     var bg = g.f('bg'), unity = g.f('unity'), a = g.state.army, wa = [{ id: 'wa_navy', n: 10000 }];
     var AU = wa.concat(a.baekje_navy ? [{ id: 'baekje_navy', n: a.baekje_navy }] : []).concat(bg === 'siege' ? homeUnits(g) : []);
@@ -467,7 +541,7 @@ window.SG = window.SG || {}; SG.data = SG.data || {}; SG.scenarios = SG.scenario
     var B = force('당 유인궤 수군', 'tang', Bu, 'yuingwe', bg === 'frontal' ? 1.3 : 1, 70);
     duel(g, A, B, { rounds: 6 }, { title: bg === 'siege' ? '주류성 공방 (가상)' : '백강 전투', tk: bg === 'siege' ? 'fort' : 'sea', gen: 'buyeo_pung', def: bg === 'siege', place: bg === 'siege' ? 'juryuseong' : 'baekgang' }, function (r) {
     var win = r.winner === 'a' && r.aEnd / r.aStart > .3;
-    g.battleUI(r, bg === 'siege' ? '주류성 공방 (가상)' : '백강 전투', win ? '당의 선단이 무너졌습니다. (사료에 없는 결과)' : '왜선이 불타고 바닷물이 붉어졌다고 전합니다. 풍은 도주하고 주류성은 항복합니다.', function () { g.go(win ? 's_end_alt' : 's_end_hist'); });
+    g.battleUI(r, bg === 'siege' ? '주류성 공방 (가상)' : '백강 전투', win ? '당의 선단이 무너졌습니다. (사료에 없는 결과)' : '왜선이 불타고 바닷물이 붉어졌다고 전합니다. 풍은 도주하고 주류성은 항복합니다.', function () { if (win) contGo(g, 'alt'); else g.go('s_end_hist'); });
     });
   };
 

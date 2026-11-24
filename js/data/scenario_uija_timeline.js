@@ -139,9 +139,9 @@
   var H = scn.handlers;
   H.__uija660__ = function (g) {
     var sb = g.sb, s = sb.s, w = s.world, caps = Object.keys(s.captured).length, power = sb.armyTotal() / 1000;
-    if (caps >= 3 && w.silla.p <= 42 && w.tang.commit <= 48 && power >= 30) return sb.finish('hegemon');
-    if (w.tang.commit < 32 && w.silla.p < 62) return sb.finish(s.world.silla.p < 50 ? 'prosper' : 'steady');
-    SG._uijaScale(sb.hostScale('silla'), sb.hostScale('tang'));
+    // 역사의 위기는 나라의 힘에 비례해 찾아온다: 강할수록 나당은 더 큰 군을 일으키고, 약해도 얕보지 않는다
+    var my = Math.max(0.85, Math.min(2.6, Math.pow(sb.armyTotal() / 43000, 0.75))) * (1 + Math.max(0, s.realm.train - 60) / 250 + Math.max(0, s.realm.defense - 60) / 400);
+    SG._uijaScale(Math.max(0.9, sb.hostScale('silla')) * my, Math.max(0.95, sb.hostScale('tang')) * my, my);
     g.go('s660');
   };
 })();

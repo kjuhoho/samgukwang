@@ -105,7 +105,7 @@
   var _ye = P.yearEnd;
   P.yearEnd = function () {
     var s = this.s, res = this.g.state.res;
-    if (s.realm.royal > 40) s.realm.royal -= H.drift; if (res.morale > 50) res.morale -= H.drift; if (res.people > 55) res.people -= H.drift;
+    if (s.realm.royal > 40) s.realm.royal -= H.drift * Math.max(1, s.realm.royal / 70); if (res.morale > 50) res.morale -= H.drift; if (res.people > 55) res.people -= H.drift;
     return _ye.apply(this, arguments);
   };
 })();

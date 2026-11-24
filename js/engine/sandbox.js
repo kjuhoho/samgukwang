@@ -75,7 +75,7 @@ window.SG = window.SG || {}; SG.data = SG.data || {}; SG.scenarios = SG.scenario
     if (!e) return ''; var g = this.g, s = this.s, chips = [];
     function chip(l, v) { v = Math.round(v); if (v) chips.push('<span class="' + (v > 0 ? 'p' : 'm') + '">' + l + ' ' + (v > 0 ? '+' : '') + v + '</span>'); }
     if (e.fx) { var d = g.apply(e.fx); for (var k in d) chip(RES_N[k], d[k]); }
-    if (e.realm) for (var r in e.realm) { var b = s.realm[r] || 0; s.realm[r] = clamp(b + e.realm[r], 0, 100); chip(REALM_N[r] || r, s.realm[r] - b); }
+    if (e.realm) for (var r in e.realm) { var b = s.realm[r] || 0; s.realm[r] = clamp(b + e.realm[r], 0, 999); chip(REALM_N[r] || r, s.realm[r] - b); }
     if (e.rel) for (var q in e.rel) { var key = q === '__t' ? tgt : q; if (!key || s.rel[key] == null) continue; var b2 = s.rel[key]; s.rel[key] = clamp(b2 + e.rel[q], 0, 100); chip(this.names[key] + ' 관계', s.rel[key] - b2); }
     if (e.world) for (var w in e.world) { var pp = w.split('.'); var o = s.world[pp[0]]; if (!o) continue; var b3 = o[pp[1]] || 0; o[pp[1]] = clamp(b3 + e.world[w], 0, 100); chip(this.names[pp[0]] + ' ' + ({ p: '국력', hostility: '적의', commit: '개입' }[pp[1]] || pp[1]), o[pp[1]] - b3); }
     if (e.army) { for (var u in e.army) { var id = this.uid(u); if (!SG.unitById(id)) continue; var before = g.state.army[id] || 0; g.state.army[id] = Math.max(0, before + e.army[u]); var U = SG.unitById(id); chip((U ? U.name : id) + '(명)', g.state.army[id] - before); } g.renderArmy(); g.hud(); }
@@ -444,8 +444,9 @@ window.SG = window.SG || {}; SG.data = SG.data || {}; SG.scenarios = SG.scenario
     var lawChips = '';
     for (var id in s.laws) { var L = this.lawById(id); if (L && L.yearly) lawChips += this.eff(L.yearly); }
     var d = g.apply({ gold: gi, food: fi });
-    rl.train = clamp(rl.train - 2, 0, 100); rl.intel = clamp(rl.intel - 1, 0, 100); rl.defense = clamp(rl.defense - 1, 0, 100);
-    if (rl.econ > 70) rl.econ -= 1; // 한계 수확 체감
+    function dk(v, k) { return k * Math.max(1, v / 75); } // 한계는 없지만 높을수록 유지가 어렵다
+    rl.train = clamp(rl.train - dk(rl.train, 2), 0, 999); rl.intel = clamp(rl.intel - dk(rl.intel, 1), 0, 999); rl.defense = clamp(rl.defense - dk(rl.defense, 1), 0, 999);
+    if (rl.econ > 70) rl.econ -= Math.max(1, rl.econ / 90); // 한계 수확 체감
     var starve = '';
     if (res.food <= 0) { res.food = 0; g.apply({ people: -5, morale: -5 }); var lv = this.units.levy; if (g.state.army[lv]) g.state.army[lv] = Math.round(g.state.army[lv] * 0.9); starve = '<br>군량이 바닥나 병사들이 이탈하고 민심이 흔들렸습니다.'; g.renderArmy(); }
     if (res.gold < 0) { res.gold = 0; g.apply({ morale: -3, people: -2 }); starve += '<br>봉록과 상여가 밀려 불만이 쌓였습니다.'; }

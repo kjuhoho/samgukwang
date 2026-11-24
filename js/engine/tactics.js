@@ -58,7 +58,7 @@
   function U(id) { return SG.unitById(id); }
   function clamp(v, a, b) { return Math.max(a, Math.min(b, v)); }
   function tot(x) { return x.reduce(function (s, u) { return s + u.n; }, 0); }
-  function trainF(g, t) { t = t == null ? 50 : t; return g === 'levy' ? 0.7 + 0.6 * t / 100 : g === 'elite' ? 0.9 + 0.2 * t / 100 : 0.85 + 0.3 * t / 100; }
+  function trainF(g, t) { t = t == null ? 50 : Math.min(t, 170); return g === 'levy' ? 0.7 + 0.6 * t / 100 : g === 'elite' ? 0.9 + 0.2 * t / 100 : 0.85 + 0.3 * t / 100; }
 
   // 병종 구성: {그룹: {n, atk, def}}
   function comp(units) {

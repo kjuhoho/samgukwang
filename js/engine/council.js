@@ -122,7 +122,7 @@
       var r = SG.battle(ours, en, bo);
       if (HD) { var lk = bo.luckA / bo.luckB; r.factors.push('<b>전운</b> ' + (lk > 1.06 ? '하늘이 도왔습니다. 날씨와 우연이 아군 편이었습니다.' : lk < 0.9 ? '운이 따르지 않았습니다. 돌발 상황이 겹쳐 예상보다 고전했습니다.' : '특별한 변수는 없었습니다.') + ' <small>(승산 예측에는 반영되지 않는 변수)</small>'); }
       // 실전 경험: 싸운 군대는 숙련된다(이기면 더)
-      var gain = r.winner === 'a' ? 2 : 1; s.realm.train = Math.min(100, s.realm.train + gain);
+      var gain = r.winner === 'a' ? 2 : 1; s.realm.train = Math.min(999, s.realm.train + gain);
       var cmx = self.cmdr(sel.gen), gname = cmx ? cmx.name : sel.gen ? (SG.generalById(sel.gen) || {}).name : '국왕';
       r.factors.unshift('<b>지휘</b> 아군 ' + gname + (cmx ? ' (통솔 ' + cmx.cmd + ' · 특기 ' + TN[cmx.trait] + ')' : sel.gen ? '' : ' 친정 (사기 +4)'));
       if (r.winner === 'b' && r.routed === 'a') {
