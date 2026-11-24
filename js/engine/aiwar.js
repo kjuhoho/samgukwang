@@ -149,7 +149,7 @@
       if (gd.length && !won && Math.random() < 0.6 && SG.INTERCEPT) lines.push('<div><b>' + nm(a) + '</b> ⚔ <b>' + nm(t.o) + '</b> · <u>' + short(t.p) + '</u> · <i>' + SG.INTERCEPT.ai + '</i></div>');
       var mv = { from: t.org.id, to: t.p.id, side: a, win: won ? 1 : 0, def: t.o, joint: force ? 1 : 0 };
       ai.mv.push(mv);
-      if (self.milHit) { var la = bt ? bt.lossA : null, lb = bt ? bt.lossB : null; if (won) { self.milHit(a, self.deployMax(a) * (la == null ? 0.08 : 0.03 + 0.1 * la)); self.milHit(t.o, self.deployMax(t.o) * (lb == null ? 0.14 : 0.05 + 0.15 * lb)); } else { self.milHit(a, self.deployMax(a) * (la == null ? 0.15 : 0.05 + 0.2 * la)); self.milHit(t.o, self.deployMax(t.o) * (lb == null ? 0.05 : 0.02 + 0.1 * lb)); } }
+      if (self.poolWar && self.poolWar(a, t.o, bt)) { /* 실제로 잃은 병력만큼 총병력에서 던다(pools.js) */ } else if (self.milHit) { var la = bt ? bt.lossA : null, lb = bt ? bt.lossB : null; if (won) { self.milHit(a, self.deployMax(a) * (la == null ? 0.08 : 0.03 + 0.1 * la)); self.milHit(t.o, self.deployMax(t.o) * (lb == null ? 0.14 : 0.05 + 0.15 * lb)); } else { self.milHit(a, self.deployMax(a) * (la == null ? 0.15 : 0.05 + 0.2 * la)); self.milHit(t.o, self.deployMax(t.o) * (lb == null ? 0.05 : 0.02 + 0.1 * lb)); } }
       if (won) {
         var seat = self.isSeat && self.isSeat(t.p, t.o);
         if (era && !t.hm) ai.cap++;
@@ -167,7 +167,7 @@
       if (done >= (era ? CFG.eraMaxCamp : CFG.maxCamp + (s.extended ? 2 : 0))) return;
       var ra = self.roleOf(a), pa = self.sidePower(a);
       if (a === 'tang' && (!ra || s.world[ra].commit < 30)) return;
-      var fat = ai.fat[a] || 0, pr = clamp(CFG.camp + (pa - 50) / 250 - fat / 60, 0.08, 0.65) * (era ? CFG.eraCamp : 1) * (s.extended ? 1.6 : 1), n = (pa > 75 && fat < 4) ? 2 : 1;
+      var fat = ai.fat[a] || 0, pr = clamp(CFG.camp + (pa - 50) / 250 - fat / 60, 0.08, 0.65) * (era ? CFG.eraCamp : 1) * (s.extended ? 1.6 : 1) * (self.ready ? self.ready(a) : 1), n = (pa > 75 && fat < 4) ? 2 : 1;
       for (var c = 0; c < n && done < (era ? CFG.eraMaxCamp : CFG.maxCamp + (s.extended ? 2 : 0)); c++) if (Math.random() < pr) campaign(a);
     });
     /* 공동 출병: 플레이어와 약속한 우호국이 같은 적을 친다 */
@@ -218,10 +218,10 @@
       if (near > 3.2 && r !== 'tang' && r !== 'wa') return false;
       var pwr = self.sidePower(side), why = null;
       var opp = 1 + (away && away.frac >= 0.3 ? 0.7 : 0) + clamp((55 - mor) / 80, 0, 0.4) + clamp((pwr - 50) / 150, -0.2, 0.4) + clamp(dom / 12, 0, 0.5);
-      var pr = (0.02 + aggr * 0.07) * relF * opp * CFG.strike * ext * (r === 'tang' ? 0.6 : 1), cb = null;
+      var pr = (0.02 + aggr * 0.07) * relF * opp * CFG.strike * ext * (r === 'tang' ? 0.6 : 1) * (self.ready ? self.ready(side) : 1), cb = null;
       if (rel >= 55 && self.casusBelli) {   // 동맹은 명분 없이 치지 않는다: 명분이 있을 때만, 그것도 드물게 — 치면 동맹이 깨진다
         cb = self.casusBelli(r, side, { rel: rel, dom: dom, away: away, mor: mor }); if (!cb) return false;
-        pr = clamp(0.008 + 0.03 * (cb.w - 0.5), 0.004, 0.06) * (rel >= 80 ? 0.5 : rel >= 70 ? 0.75 : 1) * opp * CFG.strike * ext * (r === 'tang' ? 0.6 : 1);
+        pr = clamp(0.008 + 0.03 * (cb.w - 0.5), 0.004, 0.06) * (rel >= 80 ? 0.5 : rel >= 70 ? 0.75 : 1) * opp * CFG.strike * ext * (r === 'tang' ? 0.6 : 1) * (self.ready ? self.ready(side) : 1);
       }
       if (Math.random() >= pr) return false;
       why = away && away.frac >= 0.3 ? M.r1 : mor < 35 ? M.r2 : rel < 40 ? M.r3 : dom >= 5 ? M.r5 : null;
@@ -238,11 +238,12 @@
     var w = picked.w, r = picked.r, nmv = N[r], tot = r === 'tang' ? Math.round(7000 + w.commit * 330) : Math.round(picked.pwr * 230 * (0.8 + w.hostility / 220));
     var gd = this.pathGuards ? this.pathGuards(picked.org, best.p, this.side) : [];
     if (this.deployMax) { tot = Math.min(tot, Math.max(1500, this.deployMax(picked.side))); }
+    if (this.poolSize) tot = Math.max(1500, this.poolSize(picked.side, tot));   // 병력이 줄면 그만큼 작은 군만 낼 수 있다(pools.js)
     tot = Math.round(tot * (0.9 + (SG.resOf ? SG.resOf(this, picked.side) : 40) / 280) * (0.85 + Math.random() * 0.3) * (picked.opp > 1.5 ? 1.1 : 1) * clamp(1 - 0.08 * gd.length, 0.7, 1) * (this.extSize ? this.extSize() : 1) * (1 + 0.5 * (this.nat(picked.side).armB || 0)));
     var wk = function (v1, v2) { var o = {}; if (r === 'tang') o['tang.commit'] = v1 * 2; else { o[r + '.p'] = v1; o[r + '.hostility'] = v2; } return o; };
     var I = SG.i18n && SG.i18n.dict, en = (I && I.en && I.en[nmv]) || nmv, ja = (I && I.ja && I.ja[nmv]) || nmv;
     T(nmv + M.ttl, en + "'s Surprise Offensive", ja + 'の奇襲攻勢');
-    s.ai.strikeY = y; s.threat.last = y; if (this.milHit) this.milHit(picked.side, tot * 0.06);
+    s.ai.strikeY = y; s.threat.last = y;   // 병력 손실은 싸움이 끝난 뒤 실제 피해만큼 총병력에서 던다(pools.js)
     var inv = {
       title: nmv + M.ttl, defense: true, walls: true, terrain: 1.1, coast: sea, place: best.p.id,
       enemy: { name: nmv + ' 군', side: picked.side, total: tot, terrain: 1, morale: 70 },

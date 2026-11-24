@@ -80,15 +80,15 @@
         s.threat.warn = null;
       }
     }
-    if (c && y > c.since && y - (s.threat.lastCoal || 0) >= 2 && Math.random() < 0.3) {
+    if (c && y > c.since && y - (s.threat.lastCoal || 0) >= 2 && Math.random() < 0.3 * (self.readyAll ? self.readyAll(c.members.map(function (k) { return self.sides[k]; })) : 1)) {
       s.threat.lastCoal = y;
-      var tot = 0, lead = c.members[0], lp = -1;
-      c.members.forEach(function (k) { var w = s.world[k], n = k === 'tang' ? 12000 + w.commit * 350 : k === 'wa' ? w.p * 120 : w.p * 230; tot += n; if (n > lp) { lp = n; lead = k; } });
+      var tot = 0, lead = c.members[0], lp = -1, parts = [];
+      c.members.forEach(function (k) { var w = s.world[k], n = k === 'tang' ? 12000 + w.commit * 350 : k === 'wa' ? w.p * 120 : w.p * 230; if (self.poolSize) n = Math.max(1500, self.poolSize(self.sides[k], n)); parts.push({ side: self.sides[k], n: n }); tot += n; if (n > lp) { lp = n; lead = k; } });
       tot = Math.round(tot * clamp(0.8 + dom / 30, 0.8, 1.4) * (this.extSize ? this.extSize() : 1));
       var names = c.members.map(function (k) { return N[k]; }).join('·'), wk = {}; c.members.forEach(function (k) { wk[k + '.p'] = -4; if (k !== 'tang') wk[k + '.hostility'] = -6; });
       s.threat.last = y;
       return this.finishInv({
-        title: names + ' 연합군의 침공', defense: true, terrain: 1.1, coalition: true,
+        title: names + ' 연합군의 침공', defense: true, terrain: 1.1, coalition: true, parts: parts,
         enemy: { name: names + ' 연합군', side: this.sides[lead], total: tot, terrain: 1, morale: 70 },
         intro: '<b>' + names + '</b>이(가) 군을 합쳐 국경을 넘었습니다. ' + (c.why || '우리의 팽창을 더는 두고 볼 수 없다는 것입니다.') + ' (' + c.since + '년 결성된 연합의 ' + (y - c.since) + '년째 공세) 지금까지의 어떤 침공보다 큰 규모입니다.',
         tactics: tactics(this, true),
@@ -105,12 +105,12 @@
     /* ── ② 대국의 돌발 침략 ── */
     var wt = s.world.tang, ts = this.sides.tang;
     if (alive.indexOf('tang') >= 0 && wt.commit >= 30 && s.rel.tang < 60) {
-      var pt = clamp((wt.commit - 25) / 700, 0, 0.08) + clamp(dom / 200, 0, 0.04);
+      var pt = (clamp((wt.commit - 25) / 700, 0, 0.08) + clamp(dom / 200, 0, 0.04)) * (this.ready ? this.ready(ts) : 1);
       if (Math.random() < pt) {
         s.threat.last = y; var sea = !this.places().some(function (p) { return self.ownerOf(p) === ts && p.lon >= 124 && p.lon <= 130.6 && p.lat >= 33 && p.lat <= 43; });
         return this.finishInv({
           title: N.tang + '의 침략', defense: true, terrain: 1.15, coast: sea,
-          enemy: { name: N.tang + ' 원정군', side: ts, total: Math.round(18000 + wt.commit * 450), terrain: 1, morale: 72 },
+          enemy: { name: N.tang + ' 원정군', side: ts, total: Math.max(3000, this.poolSize ? this.poolSize(ts, Math.round(18000 + wt.commit * 450)) : Math.round(18000 + wt.commit * 450)), terrain: 1, morale: 72 },
           intro: pick(['<b>' + N.tang + '</b>이(가) 조서를 내려 우리의 죄를 묻고 대군을 일으켰습니다.', '<b>' + N.tang + '</b>의 군이 예고 없이 움직였습니다. ' + (sea ? '바다를 건너온 선단이 해안에 닿았습니다.' : '변경의 봉수가 일제히 올랐습니다.')]),
           tactics: tactics(this, false),
           win: { text: [N.tang + '의 원정군은 큰 피해를 입고 물러났습니다.'], fx: { morale: 8, people: 3 }, realm: { royal: 3 }, world: { 'tang.commit': -12 } },
@@ -122,12 +122,12 @@
     /* ── ① 왜구의 연안 약탈 ── */
     var ww = s.world.wa, wsd = this.sides.wa;
     if (alive.indexOf('wa') >= 0 && s.rel.wa < 65) {
-      var pw = clamp(0.02 + ww.hostility / 800 + (60 - s.realm.navy) / 1200, 0.01, 0.09);
+      var pw = clamp(0.02 + ww.hostility / 800 + (60 - s.realm.navy) / 1200, 0.01, 0.09) * (this.ready ? this.ready(wsd) : 1);
       if (Math.random() < pw) {
         s.threat.last = y;
         return this.finishInv({
           title: N.wa + '의 연안 약탈', defense: true, terrain: 1.05, coast: true, raid: true,
-          enemy: { name: N.wa + ' 선단', side: wsd, total: Math.round(4000 + ww.p * 110 + Math.random() * 3000), terrain: 1, morale: 62, mix: { levy: .5, line: .3, archer: .2 } },
+          enemy: { name: N.wa + ' 선단', side: wsd, total: Math.max(1500, this.poolSize ? this.poolSize(wsd, Math.round(4000 + ww.p * 110 + Math.random() * 3000)) : Math.round(4000 + ww.p * 110 + Math.random() * 3000)), terrain: 1, morale: 62, mix: { levy: .5, line: .3, archer: .2 } },
           intro: pick(['<b>' + N.wa + '</b>의 배 수십 척이 해안에 나타나 마을을 불태우고 있습니다.', '바닷가 고을에서 급보가 왔습니다. <b>' + N.wa + '</b>의 선단이 곡식과 사람을 실어 가고 있습니다.']) + ' 수군이 약할수록 자주 겪는 일입니다.',
           tactics: tactics(this, false),
           win: { text: ['약탈하던 무리를 바다로 몰아냈습니다.'], fx: { morale: 4, people: 3 }, world: { 'wa.hostility': -5 } },

@@ -255,16 +255,21 @@
   };
   P.simFight = function (bt, tac, anchor) {
     var s = this.s, m = tac.ours || {}, def = !!bt.defense, frac = bt.commit || (def ? 1 : 0.75), base = def ? (bt.terrain || 1) * (1 + s.realm.defense / 400) : 1;
-    var ours = { name: 'a', side: this.side, units: this.fieldUnits(frac, def), gen: bt.gen || this.cfg.gen, morale: this.myMorale(m.morale), terrain: (m.terrain || base), ambush: !!m.ambush };
+    var ours = { name: 'a', side: this.side, units: (def && this.defUnits ? this.defUnits(bt, anchor, frac) : this.fieldUnits(frac, def)), gen: bt.gen || this.cfg.gen, morale: this.myMorale(m.morale), terrain: (m.terrain || base), ambush: !!m.ambush }, dinfo = def ? this._defInfo : null;
     var df = this.deployFactor(bt, anchor); if (df) ours.units.forEach(function (u) { u.n = Math.round(u.n * df.f); });
     var en = this.enemyOf(bt); if (m.enemyAmbush) en.ambush = true;
     var bo = { rounds: bt.rounds || 6, pace: m.pace }; this.tune(ours, en, bo, { bt: bt, tac: tac, anchor: anchor, def: def }); var r = SG.battle(ours, en, bo);
-    r.myN = ours.units.reduce(function (t, u) { return t + u.n; }, 0); r.foeN = en.units.reduce(function (t, u) { return t + u.n; }, 0);
+    r.myN = ours.units.reduce(function (t, u) { return t + u.n; }, 0); r.foeN = en.units.reduce(function (t, u) { return t + u.n; }, 0); r.def = dinfo;
     return r;
   };
-  P.forceLine = function (my, foe) {
-    var i = this.s.realm.intel, f = i >= 50 ? '' : '약 ';
-    return '⚔ <b>전력 비교</b> — 아군 야전군 ' + my.toLocaleString() + '명 대 적 ' + f + (i < 10 ? '?' : (Math.round(foe / (i >= 50 ? 100 : 500)) * (i >= 50 ? 100 : 500)).toLocaleString()) + '명' + (my >= foe * 2 ? ' — 수적으로 압도합니다.' : my * 2 <= foe ? ' — 수적으로 크게 밀립니다.' : '') + (i < 25 ? ' <small>(첩보가 낮아 적 규모가 부정확합니다)</small>' : '');
+  P.forceLine = function (my, foe, fr) {
+    var i = this.s.realm.intel, dd = fr && fr.def, lg = SG.i18n && SG.i18n.lang;
+    function T3(ko, en, ja) { return lg === 'en' ? en : lg === 'ja' ? ja : ko; }   // 문장 전체를 지금 언어로 만든다(방어군·야전군·적 규모 어림 표기의 모든 경우를 사전에 올릴 수 없어서)
+    var est = i < 10 ? '?' : (Math.round(foe / (i >= 50 ? 100 : 500)) * (i >= 50 ? 100 : 500)).toLocaleString(), ab = i >= 50 ? '' : T3('약 ', 'about ', '約');
+    var who = dd ? T3('아군 방어군 ', 'Our defenders ', '味方の防衛軍') : T3('아군 야전군 ', 'Our field army ', '味方の野戦軍'), mine = my.toLocaleString();
+    var cmp = T3(who + mine + '명 대 적 ' + ab + est + '명', who + mine + ' vs enemy ' + ab + est, who + mine + '人 対 敵' + ab + est + '人');
+    var tail = my >= foe * 2 ? T3(' — 수적으로 압도합니다.', ' — overwhelming numbers.', ' — 数で圧倒しています。') : my * 2 <= foe ? T3(' — 수적으로 크게 밀립니다.', ' — heavily outnumbered.', ' — 数で大きく押されています。') : '';
+    return '⚔ <b>전력 비교</b> — ' + cmp + tail + (i < 25 ? ' <small>(첩보가 낮아 적 규모가 부정확합니다)</small>' : '') + (dd && this.defLine ? '<br>' + this.defLine(dd) : '');
   };
   P.simWar = function (T, frac, tac) {
     var s = this.s, ours = { name: 'a', side: this.side, units: this.fieldUnits(frac), gen: this.cfg.gen, morale: this.myMorale(), terrain: 1, ambush: !!(tac.m.ambush && s.realm.intel >= 30) };
@@ -283,8 +288,8 @@
       if (bt.defense) {
         m.setToken('ev_enemy', en.side, '', self.fuzz(tot, 'ev' + a.y), pl.lon + dx, pl.lat + dy, 'foe');
         if (org && org.id !== pl.id) m.drawRoute('ev', [org.id, [pl.lon + dx, pl.lat + dy]], en.side, { ms: 1100 });
-        var df = self.deployFactor(bt, a);
-        m.setToken('ev_own', self.side, '', fmt(self.fieldUnits(bt.commit || 1, true).reduce(function (t, u) { return t + u.n; }, 0) * (df ? df.f : 1)), pl.lon - dx * 0.3, pl.lat - dy * 0.3, 'own');
+        var df = self.deployFactor(bt, a), du = !bt.commit && self.defUnits ? self.defUnits(bt, a, 1) : self.fieldUnits(bt.commit || 1, true);
+        m.setToken('ev_own', self.side, '', fmt(du.reduce(function (t, u) { return t + u.n; }, 0) * (df ? df.f : 1)), pl.lon - dx * 0.3, pl.lat - dy * 0.3, 'own');
         m.fit(org && org.id !== pl.id && dist(org, pl) < 3.2 ? [pl.id, org.id] : [pl.id], 1100, a.zoom || 900);
       } else {
         m.setToken('ev_enemy', en.side, '', self.fuzz(tot, 'ev' + a.y), pl.lon, pl.lat, 'foe');

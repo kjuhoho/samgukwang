@@ -49,12 +49,12 @@
     n.mil = Math.round(m / 100) * 100; return r;
   };
   var _dt = P.dynTarget;
-  P.dynTarget = function (pl, ow) { var t = _dt.apply(this, arguments); t.garrison = Math.round(t.garrison * clamp(Math.sqrt(this.milFactor(ow)), 0.82, 1.15) / 500) * 500; return t; };
+  P.dynTarget = function (pl, ow) { var t = _dt.apply(this, arguments); t.garrison = Math.round(t.garrison * clamp(Math.pow(this.milFactor(ow), 0.8), 0.68, 1.15) / 500) * 500; return t; };
   var _cp = P.capturePlace;
   P.capturePlace = function (Tg) { try { if (Tg && Tg.side) this.milHit(Tg.side, this.milOf(Tg.side) * 0.04); } catch (e) { } return _cp.apply(this, arguments); };
   var _af = P.afterFight;
-  P.afterFight = function (bt, kind) {
-    try { var e = bt && bt.enemy; if (e && e.side && e.total) this.milHit(e.side, e.total * ((kind === 'win' || kind === 'costly') ? 0.15 : 0.04)); } catch (x) { }
+  P.afterFight = function (bt, kind, r0, bribe) {
+    try { var e = bt && bt.enemy; if (e && e.side && e.total && !bt._pooled && !bribe) this.milHit(e.side, e.total * ((kind === 'win' || kind === 'costly') ? 0.1 : 0.03)); if (bt) bt._pooled = false; } catch (x) { }   // 싸움이 있었다면 pools.js 가 실제 피해만큼 이미 던었다 — 싸움 없이 끝난 결말만 어림으로
     return _af.apply(this, arguments);
   };
   // 이웃 나라 화면: 총병력(첩보력만큼 보인다)
@@ -63,7 +63,7 @@
     var html = _dh.apply(this, arguments), self = this, s = this.s, intel = s.realm.intel, out = '';
     this.natSides().forEach(function (side) {
       var m = self.milOf(side), cap = self.milCap(side), r = self.roleOf(side), nm = r ? self.names[r].replace('(멸망)', '') : ((SG.sideName && SG.sideName[side]) || side);
-      out += '<div class="dp"><b>' + nm + '</b><span><i>' + M.mil + '</i> ' + (intel >= 50 ? Math.round(m / 1000) + M.unit : intel >= 20 ? (m < cap * 0.55 ? T('적음', 'Thin', '少ない') : m < cap * 0.85 ? T('보통', 'Average', '普通') : T('풍부', 'Ample', '豊富')) : T('불명', 'Unknown', '不明')) + '</span></div>';
+      out += '<div class="dp"><b>' + nm + '</b><span><i>' + M.mil + '</i> ' + (intel >= 50 ? Math.round(m / 1000) + M.unit + ' (' + Math.round(m / (cap * 0.72) * 100) + '%)' : intel >= 20 ? (m < cap * 0.55 ? T('적음', 'Thin', '少ない') : m < cap * 0.85 ? T('보통', 'Average', '普通') : T('풍부', 'Ample', '豊富')) : T('불명', 'Unknown', '不明')) + '</span></div>';
     });
     return html + (out ? '<div class="dips aid" title="' + M.mil + '">' + out + '</div>' : '');
   };
@@ -140,9 +140,42 @@
     function T2(k, e, j) { TRm.en[k] = e; TRm.ja[k] = j; var I = SG.i18n; if (I && I.dict && I.dict.en) { I.dict.en[k] = e; I.dict.ja[k] = j; } return k; }
     var SUF = [' 크게 사들이면 이웃 나라도 군비를 늘려 맞선다.', ' Buying big makes the neighbors arm in response.', ' 大量に買えば隣国も軍備を増やして対抗する。'];
     function amt(ctx, base) { var ec = (ctx.realm && ctx.realm.econ) || 50; return Math.round(base * (1 + Math.max(0, ec - 50) / 100) / 100) * 100; }
-    function buy(id, nm, ds, cost, unit, base, extra, ln) {
+    function L3m(ko, en, ja) { var l = SG.i18n && SG.i18n.lang; return l === 'en' ? en : l === 'ja' ? ja : ko; }
+    var P = SG.Sandbox.prototype;
+    /* 대량 구입의 군량 = 기본 몫 + 군세에 비례하는 몫(새 병력을 먹이고 입히는 비용). 전부 명령의 cost에 드러나 있어 모자라면 구입이 막힌다(예전엔 숨은 추가 소모 때문에 군량이 0이 되었다) */
+    SG.BUYS = SG.BUYS || {};
+    SG.dynFood = function (base, k) { var sb = SG.game && SG.game.sb, T = sb && sb.armyTotal ? sb.armyTotal() / 1000 : 0; return base + Math.round(T * k); };
+    function dyn(c, cost, base) {
+      Object.defineProperty(c, 'cost', { enumerable: true, configurable: true, get: function () { return { gold: cost.gold, food: SG.dynFood(cost.food, 0.8) }; } });
+      SG.BUYS[c.id] = function (ctx) { return amt(ctx, base); };
+      return c;
+    }
+    // 구입 뒤에도 남겨야 할 군량: 그 병력이 되었을 때 한 해 적자를 버티고도 10이 남는 만큼(최소 10, 최대 60)
+    P.foodKeep = function (c) {
+      var n = SG.BUYS[c.id] ? SG.BUYS[c.id](this.ctx()) : 0, f = this.foodFlow ? this.foodFlow(this.armyTotal() + n) : 0;
+      return Math.max(10, Math.min(60, Math.ceil(-f) + 10));
+    };
+    var _ca = P.cmdAvail;
+    P.cmdAvail = function (c) {
+      var why = _ca.apply(this, arguments); if (!c || !SG.BUYS[c.id]) return why;
+      var food = this.g.state.res.food, need = (c.cost && c.cost.food) || 0, keep = this.foodKeep(c);
+      if (why) {   // 자원이 모자란 까닭이 군량이면 시장을 알려 준다
+        if (why === '자원 부족' && need && food < need) return L3m('군량 부족 — 구입에 필요한 군량 ' + need + ' (지금 ' + Math.floor(food) + ') — 「군량 구입」으로 곡식을 사 둘 수 있습니다', 'Not enough grain — the purchase takes ' + need + ' (you have ' + Math.floor(food) + ') — you can stock up with “Buy Grain”', '軍糧不足 — 購入に軍糧' + need + 'が必要です(現在' + Math.floor(food) + ') — 「軍糧の購入」で備蓄できます');
+        return why;
+      }
+      if (food - need >= keep) return why;
+      return L3m('군량 비축 부족 — 구입 뒤에도 군량 ' + keep + ' 이상이 남아야 합니다 (지금 ' + Math.floor(food) + ' · 구입에 ' + need + ') — 「군량 구입」으로 곡식을 사 둘 수 있습니다', 'Grain reserve too low — at least ' + keep + ' must remain after buying (you have ' + Math.floor(food) + ', the purchase takes ' + need + ') — you can stock up with “Buy Grain”', '軍糧の備蓄不足 — 購入後も軍糧が' + keep + '以上残る必要があります(現在' + Math.floor(food) + '・購入に' + need + ') — 「軍糧の購入」で備蓄できます');
+    };
+    var _ct = P.costText;
+    P.costText = function (c) {
+      var t = _ct.apply(this, arguments); if (!c || !SG.BUYS[c.id] || !this.foodFlow) return t;
+      var f = this.foodFlow(this.armyTotal() + SG.BUYS[c.id](this.ctx()));
+      return t + ' · ' + L3m('구입 뒤 해마다 군량 ', 'yearly grain after buying ', '購入後の年間軍糧 ') + (f > 0 ? '+' : '') + f;
+    };
+    function buy(id, nm, ds, cost, unit, base, extra, ln) { return dyn(buy0(id, nm, ds, cost, unit, base, extra, ln), cost, base); }
+    function buy0(id, nm, ds, cost, unit, base, extra, ln) {
       return { id: id, cat: '군사', name: T2(nm[0], nm[1], nm[2]), desc: T2(ds[0] + SUF[0], ds[1] + SUF[1], ds[2] + SUF[2]), cost: cost, hist: '가상', eff: {}, lines: [T2(ln[0], ln[1], ln[2])],
-        fn: function (g, ctx) { var o = { army: {} }; o.army[unit] = amt(ctx, base); o.fx = { food: -Math.round((g.sb ? g.sb.armyTotal() : 0) / 1000 * 0.8) };   // 군세가 클수록 새 병력을 먹이고 입히는 군량이 더 든다
+        fn: function (g, ctx) { var o = { army: {} }; o.army[unit] = amt(ctx, base); o.fx = {};   // 군세에 비례하는 군량은 명령의 cost(SG.dynFood)에 이미 들어 있다 - 숨은 추가 소모는 없다
          if (extra) for (var k in extra) { if (k === 'fx') { for (var q in extra.fx) o.fx[q] = (o.fx[q] || 0) + extra.fx[q]; } else o[k] = extra[k]; } return o; } };
     }
     SG.data.commands = (SG.data.commands || []).concat([

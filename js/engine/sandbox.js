@@ -114,7 +114,7 @@ window.SG = window.SG || {}; SG.data = SG.data || {}; SG.scenarios = SG.scenario
     if (a.battle) {
       var bt = a.battle; bt.last = a.last;
       sc.choices = function () { return self.withAbandon(bt).map(function (t) { var o = ''; if (self.simFight && !t.special) { try { o = ' · 승산 ' + self.odds(self.simFight(bt, t, a)); } catch (e) { } } return { label: self.L(t.label), hint: self.L(t.hint) + o, tag: t.tag, place: t.place, run: function (g) { self.fight(bt, t, a); }, next: '__none__' }; }); };
-      var bt0 = sc.text; sc.text = function () { var r = bt0.slice(); try { var f = self.simFight(bt, bt.tactics[0], a); r.push('<div class="note">' + self.forceLine(f.myN, f.foeN) + '</div>'); } catch (e) { } return r; };
+      var bt0 = sc.text; sc.text = function () { var r = bt0.slice(); try { var f = self.simFight(bt, bt.tactics[0], a); r.push('<div class="note">' + self.forceLine(f.myN, f.foeN, f) + '</div>'); } catch (e) { } return r; };
     } else {
       var ch = [];
       if (a.hist) ch.push(this.mkChoice(a.hist, '역사', nxt));
@@ -377,8 +377,8 @@ window.SG = window.SG || {}; SG.data = SG.data || {}; SG.scenarios = SG.scenario
     if (tac.special === 'abandon') return this.afterFight(bt, 'abandon', null, false);
     var self = this, g = this.g, s = this.s, m = tac.ours || {};
     var def = !!bt.defense, frac = bt.commit || (def ? 1 : 0.75), base = def ? (bt.terrain || 1) * (1 + s.realm.defense / 400) : 1;
-    var ours = { name: this.cfg.armyName || (this.cfg.country || '아군'), side: this.side, units: this.fieldUnits(frac, def), gen: bt.gen || this.cfg.gen, morale: this.myMorale(m.morale), terrain: (m.terrain || base) * (def ? 1 : 1), ambush: !!m.ambush, fort: false };
-    var df = this.deployFactor ? this.deployFactor(bt, anchor) : null, dnote = '';
+    var ours = { name: this.cfg.armyName || (this.cfg.country || '아군'), side: this.side, units: (def && this.defUnits ? this.defUnits(bt, anchor, frac) : this.fieldUnits(frac, def)), gen: bt.gen || this.cfg.gen, morale: this.myMorale(m.morale), terrain: (m.terrain || base) * (def ? 1 : 1), ambush: !!m.ambush, fort: false };
+    var df = this.deployFactor ? this.deployFactor(bt, anchor) : null, dnote = def && this.defNote ? this.defNote() : '';
     if (df && Math.abs(df.f - 1) > 0.03) { ours.units.forEach(function (u) { u.n = Math.round(u.n * df.f); }); dnote = '배치 보정: ' + df.name + ' 방면 주둔 ' + df.share + '% → 아군 병력 ×' + df.f.toFixed(2) + '. '; }
     if (tac.special === 'bribe') return this.bribe(bt, tac);
     var en = this.enemyOf(bt); if (m.enemyAmbush) en.ambush = true;
@@ -410,14 +410,15 @@ window.SG = window.SG || {}; SG.data = SG.data || {}; SG.scenarios = SG.scenario
   };
   P.invasion = function () {
     var self = this, s = this.s, cfg = this.cfg, inv = cfg.invasion, inWin = !!inv && s.year >= inv.from && s.year <= (inv.to || 9999);
-    var role = 'silla', w = s.world.silla, pr = !inWin ? 0 : clamp((w.hostility - 35) / 180, 0, 0.45) * clamp(w.p / 60, .5, 1.5) * (s.rel.silla > 70 ? 0.3 : 1);
+    var role = 'silla', w = s.world.silla, pr = !inWin ? 0 : clamp((w.hostility - 35) / 180, 0, 0.45) * clamp(w.p / 60, .5, 1.5) * (s.rel.silla > 70 ? 0.3 : 1) * (this.ready ? this.ready(this.sides.silla) : 1);
     if (Math.random() >= pr) { // 우리가 먼저 친 다른 나라의 보복
       role = null; var pv = s.provoked || {};
-      ['tang', 'goguryeo', 'wa'].forEach(function (k) { var x = s.world[k]; if (!role && pv[k] && s.year - pv[k] <= 6 && (k === 'tang' ? x.commit >= 10 : x.hostility >= 30) && self.sides[k] !== self.side && Math.random() < 0.3) role = k; });
+      ['tang', 'goguryeo', 'wa'].forEach(function (k) { var x = s.world[k]; if (!role && pv[k] && s.year - pv[k] <= 6 && (k === 'tang' ? x.commit >= 10 : x.hostility >= 30) && self.sides[k] !== self.side && Math.random() < 0.3 * (self.ready ? self.ready(self.sides[k]) : 1)) role = k; });
       if (!role) return null; w = s.world[role];
     }
     var RN = this.names[role], rv = function (t) { return t.replace(/\{rival\}/g, RN); };
     var tot = role === 'tang' ? Math.round(9000 + w.commit * 420) : Math.round(w.p * 260 * (0.8 + w.hostility / 200));
+    if (this.poolSize) { tot = this.poolSize(this.sides[role], tot); if (!(tot > 0)) return null; }   // 나라의 병력이 바닥나면 쳐들어오지 못한다(pools.js)
     return {
       title: rv('{rival}의 침공'), defense: true, terrain: 1.1,
       enemy: { name: rv('{rival} 군'), side: this.sides[role], total: tot, terrain: 1 },
@@ -435,11 +436,15 @@ window.SG = window.SG || {}; SG.data = SG.data || {}; SG.scenarios = SG.scenario
   };
 
   /* ── 한 해의 끝: 수입·세계 변화·랜덤 사건 ── */
+  P.foodFlow = function (army) {   // 해마다의 군량 수지(수입 - 군 유지비). army를 주면 그 병력일 때의 값: 병력을 사들이기 전에 미리 가늠하는 데 쓴다
+    var rl = this.s.realm, res = this.g.state.res, T = (army == null ? this.armyTotal() : army) / 1000;
+    return Math.round(9 + rl.econ * 0.28 + (res.people - 50) * 0.05 - T * 0.30 - T * T * 0.0025);
+  };
   P.yearEnd = function () {
     var self = this, g = this.g, s = this.s, cfg = this.cfg, res = g.state.res, rl = s.realm;
     var T = this.armyTotal() / 1000;
     // 수입·유지비
-    var gi = Math.round(6 + rl.econ * 0.14 + (res.people - 50) * 0.06 - T * 0.11), fi = Math.round(9 + rl.econ * 0.28 + (res.people - 50) * 0.05 - T * 0.30 - T * T * 0.0025);
+    var gi = Math.round(6 + rl.econ * 0.14 + (res.people - 50) * 0.06 - T * 0.11), fi = this.foodFlow();
     // 법령의 해마다 효과
     var lawChips = '';
     for (var id in s.laws) { var L = this.lawById(id); if (L && L.yearly) lawChips += this.eff(L.yearly); }

@@ -233,7 +233,7 @@
     if (won && Math.random() < 0.08) { won = false; fate = 'upL'; }                      // 배후의 변고로 철군
     else if (!won && Math.random() < 0.06) { won = true; fate = 'upW'; }                  // 내응으로 성문이 열림
     else if (!won && t.hm && Math.random() < 0.2) { won = true; fate = 'hist'; }          // 역사의 흐름이 이끈 점령
-    return { won: won, fate: fate, sa: r.stanceA, sb: r.stanceB, lossA: 1 - r.aEnd / (r.aStart || 1), lossB: 1 - r.bEnd / (r.bStart || 1), breach: r.wall ? r.wall.breach : 0, held: r.wall ? r.wall.held : false, routed: r.routed, ratio: ratio };
+    return { won: won, fate: fate, na: Na, nd: D, sa: r.stanceA, sb: r.stanceB, lossA: 1 - r.aEnd / (r.aStart || 1), lossB: 1 - r.bEnd / (r.bStart || 1), breach: r.wall ? r.wall.breach : 0, held: r.wall ? r.wall.held : false, routed: r.routed, ratio: ratio };
   };
   // 천하의 움직임 줄에 붙일 작은 설명: 양쪽 작전과 싸움의 모습
   P.aiNote = function (bt) {

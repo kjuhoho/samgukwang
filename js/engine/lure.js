@@ -134,7 +134,7 @@
     }
     var f = this.lureField(ours, en, T0), boF = Object.assign({}, bo, { rounds: 6 }), cF = Object.assign({}, ctx, { venue: 'field', tac: ph('field'), title: nm + L3(' 성 밖 야전', ' — Battle Outside the Walls', ' 城外の野戦') });
     _eng.call(this, f.ours, f.en, boF, cF, function (r1) {
-      try { if (self.milHit) self.milHit(en.side, r1.bStart - r1.bEnd); } catch (e) { }   // 야전에서 잃은 병력은 그 나라의 군사력에서 빠진다
+      try { if (self.poolFight) self.poolFight(en, ctx, r1); else if (self.milHit) self.milHit(en.side, r1.bStart - r1.bEnd); } catch (e) { }   // 야전에서 잃은 병력은 그 나라의 군사력에서 빠진다(pools.js)
       if (r1.winner !== 'a') {
         r1.factors.unshift('<b>' + L3('성 밖 야전', 'Battle outside the walls', '城外の野戦') + '</b> ' + L3('진을 치고 도발하자 수비군이 구원군과 함께 성문을 열고 나왔고, 들판에서 패해 진영이 무너졌습니다.', 'Provoked, the garrison marched out with its relief army and beat you on open ground; your camp collapsed.', '挑発に乗った守備軍が援軍とともに城門を開いて出撃し、野戦で敗れて陣が崩れました。'));
         return cb(r1);
@@ -218,7 +218,7 @@
     p.gdmg = clamp((p.gdmg || 0) + clamp(killed / Math.max(1, g0) * 0.6, 0, 0.3) * (won ? 1 : 0.4), 0, 0.55);
     var broke = !won && r.aEnd / (r.aStart || 1) < 0.5, txt;
     this.casual(before, r.aLeft);
-    try { if (this.milHit) this.milHit(Tg.side, killed); } catch (e) { }
+    try { if (this.poolKill) this.poolKill(Tg.side, killed, false); else if (this.milHit) this.milHit(Tg.side, killed); } catch (e) { }
     if (broke) { s.press = null; if (this.g.map) this.g.map.removeToken('own_press'); txt = L3('수비군이 성문을 열고 쏟아져 나와 진영을 덮쳤고, 진영이 무너져 주둔을 거두었습니다 (우리 피해 약 ' + com(lost) + '명).', 'The garrison poured out of the gates and overran the camp; the camp collapsed and the force withdrew (about ' + com(lost) + ' of ours lost).', '守備軍が城門から溢れ出て陣を襲い、陣が崩れて駐屯を引き上げました(味方の損害約' + com(lost) + '名)。'); }
     else if (won) txt = L3('수비군이 성문을 열고 진영을 덮쳤으나 격퇴했습니다. 적 약 ' + com(killed) + '명이 쓰러져 성의 수비가 줄었습니다 (우리 피해 약 ' + com(lost) + '명).', 'The garrison burst out and struck the camp but was driven off. About ' + com(killed) + ' of them fell and the castle is thinner for it (about ' + com(lost) + ' of ours lost).', '守備軍が城門を開いて陣を襲いましたが、撃退しました。敵約' + com(killed) + '名が倒れて城の守りが薄くなりました(味方の損害約' + com(lost) + '名)。');
     else txt = L3('수비군의 급습에 진영이 흔들려 우리 병력 약 ' + com(lost) + '명이 상했습니다. 적도 약 ' + com(killed) + '명을 잃었습니다.', 'A sudden sortie shook the camp and about ' + com(lost) + ' of ours were hurt; the garrison lost about ' + com(killed) + ' too.', '守備軍の急襲で陣が揺らぎ、味方約' + com(lost) + '名が傷つきました。敵も約' + com(killed) + '名を失いました。');

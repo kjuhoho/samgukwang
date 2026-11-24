@@ -22,6 +22,7 @@ window.SG = window.SG || {};
     ['tribute_tang', /조공|입조|예물|책봉/],
     ['peace_silla', /화친|화해|강화|휴전|평화/],
     ['ally_goguryeo', /동맹|연합|공조/],
+    ['buy_grain', /(군량|곡식|식량|양식|쌀|양곡)을? ?(사|구입|구매|매입|조달|확보)|(군량|곡식|식량|양곡) ?(구입|구매|매입|조달)/],
     ['trade_envoy', /무역|교역|상단|무역선|시장/],
     ['wa_envoy', /원군 ?외교|먼 ?나라/],
     ['hostage', /인질/],
@@ -151,7 +152,9 @@ window.SG = window.SG || {};
     advise: function (sb) {
       var s = sb.s, res = sb.g.state.res, rl = s.realm, w = s.world, n = sb.names, out = [];
       var nxt = (sb.cfg.timeline || []).filter(function (a) { return a.y === s.year + 1 && a.hint; })[0];
-      if (res.food < 18) out.push('곡식 창고가 비어 갑니다. 군이 크면 유지비가 큽니다. 농사 장려나 진휼을 서두르십시오.');
+      var ff = sb.foodFlow ? sb.foodFlow() : 0;
+      if (res.food < 18) out.push('곡식 창고가 비어 갑니다. 군이 크면 유지비가 큽니다. 농사 장려나 진휼을 서두르고, 금이 있다면 「군량 구입」으로 시장에서 곡식을 사들이십시오.');
+      else if (ff < 0 && res.food < -ff * 3) out.push('해마다 군량이 ' + (-ff) + '씩 줄어드는 형편이라 곳간이 오래가지 못합니다. 농사 장려·둔전으로 수입을 늘리거나 「군량 구입」으로 미리 쌓아 두십시오.');
       if (res.gold < 8) out.push('금고가 바닥입니다. 교역이나 호구 조사로 재정을 메워야 합니다.');
       if (res.people < 38) out.push('민심이 흉흉합니다. 대사면, 조세 감면, 진휼 중 하나는 필요합니다.');
       if (w.silla.hostility > 62 && rl.defense < 55) out.push(n.silla + '의 적의가 높은데 방비가 약합니다. 산성을 손보고 첩보를 늘려야 합니다.');

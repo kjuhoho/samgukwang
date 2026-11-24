@@ -77,7 +77,9 @@
     ['당 원정군', 'Tang expeditionary army', '唐遠征軍'], ['전연 원정군', 'Former Yan expeditionary army', '前燕遠征軍'],
     ['전연은 여전히 왕모를 붙잡고 있습니다. 때가 오면 인질과 교섭할 길이 있습니다.', 'Former Yan still holds the queen mother. When the time comes there is a path to negotiate over the hostages.', '前燕は依然として王母を捕らえています。時が来れば人質との交渉の道があります。'],
     ['고구려가 먼저 손을 내밀 조짐이 있습니다.', 'There are signs that Goguryeo may reach out first.', '高句麗の方から手を差し伸べる兆しがあります。'],
-    ['당군이 {n}월 초 백제 앞바다에 도착합니다. 군량과 병력, 훈련을 충분히 쌓아 두십시오.', 'The Tang army arrives off Baekje’s coast in early month {n}. Stockpile enough provisions, troops and training.', '唐軍が{n}月初め百済の沖に到着します。軍糧・兵力・訓練を十分に蓄えておいてください。']
+    ['당군이 {n}월 초 백제 앞바다에 도착합니다. 군량과 병력, 훈련을 충분히 쌓아 두십시오.', 'The Tang army arrives off Baekje’s coast in early month {n}. Stockpile enough provisions, troops and training.', '唐軍が{n}月初め百済の沖に到着します。軍糧・兵力・訓練を十分に蓄えておいてください。'],
+    ['곡식 창고가 비어 갑니다. 군이 크면 유지비가 큽니다. 농사 장려나 진휼을 서두르고, 금이 있다면 「군량 구입」으로 시장에서 곡식을 사들이십시오.', 'The granary is running empty, and a big army is costly to feed. Hurry farming incentives or famine relief, and if you have gold, use “Buy Grain” to purchase grain on the market.', '穀倉が空になりつつあります。軍が大きいと維持費がかさみます。勧農か賑恤を急ぎ、金があるなら「軍糧の購入」で市場から穀物を買い入れてください。'],
+    ['해마다 군량이 {n}씩 줄어드는 형편이라 곳간이 오래가지 못합니다. 농사 장려·둔전으로 수입을 늘리거나 「군량 구입」으로 미리 쌓아 두십시오.', 'Grain shrinks by {n} each year, so the stores will not last. Raise income through farming incentives or military farms, or stock up in advance with “Buy Grain”.', '毎年軍糧が{n}ずつ減る状況で、蔵は長くもちません。勧農・屯田で収入を増やすか、「軍糧の購入」で前もって備蓄してください。'],
   ];
   var D = {}; W.forEach(function (w) { D[w[0]] = L === 'ja' ? w[2] : w[1]; }); I.add(L, D);
 
@@ -141,6 +143,7 @@
     [/^(\d+)년 (\d+)~(\d+)월$/, 'Months $2–$3, Year $1', '$1年$2〜$3月'],
     [/^— 적 편성: (.+)$/, '— Enemy composition: $1', '— 敵の編成:$1'],
     [/^— 아군 야전군 (\d[\d,]*)명 대 적 (\d[\d,]*)명(.*)$/, '— Our field army $1 vs enemy $2$3', '— 味方野戦軍$1人 対 敵$2人$3'],
+    [/^— 아군 방어군 (\d[\d,]*)명 대 적 (\d[\d,]*)명(.*)$/, '— Our defenders $1 vs enemy $2$3', '— 味方の防衛軍$1人 対 敵$2人$3'],
     [/^아군 (\d[\d,]*) : 적 (\d[\d,]*)$/, 'Ours $1 : Enemy $2', '味方$1 : 敵$2'],
     [/^역사와 다른 길: (\d+)곳의 주인이 달라짐$/, 'A path different from history: $1 places changed hands', '史実と異なる道:$1か所の持ち主が変わった'],
     [/^— 실제 역사에서는 주인이 바뀐 곳: (.+?)(?: — (.+))?$/, '— Places that changed hands in real history: $1', '— 史実で持ち主が変わった場所:$1'],

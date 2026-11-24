@@ -57,12 +57,13 @@
   /* ③ 제작 명령: 공성기를 만든다 */
   (function () {
     function amt(ctx, base) { var ec = (ctx.realm && ctx.realm.econ) || 50; return Math.round(base * (1 + Math.max(0, ec - 50) / 100) / 100) * 100; }
+    SG.BUYS = SG.BUYS || {}; SG.BUYS.buy_siege = function (ctx) { return amt(ctx, 1500); };
     SG.data.commands = (SG.data.commands || []).concat([{
-      id: 'buy_siege', cat: '군사', hist: '일반', cost: { gold: 20, food: 30 }, eff: {},
+      id: 'buy_siege', cat: '군사', hist: '일반', get cost() { return { gold: 20, food: SG.dynFood ? SG.dynFood(30, 0.4) : 30 }; }, eff: {},
       name: T('충차·운제 제작', 'Build Rams & Ladders', '衝車・雲梯の製作'),
       desc: T('충차·운제·포차를 만들 장인과 일꾼을 모읍니다. (약 1.5천 · 산업이 높을수록 더 많이) 공성기가 많을수록 성벽이 빨리 무너져 성을 함락하기 쉬워지고 공성 숙련도 오릅니다.', 'Gather the craftsmen and laborers to build rams, ladders and catapults (about 1,500; more with higher industry). The more engines, the faster the walls fall and the easier a fortress is to take; siege mastery also rises.', '衝車・雲梯・投石機を作る職人と人夫を集めます。(約1.5千・産業が高いほど増える) 攻城器が多いほど城壁が早く崩れ、城を落としやすくなり、攻城の熟練も上がります。'),
       lines: [T('공방마다 충차와 운제가 쌓이고 장인들이 밤낮으로 망치를 두드렸습니다.', 'Rams and ladders piled up in every workshop as the craftsmen hammered day and night.', '工房ごとに衝車と雲梯が積み上がり、職人たちが昼夜を分かたず槌を振るいました。')],
-      fn: function (g, ctx) { return { army: { baekje_siege: amt(ctx, 1500) }, realm: { b_siege: 3 }, fx: { food: -Math.round((g.sb ? g.sb.armyTotal() : 0) / 1000 * 0.4) } }; }
+      fn: function (g, ctx) { return { army: { baekje_siege: amt(ctx, 1500) }, realm: { b_siege: 3 } }; }
     }]);
   })();
 
