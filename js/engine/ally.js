@@ -41,6 +41,11 @@
     cA: T('원군 요청', 'Request Reinforcements', '援軍要請'), cAd: T('우호국에 사신을 보내 원군을 청합니다. 관계가 좋을수록 병력이 많이 오고, 온 군은 2년간 우리 군에 합류합니다.', 'Send envoys to a friendly state to ask for troops. The warmer the ties, the more arrive, and they join our army for two years.', '友好国に使者を送り援軍を求めます。関係が良いほど兵が多く来て、2年間わが軍に加わります。'),
     cAl: T('사신이 말을 달려 원군을 청했습니다.', 'Envoys rode out to plead for reinforcements.', '使者が馬を駆って援軍を請いました。'),
     cJ: T('공동 출병 제안', 'Propose a Joint Campaign', '共同出兵の提案'), cJd: T('우호국에 함께 적을 치자고 청합니다. 최근 우리가 노린 나라(없으면 가장 적대적인 나라)가 목표가 되며, 우호국이 올해와 이듬해 그 나라를 공격합니다.', 'Ask a friendly state to strike a common foe with us. The target is the state we last attacked (or the most hostile); the partner attacks it this year and next.', '友好国に共に敵を討とうと求めます。目標は最近攻めた国(なければ最も敵対的な国)で、友好国が今年と来年その国を攻めます。'),
+    pT: T('🎯 어디를 칠 것인가', '🎯 Where Shall We Strike?', '🎯 どこを攻めるか'),
+    pD: T('동맹군이 칠 적의 성을 고르십시오. 동맹군의 영토에서 가까운 성만 닿을 수 있습니다.', 'Choose which enemy castle the allied army will strike. Only castles near the ally’s own land can be reached.', '同盟軍が攻める敵の城を選んでください。同盟国の領土に近い城だけが届きます。'),
+    pAuto: T('동맹군에 맡긴다', 'Leave it to our ally', '同盟軍に任せる'), pAutoH: T('동맹이 가장 승산 있는 성을 스스로 고릅니다.', 'The ally picks the castle it is likeliest to take.', '同盟軍が最も勝算のある城を自分で選びます。'),
+    pSet: T('목표가 정해졌습니다: ', 'Target set: ', '目標が決まりました: '),
+    pKind: { capital: T('도성', 'Capital', '都城'), city: T('큰 성', 'City', '大城'), fortress: T('산성', 'Fortress', '山城'), port: T('항구', 'Port', '港'), pass: T('관문', 'Pass', '関門') },
     cJl: T('사신들이 함께 칠 계책을 나누었습니다.', 'Envoys worked out a plan to strike together.', '使者たちは共に討つ策を練りました。')
   };
   T('고구려가 올해와 이듬해 신라의 성을 실제로 공격한다.', 'Goguryeo will actually attack Silla’s castles this year and next.', '高句麗が今年と来年、新羅の城を実際に攻撃する。');
@@ -84,18 +89,43 @@
     return { text: nm + M.yes1 + '<b>' + n.toLocaleString() + '</b>' + M.yes2 };
   }
   /* ② 공동 출병 */
-  function setJoint(sb, r, foe) { var a = A_(sb); a.joint = { role: r, side: sb.sides[r], foe: foe, until: sb.s.year + 1, hit: 0 }; }
+  function setJoint(sb, r, foe) { var a = A_(sb); a.joint = { role: r, side: sb.sides[r], foe: foe, until: sb.s.year + 1, hit: 0, target: null }; }
+  /* 공동 출병의 목표 성을 고른다: 동맹군 영토에서 닿는 적의 성 가운데서 */
+  function jointCands(sb, j) {
+    var mine = sb.places().filter(function (p) { return sb.ownerOf(p) === j.side && CASTLE[p.kind]; }), out = [];
+    sb.places().forEach(function (p) {
+      if (!CASTLE[p.kind] || sb.ownerOf(p) !== j.foe) return;
+      var bd = 9; mine.forEach(function (q) { bd = Math.min(bd, dist(p, q)); }); if (bd > 1.5) return;
+      out.push({ p: p, bd: bd, w: (p.kind === 'capital' ? 3 : p.kind === 'fortress' || p.kind === 'pass' ? 1.5 : 0) + bd });
+    });
+    out.sort(function (x, y) { return x.w - y.w; });
+    return out.slice(0, 7);
+  }
+  function jointPick(sb) {
+    var a = A_(sb), j = a.joint; if (!j) return;
+    var c = jointCands(sb, j); if (!c.length) return;
+    var wrap = h('div', 'modal'), card = h('div', 'card'), box = h('div', 'choices');
+    card.innerHTML = '<h2>' + M.pT + '</h2><p>' + M.pD + '</p>';
+    c.forEach(function (x) {
+      var g0 = sb.gearFor ? sb.fuzzG(sb.gearFor(x.p, j.foe)) : '', b = h('button', 'ch', '<b>' + short(x.p) + '</b> (' + (M.pKind[x.p.kind] || x.p.kind) + ')<small>' + (g0 ? '수비 ' + g0 : '') + '</small>');
+      b.onclick = function () { wrap.remove(); j.target = x.p.id; sb.s.last = (sb.s.last || '') + ' ' + M.pSet + '<b>' + short(x.p) + '</b>'; sb.log('공동 출병 목표: ' + short(x.p)); try { sb.renderTurn(); } catch (e) { } };
+      box.appendChild(b);
+    });
+    var b0 = h('button', 'ch', M.pAuto + '<small>' + M.pAutoH + '</small>'); b0.onclick = function () { wrap.remove(); }; box.appendChild(b0);
+    card.appendChild(box); wrap.appendChild(card); sb.g.root.appendChild(wrap);
+  }
+  P.jointPick = function () { jointPick(this); };
   function doJoint(sb) {
     var s = sb.s, foe = foeSide(sb), ps = partners(sb, 45, foe); if (!foe || !ps.length) return { text: M.noP };
     var r = ps[0], rel = s.rel[r], nm = '<b>' + nmRole(sb, r) + '</b>';
     if (Math.random() >= clamp(0.35 + (rel - 45) / 80, 0.15, 0.9)) { s.rel[r] = clamp(rel - 1, 0, 100); return { text: nm + M.jno }; }
-    setJoint(sb, r, foe); s.rel[r] = clamp(rel + 2, 0, 100); sb.log('공동 출병: ' + nmRole(sb, r) + ' → ' + nmSide(sb, foe));
+    setJoint(sb, r, foe); s.rel[r] = clamp(rel + 2, 0, 100); sb.log('공동 출병: ' + nmRole(sb, r) + ' → ' + nmSide(sb, foe)); setTimeout(function () { jointPick(sb); }, 50);
     return { text: nm + M.jyes1 + '<b>' + nmSide(sb, foe) + '</b>' + M.jyes2 };
   }
   /* 사건·시나리오 선택지에서 쓰는 공동 출병 시작: 우호국이 실제로 같은 적의 성을 친다 */
   SG.ALLY_start = function (sb, role, foeRole) {
     var foe = sb.sides[foeRole], s = sb.s; if (!sb.sides[role] || !foe || foe === sb.side || (s.destroyed && s.destroyed[foe])) return '';
-    setJoint(sb, role, foe); sb.log('공동 출병: ' + nmRole(sb, role) + ' → ' + nmSide(sb, foe));
+    setJoint(sb, role, foe); sb.log('공동 출병: ' + nmRole(sb, role) + ' → ' + nmSide(sb, foe)); setTimeout(function () { jointPick(sb); }, 400);
     return '<b>' + nmRole(sb, role) + '</b>' + M.jyes1 + '<b>' + nmSide(sb, foe) + '</b>' + M.jyes2;
   };
   SG.data.commands = (SG.data.commands || []).concat([
@@ -147,7 +177,7 @@
         setJoint(self, r, q.foe); var fr = self.roleOf(q.foe), fw = fr && s.world[fr]; if (fw) { if (fr === 'tang') fw.commit = clamp(fw.commit + 4, 0, 100); else fw.hostility = clamp(fw.hostility + 6, 0, 100); }
         s.last = nm + M.jdone + '<b>' + nmSide(self, q.foe) + '</b>'; self.log('공동 출병 수락: ' + nmRole(self, r));
       }
-      self.renderTurn();
+      self.renderTurn(); if (!aid) setTimeout(function () { jointPick(self); }, 100);
     });
     btn(aid ? M.refuse : M.decl, aid ? M.refuseH : M.declH, function () { s.rel[r] = clamp((s.rel[r] || 0) - (aid ? 8 : 2), 0, 100); s.last = aid ? nm + M.refused : ''; self.renderTurn(); });
     card.appendChild(box); wrap.appendChild(card); this.g.root.appendChild(wrap);

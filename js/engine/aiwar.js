@@ -106,7 +106,7 @@
     }
 
     /* 원정: 나라마다 한두 번 */
-    function campaign(a, force) {
+    function campaign(a, force, tgt) {
       var ra = self.roleOf(a), pa = self.sidePower(a), own = by[a] || [], cand = [];
       if (!own.length) return;
       all.forEach(function (p) {
@@ -120,8 +120,8 @@
         var bd = 9, org = null; own.forEach(function (q) { var x = dist(p, q); if (x < bd) { bd = x; org = q; } });
         if (bd > 1.5) return;
         var pd = Math.max(self.sidePower(o), p.kind === 'capital' ? 35 : 0);
-        var sc = (pa - pd) / 55 - bd * 0.9 + (KV[p.kind] || 0) + (ai.grudge[a + '>' + o] ? 0.35 : 0) + (busy[o] ? 0.3 : 0) + ((d[o] || (s.fallen && s.fallen[o])) ? 0.4 : 0) + (o === leader ? 0.25 : 0) + Math.random() * 0.5 + (force ? 1.5 : 0);
-        if (p.kind === 'capital' && pa < pd * 1.25) sc -= 2;
+        var sc = (pa - pd) / 55 - bd * 0.9 + (KV[p.kind] || 0) + (ai.grudge[a + '>' + o] ? 0.35 : 0) + (busy[o] ? 0.3 : 0) + ((d[o] || (s.fallen && s.fallen[o])) ? 0.4 : 0) + (o === leader ? 0.25 : 0) + Math.random() * 0.5 + (force ? 1.5 : 0) + (tgt && p.id === tgt ? 8 : 0);
+        if (p.kind === 'capital' && pa < pd * 1.25 && !(tgt && p.id === tgt)) sc -= 2;
         if (hm) sc += 1.2;
         cand.push({ p: p, o: o, pd: pd, org: org, bd: bd, sc: sc, hm: hm });
       });
@@ -162,7 +162,7 @@
     /* 공동 출병: 플레이어와 약속한 우호국이 같은 적을 친다 */
     var jw = self.jointWar && self.jointWar();
     if (jw && done < 6 && !d[jw.side]) {
-      var before = ai.mv.length; campaign(jw.side, jw.foe); jw.hit++;
+      var before = ai.mv.length; campaign(jw.side, jw.foe, jw.target); jw.hit++; if (jw.target && self.ownerOf(SG.placeById(jw.target)) !== jw.foe) jw.target = null;
       var jm = ai.mv[ai.mv.length - 1];
       if (ai.mv.length > before && jm && jm.joint && jm.win) lines.push('<div><b>' + nm(jw.side) + '</b> <i>' + SG.ALLY.jwin + '</i></div>'); else if (ai.mv.length === before) lines.push('<div><b>' + nm(jw.side) + '</b> ' + SG.ALLY.jfail + '</div>');
     }
