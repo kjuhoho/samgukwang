@@ -113,7 +113,7 @@ window.SG = window.SG || {}; SG.data = SG.data || {};
   Game.prototype.apply = function (fx) {
     if (!fx) return {};
     var r = this.state.res, d = {};
-    for (var k in fx) { if (r[k] == null) continue; var before = r[k]; r[k] = Math.max(0, (k === 'people' || k === 'morale') ? Math.min(100, r[k] + fx[k]) : r[k] + fx[k]); d[k] = r[k] - before; }
+    for (var k in fx) { if (r[k] == null) continue; var before = r[k]; r[k] = Math.max(0, (k === 'people' || k === 'morale') ? Math.min(999, r[k] + fx[k]) : r[k] + fx[k]); d[k] = r[k] - before; }
     this.hud(d); return d;
   };
   Game.prototype.chips = function (d) {

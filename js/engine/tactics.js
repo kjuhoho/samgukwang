@@ -145,7 +145,7 @@
       var fatA = (1 - 0.022 * (r - 1) * (1.3 - trA / 100)), fatB = (1 - 0.022 * (r - 1) * (1.3 - trB / 100));
       var contA = r <= 3 ? 1 - resA : 1, contB = r <= 3 ? 1 - resB : 1;
       var fpA = r >= 4 ? (1 - resA) * fatA + resA : fatA * contA, fpB = r >= 4 ? (1 - resB) * fatB + resB : fatB * contB;
-      var mfA = 0.6 + clamp(mA, 0, 100) / 100 * 0.6, mfB = 0.6 + clamp(mB, 0, 100) / 100 * 0.6;
+      var mfA = 0.6 + clamp(mA, 0, 150) / 100 * 0.6, mfB = 0.6 + clamp(mB, 0, 150) / 100 * 0.6;
       var gA = 1 + (cmdA - 5) * 0.06, gB = 1 + (cmdB - 5) * 0.06;
       var atkA = pA.atk * muA * mfA * gA * fpA * (terA > 1 ? 1 + (terA - 1) * 0.5 : terA) * (opt.luckA || 1);
       var atkB = pB.atk * muB * mfB * gB * fpB * (terB > 1 ? 1 + (terB - 1) * 0.5 : terB) * (opt.luckB || 1);

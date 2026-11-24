@@ -290,7 +290,7 @@ window.SG = window.SG || {}; SG.data = SG.data || {}; SG.scenarios = SG.scenario
     for (var r in m) { var id = R[r] || R.line, n = Math.round(total * m[r]); var ex = out.filter(function (u) { return u.id === id; })[0]; if (ex) ex.n += n; else out.push({ id: id, n: n }); }
     return out.filter(function (u) { return u.n > 0 && SG.unitById(u.id); });
   };
-  P.myMorale = function (b) { var s = this.s; return clamp(this.g.state.res.morale + (s.realm.train - 50) / 4 + (b || 0), 15, 100); };
+  P.myMorale = function (b) { var s = this.s; return clamp(this.g.state.res.morale + (s.realm.train - 50) / 4 + (b || 0), 15, 160); };
   P.warFlow = function (tid, c) {
     var self = this, g = this.g, T = this.targetById(tid), s = this.s;
     var wrap = h('div', 'modal'), card = h('div', 'card'), field = this.fieldTotal();
@@ -439,7 +439,7 @@ window.SG = window.SG || {}; SG.data = SG.data || {}; SG.scenarios = SG.scenario
     var self = this, g = this.g, s = this.s, cfg = this.cfg, res = g.state.res, rl = s.realm;
     var T = this.armyTotal() / 1000;
     // 수입·유지비
-    var gi = Math.round(6 + rl.econ * 0.14 + (res.people - 50) * 0.06 - T * 0.09), fi = Math.round(9 + rl.econ * 0.28 + (res.people - 50) * 0.05 - T * 0.32);
+    var gi = Math.round(6 + rl.econ * 0.14 + (res.people - 50) * 0.06 - T * 0.11), fi = Math.round(9 + rl.econ * 0.28 + (res.people - 50) * 0.05 - T * 0.30 - T * T * 0.0025);
     // 법령의 해마다 효과
     var lawChips = '';
     for (var id in s.laws) { var L = this.lawById(id); if (L && L.yearly) lawChips += this.eff(L.yearly); }
@@ -498,10 +498,12 @@ window.SG = window.SG || {}; SG.data = SG.data || {}; SG.scenarios = SG.scenario
     if (this.summary) { body.unshift('<div class="chron-log">' + this.summary + '</div>'); this.summary = null; }
     var note = (this.cfg.id === 'uija' && ev.note) ? this.L(ev.note) : '';
     g.page({ era: s.year + '년 · 사건 · ' + ev.cat + (ev.hist === '사료' && this.cfg.id === 'uija' ? ' · 사료에 비슷한 기사' : ev.hist === '가상' ? ' · 창작' : ''), title: this.L(ev.title), body: body, note: note });
-    g.choices(ev.choices.map(function (c) {
+    var opts = ev.choices.map(function (c) {
       var dis = false, cost = c.fx && c.fx.gold < 0 && g.state.res.gold < -c.fx.gold || c.fx && c.fx.food < 0 && g.state.res.food < -c.fx.food;
       return { c: { label: self.L(c.label), hint: self.L(c.hint), disabled: !!cost }, run: function () { self.pickEvent(ev, c); } };
-    }));
+    });
+    if (opts.length && opts.every(function (o) { return o.c.disabled; })) opts.forEach(function (o) { o.c.disabled = false; });   // 모든 선택이 막히면 멈추지 않도록: 빠듯해도 무리해서 고를 수 있다
+    g.choices(opts);
   };
   P.pickEvent = function (ev, c) {
     var self = this, g = this.g, e = c, extra = '';

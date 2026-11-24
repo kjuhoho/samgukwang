@@ -27,7 +27,7 @@
   T('보병 숙련', 'Infantry mastery', '歩兵の熟練'); T('정예 숙련', 'Elite mastery', '精鋭の熟練'); T('기병 숙련', 'Cavalry mastery', '騎兵の熟練'); T('궁노 숙련', 'Archery mastery', '弓弩の熟練'); T('공성 숙련', 'Siege mastery', '攻城の熟練');
   SG.branchNames = NM; SG.branchLv = LV;
 
-  function lv(v) { return clamp(Math.floor((v || 0) / 20), 0, 5); }
+  function lv(v) { return Math.max(0, Math.floor((v || 0) / 20)); }
   P.myBL = function () {
     var r = this.s.realm, o = {}; for (var g in KEYS) o[g] = lv(r[KEYS[g]]); o.navy = lv(r.navy); return o;
   };
@@ -70,8 +70,8 @@
         if (g === 'siege' && stn === 'siege') bonus += 0.6;
         if (g === 'line' && stn === 'hold') bonus += 0.3;
         var add = Math.max(1, Math.round(base * bonus * Math.min(1, 0.6 + sh) * (before >= 80 ? 0.5 : 1)));
-        s.realm[k] = clamp(before + add, 0, 100);
-        out.push('<u>' + NM[g] + '</u> +' + add + (lv(s.realm[k]) > lv(before) ? ' <i>' + XPN.up + '</i> <u>' + LV[lv(s.realm[k])] + '</u>' : ''));
+        s.realm[k] = clamp(before + add, 0, 999);
+        out.push('<u>' + NM[g] + '</u> +' + add + (lv(s.realm[k]) > lv(before) ? ' <i>' + XPN.up + '</i> <u>' + (LV[lv(s.realm[k])] || (LV[5] + '+')) + '</u>' : ''));
       }
       return out.length ? '<b>' + XPN.gain + '</b> — ' + out.join(' · ') : '';
     } catch (x) { return ''; }
@@ -89,7 +89,7 @@
     // 새로 양성한 병과는 그만큼 조련이 쌓인다(기병을 키우면 기병 숙련도 오른다)
     try {
       var cc = T_.comp(this.fieldUnits ? this.fieldUnits(1) : []), prev = this.s.brSnap || {}, snap = {};
-      for (var q in KEYS) { var nn = cc[q] ? cc[q].n : 0; snap[q] = nn; var d = nn - (prev[q] == null ? nn : prev[q]); if (d >= 300) r[KEYS[q]] = clamp((r[KEYS[q]] || 0) + Math.min(6, Math.round(d / 400)), 0, 100); }
+      for (var q in KEYS) { var nn = cc[q] ? cc[q].n : 0; snap[q] = nn; var d = nn - (prev[q] == null ? nn : prev[q]); if (d >= 300) r[KEYS[q]] = clamp((r[KEYS[q]] || 0) + Math.min(6, Math.round(d / 400)), 0, 999); }
       this.s.brSnap = snap;
     } catch (x) {}
     return _ye.apply(this, arguments);
@@ -111,7 +111,7 @@
     var key = KEYS[g];
     return {
       id: id, cat: '군사', name: T(name[0], name[1], name[2]), desc: T(desc[0], desc[1], desc[2]), cost: cost, hist: '가상', eff: {},
-      req: function (ctx) { return ((ctx.realm || {})[key] || 0) < 100; },
+      req: function (ctx) { return ((ctx.realm || {})[key] || 0) < 999; },
       lines: lines.map(function (l) { return T(l[0], l[1], l[2]); }),
       fn: function (g2, ctx) { var cur = (ctx.realm || {})[key] || 0, L = lv(cur), gain = Math.max(6, 18 - 3 * L); return { realm: (function () { var o = {}; o[key] = gain; return o; })() }; }
     };
