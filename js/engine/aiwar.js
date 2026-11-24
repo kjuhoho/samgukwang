@@ -60,6 +60,7 @@
   /* ── ① 적국들의 전쟁 ── */
   P.worldSim = function () {
     var self = this, s = this.s, me = this.side, all = this.places(), d = s.destroyed || {}, coal = (s.coal && s.coal.members) || [], y = s.year;
+    if (this.aiTurnAll) try { this.aiTurnAll(); } catch (e) { console.warn('aiTurn', e); }
     var ai = s.ai = s.ai || {}; ai.fat = ai.fat || {}; ai.pact = ai.pact || {}; ai.grudge = ai.grudge || {}; ai.pw = ai.pw || {}; ai.mv = [];
     s.owners = s.owners || {};
     function nm(side) { var r = self.roleOf(side); return r ? self.names[r].replace('(멸망)', '') : ((SG.sideName && SG.sideName[side]) || side); }
@@ -69,7 +70,7 @@
     // 피로 회복 · 맹약 만료 · 영토에 맞춘 국력 보정
     sides.forEach(function (a) {
       ai.fat[a] = Math.max(0, (ai.fat[a] || 0) - 3);
-      var r0 = self.roleOf(a), tgt = clamp(18 + (by[a] || []).length * 2.4, 10, 95);
+      var r0 = self.roleOf(a), tgt = self.natTarget ? self.natTarget(a) : clamp(18 + (by[a] || []).length * 2.4, 10, 95);
       if (!r0) { self.sidePower(a); ai.pw[a] = clamp(ai.pw[a] + (tgt - ai.pw[a]) * 0.1, 6, 90); }
       else if (r0 !== 'tang' && s.world[r0]) s.world[r0].p = clamp(s.world[r0].p + (tgt - s.world[r0].p) * 0.05, 4, 150);
     });
