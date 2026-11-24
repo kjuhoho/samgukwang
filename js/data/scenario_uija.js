@@ -3,6 +3,16 @@
 window.SG = window.SG || {}; SG.data = SG.data || {}; SG.scenarios = SG.scenarios || {};
 (function () {
   var P = function (id) { return SG.placeById(id); };
+  // 전투 창 제목 번역(전투 창은 코드에서 열리므로 시나리오 문자열 목록에 들어가지 않는다)
+  (function () {
+    var I = SG.i18n, tr = [
+      ['탄현 전투 (가상)', 'Battle of Tanhyeon (hypothetical)', '炭峴の戦い(仮想)'], ['기벌포 전투 (가상)', 'Battle of Gibeolpo (hypothetical)', '伎伐浦の戦い(仮想)'],
+      ['황산벌 — 네 번의 접전', 'Hwangsanbeol — Four Clashes', '黄山の野 — 四度の接戦'], ['황산벌 — 총공격', 'Hwangsanbeol — The General Assault', '黄山の野 — 総攻撃'],
+      ['사비 성외 전투 (가상)', 'Battle Outside Sabi (hypothetical)', '泗沘城外の戦い(仮想)'], ['사비성 농성 (가상)', 'Siege of Sabi (hypothetical)', '泗沘城籠城(仮想)'],
+      ['웅진성 농성 (가상)', 'Siege of Ungjin (hypothetical)', '熊津城籠城(仮想)'], ['주류성 공방 (가상)', 'Siege of Juryuseong (hypothetical)', '周留城攻防(仮想)'], ['백강 전투', 'Battle of Baekgang', '白江の戦い']
+    ];
+    tr.forEach(function (x) { var d = I && I.dict; if (d && d.en) { d.en[x[0]] = x[1]; d.ja[x[0]] = x[2]; } var T6 = SG.data.tr6 = SG.data.tr6 || { en: {}, ja: {} }; T6.en[x[0]] = x[1]; T6.ja[x[0]] = x[2]; });
+  })();
   var SRC_B = '삼국사기 백제본기 의자왕 16·20년', SRC_S = '삼국사기 신라본기 태종무열왕 7년';
 
   function force(name, side, units, gen, terrain, morale, extra) {
@@ -17,6 +27,12 @@ window.SG = window.SG || {}; SG.data = SG.data || {}; SG.scenarios = SG.scenario
   function sillaHost() { return scaleHost([{ id: 'silla_jeong', n: 30000 }, { id: 'silla_seodang', n: 6000 }, { id: 'silla_horse', n: 4000 }, { id: 'silla_crossbow', n: 2000 }, { id: 'silla_hwarang', n: 1000 }, { id: 'silla_levy', n: 7000 }], KS); }
   function tangHost() { return scaleHost([{ id: 'tang_bubyeong', n: 60000 }, { id: 'tang_elite', n: 8000 }, { id: 'tang_cavalry', n: 6000 }, { id: 'tang_archer', n: 10000 }, { id: 'tang_crossbow', n: 8000 }, { id: 'tang_siege', n: 3000 }], KT); }
 
+  // 정해진 역사 속 전투도 일반 전투처럼 군사 회의 창(작전·예비대·지휘관 선택)을 열어 치른다
+  function duel(g, A, B, bo, o, cb) {
+    var sb = g.sb;
+    if (sb && sb.engage) { sb.engage(A, B, bo, { T: { id: 'script', place: o.place, name: o.title, side: B.side, terrain: B.terrain }, bt: { tk: o.tk, gen: o.gen }, tac: null, def: !!o.def, title: o.title }, cb); }
+    else cb(SG.battle(A, B, bo));
+  }
   function lose(g, units) { // 전투 후 잔여를 군제에 반영: 배치 병종 비율대로 감소
     units.forEach(function (u) { if (g.state.army[u.src] != null) g.state.army[u.src] = Math.max(0, g.state.army[u.src] - (u.lost || 0)); });
     g.renderArmy();
@@ -178,21 +194,26 @@ window.SG = window.SG || {}; SG.data = SG.data || {}; SG.scenarios = SG.scenario
         var tIn = mix(a.tanhyeon, { bangun: .55, archer: .25, horse: .05, elite: .15 }), tBefore = tIn.map(function (u) { return { id: u.id, n: u.n }; });
         var gIn = mix(a.gibeolpo, { bangun: .55, archer: .3, horse: .05, elite: .1 }), gBefore = gIn.map(function (u) { return { id: u.id, n: u.n }; });
         var steps = [];
-        if (a.tanhyeon > 0) {
-          var rt = SG.battle(force('탄현 방어군', 'baekje', tIn, 'heungsu', 1.9 * prep * seong * tMod * dm, mm, { ambush: plan === 'sangyeong' || plan === 'heungsu' }), force('신라군', 'silla', sillaHost(), 'gim_yusin', 1, 72, { cap: 20000 }), { rounds: 6 });
-          res.tanhyeon = outcomeOf(rt); steps.push({ r: rt, title: '탄현 전투 (가상)', out: '탄현 — ' + OUT[res.tanhyeon], before: tBefore, after: rt.aLeft });
-        } else res.tanhyeon = 'broken';
-        if (a.gibeolpo > 0) {
-          var rg = SG.battle(force('기벌포 방어군', 'baekje', gIn, 'uija', 1.7 * prep * seong * bMod * dm, mm, { ambush: plan === 'uijik' }), force('당 상륙군', 'tang', tangHost(), 'sojeongbang', 1, plan === 'uijik' ? 52 : 68, { cap: 30000 }), { rounds: 6 });
-          res.gibeolpo = outcomeOf(rg); steps.push({ r: rg, title: '기벌포 전투 (가상)', out: '기벌포 — ' + OUT[res.gibeolpo], before: gBefore, after: rg.aLeft });
-        } else res.gibeolpo = 'broken';
+        if (a.tanhyeon <= 0) res.tanhyeon = 'broken';
+        if (a.gibeolpo <= 0) res.gibeolpo = 'broken';
         g.state.flags.pass = res; g.state.flags.allocSabi = a.sabi;
-        function nextStep(i) {
-          if (i >= steps.length) { g.go(res.tanhyeon === 'broken' && res.gibeolpo === 'broken' ? 's_hwangsan' : (res.tanhyeon !== 'broken' && res.gibeolpo !== 'broken') ? 's_stall' : 's_split'); return; }
-          var s = steps[i]; g.battleUI(s.r, s.title, s.out, function () { casualties(g, s.before, s.after); g.map.markPlace(i === 0 && a.tanhyeon > 0 ? 'tanhyeon' : 'gibeolpo', 'hot'); nextStep(i + 1); });
+        function fightT(done) {
+          var tTitle = '탄현 전투 (가상)';
+          duel(g, force('탄현 방어군', 'baekje', tIn, 'heungsu', 1.9 * prep * seong * tMod * dm, mm, { ambush: plan === 'sangyeong' || plan === 'heungsu' }), force('신라군', 'silla', sillaHost(), 'gim_yusin', 1, 72, { cap: 20000 }), { rounds: 6 }, { title: tTitle, tk: 'pass', gen: 'heungsu', def: true, place: 'tanhyeon' }, function (rt) {
+            res.tanhyeon = outcomeOf(rt);
+            g.battleUI(rt, tTitle, '탄현 — ' + OUT[res.tanhyeon], function () { casualties(g, tBefore, rt.aLeft); g.map.markPlace('tanhyeon', 'hot'); done(); });
+          });
         }
-        // 전투 결과 모달은 화면에 보이므로 우선 장면 이동을 막는다
-        setTimeout(function () { nextStep(0); }, 0);
+        function fightG(done) {
+          var gTitle = '기벌포 전투 (가상)';
+          duel(g, force('기벌포 방어군', 'baekje', gIn, 'uija', 1.7 * prep * seong * bMod * dm, mm, { ambush: plan === 'uijik' }), force('당 상륙군', 'tang', tangHost(), 'sojeongbang', 1, plan === 'uijik' ? 52 : 68, { cap: 30000 }), { rounds: 6 }, { title: gTitle, tk: 'coast', gen: 'uija', def: true, place: 'gibeolpo' }, function (rg) {
+            res.gibeolpo = outcomeOf(rg);
+            g.battleUI(rg, gTitle, '기벌포 — ' + OUT[res.gibeolpo], function () { casualties(g, gBefore, rg.aLeft); g.map.markPlace('gibeolpo', 'hot'); done(); });
+          });
+        }
+        function finish() { g.go(res.tanhyeon === 'broken' && res.gibeolpo === 'broken' ? 's_hwangsan' : (res.tanhyeon !== 'broken' && res.gibeolpo !== 'broken') ? 's_stall' : 's_split'); }
+        // 전투 창이 화면에 뜨므로 우선 장면 이동을 막는다
+        setTimeout(function () { (a.tanhyeon > 0 ? fightT : function (d) { d(); })(function () { (a.gibeolpo > 0 ? fightG : function (d) { d(); })(finish); }); }, 0);
         return '__none__';
       }
     }
@@ -295,6 +316,7 @@ window.SG = window.SG || {}; SG.data = SG.data || {}; SG.scenarios = SG.scenario
     src: '삼국사기 신라본기 7년, 백제본기 의자왕 20년',
     choices: [
       { tag: '역사', label: '웅진성을 나와 항복한다', hint: '왕은 당으로 압송된다. 이후 부흥운동은 복신·도침이 이끈다.', fx: { morale: -10 }, flags: { surrender: 'history' }, next: 's_end_fall' },
+      { label: '웅진성 성문을 닫고 방령군과 함께 당군을 맞아 싸운다', hint: '[가상] 군사 회의를 열어 작전을 정하고 농성전을 치른다. 이기면 부흥의 길이 열린다.', fx: { morale: -4 }, next: '__ungjin_defense__' },
       { label: '밤을 틈타 북쪽 임존성으로 빠져나가 항전을 이어간다', hint: '[가상] 왕이 직접 부흥운동의 구심이 된다.', fx: { people: +3, food: -5, morale: -4 }, flags: { surrender: 'no' }, next: 's661' }
     ]
   };
@@ -395,30 +417,36 @@ window.SG = window.SG || {}; SG.data = SG.data || {}; SG.scenarios = SG.scenario
     var amb = g.f('hw') === 'ambush', n = Math.min(5000, g.state.army.baekje_gyebaek || 5000);
     var A = force('계백 결사대', 'baekje', [{ id: 'baekje_gyebaek', n: n }], 'gyebaek', 1.5, 100, { ambush: amb }), B = force('신라군', 'silla', sillaHost(), 'gim_yusin', 1, 72, { cap: 25000 });
     var before = [{ id: 'baekje_gyebaek', n: n }];
-    var r = SG.battle(A, B, { rounds: 4 }); g.state.flags.hw1 = r;
-    casualties(g, before, r.aLeft);
-    g.battleUI(r, '황산벌 — 네 번의 접전', '계백의 결사대는 네 번 싸워 신라군에 큰 타격을 주었으나, 힘이 다해 갑니다.', function () { g.go('s_gwanchang'); });
+    duel(g, A, B, { rounds: 4 }, { title: '황산벌 — 네 번의 접전', tk: 'plain', gen: 'gyebaek', def: true, place: 'hwangsanbeol' }, function (r) {
+      g.state.flags.hw1 = r; casualties(g, before, r.aLeft);
+      g.battleUI(r, '황산벌 — 네 번의 접전', '계백의 결사대는 네 번 싸워 신라군에 큰 타격을 주었으나, 힘이 다해 갑니다.', function () { g.go('s_gwanchang'); });
+    });
   };
   H.__hwangsan_final__ = function (g) {
     var r1 = g.f('hw1'), spared = g.f('gwan') === 'spared';
     var A = force('계백 결사대', 'baekje', clone(r1.aLeft), 'gyebaek', 1.5, 55), B = force('신라군', 'silla', clone(r1.bLeft), 'gim_yusin', 1, spared ? 92 : 100, { cap: 25000 });
-    var before = clone(r1.aLeft), r = SG.battle(A, B, { rounds: 4 });
+    var before = clone(r1.aLeft);
+    duel(g, A, B, { rounds: 4 }, { title: '황산벌 — 총공격', tk: 'plain', gen: 'gyebaek', def: true, place: 'hwangsanbeol' }, function (r) {
     casualties(g, before, r.aLeft);
     var win = r.winner === 'a';
     g.battleUI(r, '황산벌 — 총공격', win ? '결사대가 끝내 신라 삼군의 총공격을 막아 냈습니다. (실제 역사와 다릅니다.)' : '계백은 장렬히 전사하고, 좌평 충상·상영 등 20여 명이 포로가 되었습니다.', function () {
       if (win) { g.setFlags({ hwwin: true }); g.go('s_sabi_tang'); }
       else { g.state.army.baekje_gyebaek = 0; g.renderArmy(); g.apply({ morale: -12, people: -6 }); g.go('s_0710'); }
     });
+    });
   };
   function fieldFight(g, title, defUnits, fort, terr, morale, onWin, onLose) {
     var A = force('사비 방어군', 'baekje', defUnits, 'uija', terr, morale), B = force('당·신라군', 'tang', enemyAtSabi(g), 'sojeongbang', 1, g.f('wedge') ? 55 : 68);
-    A.fort = fort; var before = clone(defUnits), r = SG.battle(A, B, { rounds: 6 });
-    casualties(g, before, r.aLeft);
-    var ok = r.winner === 'a' || (g.f('wedge') && r.aEnd / r.aStart > .05 && r.bEnd / r.bStart < .9);
-    g.battleUI(r, title, ok ? '적은 손실이 커지고 군량·사기가 흔들립니다.' : '방어선이 무너졌습니다.', function () { ok ? onWin() : onLose(); });
+    A.fort = fort; var before = clone(defUnits);
+    duel(g, A, B, { rounds: 6 }, { title: title, tk: fort ? 'fort' : 'plain', gen: 'uija', def: true, place: 'sabi' }, function (r) {
+      casualties(g, before, r.aLeft);
+      var ok = r.winner === 'a' || (g.f('wedge') && r.aEnd / r.aStart > .05 && r.bEnd / r.bStart < .9);
+      g.battleUI(r, title, ok ? '적은 손실이 커지고 군량·사기가 흔들립니다.' : '방어선이 무너졌습니다.', function () { ok ? onWin() : onLose(); });
+    });
   }
   H.__tang_field__ = function (g) { fieldFight(g, '사비 성외 전투 (가상)', homeUnits(g), false, 1.0, g.state.res.morale, function () { g.go('s_end_stall'); }, function () { g.go('s_siege'); }); };
-  H.__sabi_defense__ = function (g) { fieldFight(g, '사비성 농성 (가상)', homeUnits(g), true, 1.6, g.state.res.morale + 8, function () { g.go('s_end_stall'); }, function () { g.setFlags({ surrender: 'late' }); g.go('s_end_fall'); }); };
+  H.__ungjin_defense__ = function (g) { fieldFight(g, '웅진성 농성 (가상)', homeUnits(g), true, 1.4, g.state.res.morale + 6, function () { g.setFlags({ surrender: 'no' }); g.go('s661'); }, function () { g.setFlags({ surrender: 'late' }); g.go('s_end_fall'); }); };
+  H.__sabi_defense__ =function (g) { fieldFight(g, '사비성 농성 (가상)', homeUnits(g), true, 1.6, g.state.res.morale + 8, function () { g.go('s_end_stall'); }, function () { g.setFlags({ surrender: 'late' }); g.go('s_end_fall'); }); };
   H.__baekgang__ = function (g) {
     var bg = g.f('bg'), unity = g.f('unity'), a = g.state.army, wa = [{ id: 'wa_navy', n: 10000 }];
     var AU = wa.concat(a.baekje_navy ? [{ id: 'baekje_navy', n: a.baekje_navy }] : []).concat(bg === 'siege' ? homeUnits(g) : []);
@@ -426,9 +454,10 @@ window.SG = window.SG || {}; SG.data = SG.data || {}; SG.scenarios = SG.scenario
     var A = force('부흥군·왜 연합', 'baekje', clone(AU), 'buyeo_pung', terr, mor, { ambush: bg === 'fire', fort: bg === 'siege' });
     var Bu = bg === 'siege' ? [{ id: 'tang_bubyeong', n: 20000 }, { id: 'tang_crossbow', n: 3000 }, { id: 'silla_jeong', n: 14000 }] : [{ id: 'tang_navy', n: 7000 }, { id: 'tang_archer', n: 3000 }, { id: 'tang_crossbow', n: 2000 }];
     var B = force('당 유인궤 수군', 'tang', Bu, 'yuingwe', bg === 'frontal' ? 1.3 : 1, 70);
-    var r = SG.battle(A, B, { rounds: 6 });
+    duel(g, A, B, { rounds: 6 }, { title: bg === 'siege' ? '주류성 공방 (가상)' : '백강 전투', tk: bg === 'siege' ? 'fort' : 'sea', gen: 'buyeo_pung', def: bg === 'siege', place: bg === 'siege' ? 'juryuseong' : 'baekgang' }, function (r) {
     var win = r.winner === 'a' && r.aEnd / r.aStart > .3;
     g.battleUI(r, bg === 'siege' ? '주류성 공방 (가상)' : '백강 전투', win ? '당의 선단이 무너졌습니다. (사료에 없는 결과)' : '왜선이 불타고 바닷물이 붉어졌다고 전합니다. 풍은 도주하고 주류성은 항복합니다.', function () { g.go(win ? 's_end_alt' : 's_end_hist'); });
+    });
   };
 
 

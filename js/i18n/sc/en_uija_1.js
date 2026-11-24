@@ -118,6 +118,8 @@ SG.i18n.scAdd('en', 'uija', [
 `Samguk Sagi, Silla Annals Year 7, Baekje Annals King Uija Year 20`,
 `Come out of Ungjin Fortress and surrender`,
 `The king is taken to Tang. The restoration movement is afterward led by Boksin and Dochim.`,
+`Close the gates of Ungjin and meet the Tang army with the Banglyeong troops`,
+`[Hypothetical] Hold a war council, choose your plan, and fight the siege. A victory opens the road to restoration.`,
 `Slip out by night to Imjonseong in the north and keep fighting`,
 `[Hypothetical] The king himself becomes the focus of the restoration movement.`,
 `August 660 – 661`,
