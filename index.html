@@ -22,28 +22,46 @@
  *  ① V: 내 컴퓨터(localhost)에서는 매번 새 값이라 고친 내용이 바로 보이고, 인터넷에서는 배포 시각(document.lastModified)이라 배포할 때마다 자동으로 바뀐다.
  *     배포와 배포 사이에는 파일 주소가 같아서 브라우저가 이미 받아 둔 파일을 다시 쓴다(재방문이 빨라짐). 시각을 읽지 못하면 매번 새 값으로 돌아가 예전처럼 동작한다.
  *  ② CSS 와 함께 스크립트·지도 이미지를 미리 받기 시작(preload)해서, 본문 끝의 로더가 실행될 때는 이미 도착해 있게 한다.
- *  ③ 로그인(Firebase) 서버 연결을 미리 열어 둔다(preconnect). */
+ *  ③ 로그인(Firebase) 서버 연결을 미리 열어 둔다(preconnect).
+ *  ④ 묶음(bundle): 인터넷에서는 개별 파일 62~83개 대신, 같은 파일들을 순서대로 이어 붙인 묶음 2~3개(js/bundle 폴더)를 받는다 — 캐시가 비어 있을 때
+ *     파일 하나마다 생기는 대기 시간을 줄이기 위함. 묶음의 경계는 list 안의 "@B:이름" 표시와 언어 사전(@DICT@, 언어별로 따로 묶임)이다.
+ *     묶음 파일은 tools/build_bundle.js 가 이 list 를 읽어서 만든다(배포할 때 자동). 개별 파일은 그대로 두고, 내 컴퓨터(localhost)에서는 개별 파일을 쓴다.
+ *     주소 뒤에 ?bundle 을 붙이면 내 컴퓨터에서도 묶음을, ?nobundle 을 붙이면 인터넷에서도 개별 파일을 쓴다.
+ *     묶음이 없거나 중간에 오류로 멈추면 __sgFill 이 남은 파일을 개별로 이어서 불러온다(묶음 안 각 파일 앞의 __sgL 값이 "어디까지 실행했는지" 표시). */
 (function () {
   var host = location.hostname;
   var dev = location.protocol === 'file:' || !host || host === 'localhost' || host === '127.0.0.1' || host === '[::1]' || /\.localhost$/.test(host);
   var V = dev ? Date.now() : (Date.parse(document.lastModified) || Date.now());
-  var list = ["js/data/mapdata.js", "js/data/places.js", "js/data/deploy.js", "js/data/territories.js", "js/data/routes.js", "js/data/rosters.js", "js/data/generals.js", "js/data/commanders.js", "js/data/kings.js", "js/engine/map.js", "js/engine/game.js", "js/engine/tactics.js", "js/data/commands.js", "js/data/events.js", "js/data/events2.js", "js/data/events3.js", "js/data/events4.js", "js/data/events5.js", "js/data/events6.js", "js/data/events7.js", "js/data/events8.js", "js/data/events9.js", "js/engine/sandbox.js", "js/engine/advisor.js", "js/engine/deploy.js", "js/engine/council.js", "js/engine/auto.js", "js/engine/save.js", "js/engine/history.js", "js/engine/realism.js", "js/engine/threat.js", "js/engine/world.js", "js/engine/hard.js", "js/engine/cause.js", "js/engine/branch.js", "js/engine/naval.js", "js/engine/aiwar.js", "js/engine/aidev.js", "js/engine/intercept.js", "js/engine/ally.js", "js/engine/forces.js", "js/engine/supply.js", "js/engine/geo.js","js/engine/defend.js","js/engine/arms.js","js/engine/pact.js", "js/engine/siege.js", "js/engine/lure.js", "js/engine/foestrat.js", "js/engine/pools.js", "js/engine/endless.js", "js/engine/perf.js", "js/site.js", "js/engine/feats.js", "js/engine/account.js", "js/i18n/i18n.js", "@DICT@", "js/data/scenario_uija.js", "js/data/scenario_uija_timeline.js", "js/data/sc_goguryeo.js", "js/data/sc_baekje.js", "js/data/sc_silla.js", "js/main.js"];
+  var list = ["js/data/mapdata.js", "js/data/places.js", "js/data/deploy.js", "js/data/territories.js", "js/data/routes.js", "js/data/rosters.js", "js/data/generals.js", "js/data/commanders.js", "js/data/kings.js", "js/engine/map.js", "js/engine/game.js", "js/engine/tactics.js", "js/data/commands.js", "js/data/events.js", "js/data/events2.js", "js/data/events3.js", "js/data/events4.js", "js/data/events5.js", "js/data/events6.js", "js/data/events7.js", "js/data/events8.js", "js/data/events9.js", "js/engine/sandbox.js", "js/engine/advisor.js", "js/engine/deploy.js", "js/engine/council.js", "js/engine/auto.js", "js/engine/save.js", "js/engine/history.js", "js/engine/realism.js", "js/engine/threat.js", "js/engine/world.js", "js/engine/hard.js", "js/engine/cause.js", "js/engine/branch.js", "js/engine/naval.js", "js/engine/aiwar.js", "js/engine/aidev.js", "js/engine/intercept.js", "js/engine/ally.js", "js/engine/forces.js", "js/engine/supply.js", "js/engine/geo.js","js/engine/defend.js","js/engine/arms.js","js/engine/pact.js", "js/engine/siege.js", "js/engine/lure.js", "js/engine/foestrat.js", "js/engine/pools.js", "js/engine/endless.js", "js/engine/perf.js", "js/site.js", "js/engine/feats.js", "js/engine/account.js", "js/i18n/i18n.js", "@DICT@", "@B:scen", "js/data/scenario_uija.js", "js/data/scenario_uija_timeline.js", "js/data/sc_goguryeo.js", "js/data/sc_baekje.js", "js/data/sc_silla.js", "js/main.js"];
   var lg = null; try { lg = localStorage.getItem('samgukwang.lang'); } catch (e) { }
   if (lg !== 'ko' && lg !== 'ja' && lg !== 'en') { var nl = (navigator.language || 'ko').toLowerCase(); lg = nl.indexOf('ko') === 0 ? 'ko' : nl.indexOf('ja') === 0 ? 'ja' : 'en'; }
-  var out = [];
+  var out = [], parts = [], cur = null;
+  function begin(name) { cur = { file: 'js/bundle/' + name + '.js', from: out.length, to: out.length }; parts.push(cur); }
+  begin('core');
   list.forEach(function (x) {
-    if (x !== '@DICT@') { out.push(x); return; }
+    if (x.indexOf('@B:') === 0) { begin(x.slice(3)); return; }
+    if (x !== '@DICT@') { out.push(x); cur.to = out.length; return; }
     if (lg === 'ko') return;
+    begin('dict_' + lg);
     ['cmd', 'evt', 'evt4', 'ui', 'names'].forEach(function (k) { out.push('js/i18n/dict_' + lg + '_' + k + '.js'); });
     out.push('js/i18n/dict_more.js'); out.push('js/i18n/dict_tr6.js');
     var SCP = { uija: 3, munmu: 1, bojang: 1, yeongyang: 1, seondeok: 1, gogukwon: 1, seong: 1, jinheung: 1, geunchogo: 1, garo: 1, nulji: 1, muyeol: 1 }; /* 시나리오 번역 파일 수 */
     Object.keys(SCP).forEach(function (id) { for (var n = 1; n <= SCP[id]; n++) out.push('js/i18n/sc/' + lg + '_' + id + '_' + n + '.js'); });
+    cur.to = out.length;
   });
-  window.__sgBoot = { V: V, list: out };
+  parts = parts.filter(function (p) { return p.to > p.from; });
+  var q = location.search || '';
+  var useBundle = (!dev || /[?&]bundle(?:[=&]|$)/.test(q)) && !/[?&]nobundle(?:[=&]|$)/.test(q);
+  window.__sgBoot = { V: V, list: out, parts: useBundle ? parts : null };
+  /* 묶음 뒤에 불러 보는 확인: 묶음이 빠졌거나 중간에 멈췄으면(__sgL = 묶음 안에서 실행을 시작한 파일 수) 남은 파일을 개별로 이어서 불러온다. 정상이면 아무것도 하지 않는다. */
+  window.__sgFill = function (from, to) {
+    var k = from + (window.__sgL || 0); window.__sgL = 0;
+    for (; k < to; k++) document.write('<script src="' + out[k] + '?v=' + V + '"><\/script>');
+  };
   var h = '<link rel="stylesheet" href="css/game.css?v=' + V + '">'
     + '<link rel="preconnect" href="https://www.gstatic.com" crossorigin>'
     + '<link rel="preload" as="image" href="assets/relief.jpg" fetchpriority="low">';
-  out.forEach(function (src) { h += '<link rel="preload" as="script" href="' + src + '?v=' + V + '">'; });
+  (useBundle ? parts.map(function (p) { return p.file; }) : out).forEach(function (src) { h += '<link rel="preload" as="script" href="' + src + '?v=' + V + '">'; });
   document.write(h);
 })();
 </script>
@@ -87,10 +105,14 @@
 </div>
 
 <script>
-/* 파일 목록과 버전 값(V)은 위 head 의 스크립트가 정해 두었다. 여기서는 그 목록을 순서대로 불러온다(미리 받아 둔 파일이라 바로 실행된다). */
+/* 파일 목록·묶음 계획·버전 값(V)은 위 head 의 스크립트가 정해 두었다. 여기서는 그 순서대로 불러오기만 한다(미리 받아 둔 파일이라 바로 실행된다).
+   인터넷: 묶음(core → [언어 사전] → scen)을 차례로 불러오고, 묶음마다 뒤에 __sgFill 확인을 붙인다. 내 컴퓨터/?nobundle: 개별 파일. */
 (function () {
   var B = window.__sgBoot;
-  B.list.forEach(function (src) { document.write('<script src="' + src + '?v=' + B.V + '"><\/script>'); });
+  if (!B.parts) { B.list.forEach(function (src) { document.write('<script src="' + src + '?v=' + B.V + '"><\/script>'); }); return; }
+  B.parts.forEach(function (p) {
+    document.write('<script src="' + p.file + '?v=' + B.V + '"><\/script><script>__sgFill(' + p.from + ',' + p.to + ')<\/script>');
+  });
 })();
 </script>
 </body>
