@@ -17,7 +17,36 @@
 <meta name="twitter:description" content="삼국의 왕이 되어 역사를 바꿔 보세요. 무료, 설치 없이 바로 플레이.">
 <meta name="twitter:image" content="https://kjuhoho.github.io/samgukwang/assets/og.png">
 <title>三國王 — 역사를 바꾸는 왕의 결단</title>
-<script>document.write('<link rel="stylesheet" href="css/game.css?v=' + Date.now() + '">');</script>
+<script>
+/* 접속 속도 개선: 불러올 파일 목록과 버전 값(V)을 head 에서 먼저 정한다. (파일 목록은 이 한 곳에만 둔다 — 새 파일은 아래 list 에 추가)
+ *  ① V: 내 컴퓨터(localhost)에서는 매번 새 값이라 고친 내용이 바로 보이고, 인터넷에서는 배포 시각(document.lastModified)이라 배포할 때마다 자동으로 바뀐다.
+ *     배포와 배포 사이에는 파일 주소가 같아서 브라우저가 이미 받아 둔 파일을 다시 쓴다(재방문이 빨라짐). 시각을 읽지 못하면 매번 새 값으로 돌아가 예전처럼 동작한다.
+ *  ② CSS 와 함께 스크립트·지도 이미지를 미리 받기 시작(preload)해서, 본문 끝의 로더가 실행될 때는 이미 도착해 있게 한다.
+ *  ③ 로그인(Firebase) 서버 연결을 미리 열어 둔다(preconnect). */
+(function () {
+  var host = location.hostname;
+  var dev = location.protocol === 'file:' || !host || host === 'localhost' || host === '127.0.0.1' || host === '[::1]' || /\.localhost$/.test(host);
+  var V = dev ? Date.now() : (Date.parse(document.lastModified) || Date.now());
+  var list = ["js/data/mapdata.js", "js/data/places.js", "js/data/deploy.js", "js/data/territories.js", "js/data/routes.js", "js/data/rosters.js", "js/data/generals.js", "js/data/commanders.js", "js/data/kings.js", "js/engine/map.js", "js/engine/game.js", "js/engine/tactics.js", "js/data/commands.js", "js/data/events.js", "js/data/events2.js", "js/data/events3.js", "js/data/events4.js", "js/data/events5.js", "js/data/events6.js", "js/data/events7.js", "js/data/events8.js", "js/data/events9.js", "js/engine/sandbox.js", "js/engine/advisor.js", "js/engine/deploy.js", "js/engine/council.js", "js/engine/auto.js", "js/engine/save.js", "js/engine/history.js", "js/engine/realism.js", "js/engine/threat.js", "js/engine/world.js", "js/engine/hard.js", "js/engine/cause.js", "js/engine/branch.js", "js/engine/naval.js", "js/engine/aiwar.js", "js/engine/aidev.js", "js/engine/intercept.js", "js/engine/ally.js", "js/engine/forces.js", "js/engine/supply.js", "js/engine/geo.js","js/engine/defend.js","js/engine/arms.js","js/engine/pact.js", "js/engine/siege.js", "js/engine/lure.js", "js/engine/foestrat.js", "js/engine/pools.js", "js/engine/endless.js", "js/engine/perf.js", "js/site.js", "js/engine/feats.js", "js/engine/account.js", "js/i18n/i18n.js", "@DICT@", "js/data/scenario_uija.js", "js/data/scenario_uija_timeline.js", "js/data/sc_goguryeo.js", "js/data/sc_baekje.js", "js/data/sc_silla.js", "js/main.js"];
+  var lg = null; try { lg = localStorage.getItem('samgukwang.lang'); } catch (e) { }
+  if (lg !== 'ko' && lg !== 'ja' && lg !== 'en') { var nl = (navigator.language || 'ko').toLowerCase(); lg = nl.indexOf('ko') === 0 ? 'ko' : nl.indexOf('ja') === 0 ? 'ja' : 'en'; }
+  var out = [];
+  list.forEach(function (x) {
+    if (x !== '@DICT@') { out.push(x); return; }
+    if (lg === 'ko') return;
+    ['cmd', 'evt', 'evt4', 'ui', 'names'].forEach(function (k) { out.push('js/i18n/dict_' + lg + '_' + k + '.js'); });
+    out.push('js/i18n/dict_more.js'); out.push('js/i18n/dict_tr6.js');
+    var SCP = { uija: 3, munmu: 1, bojang: 1, yeongyang: 1, seondeok: 1, gogukwon: 1, seong: 1, jinheung: 1, geunchogo: 1, garo: 1, nulji: 1, muyeol: 1 }; /* 시나리오 번역 파일 수 */
+    Object.keys(SCP).forEach(function (id) { for (var n = 1; n <= SCP[id]; n++) out.push('js/i18n/sc/' + lg + '_' + id + '_' + n + '.js'); });
+  });
+  window.__sgBoot = { V: V, list: out };
+  var h = '<link rel="stylesheet" href="css/game.css?v=' + V + '">'
+    + '<link rel="preconnect" href="https://www.gstatic.com" crossorigin>'
+    + '<link rel="preload" as="image" href="assets/relief.jpg" fetchpriority="low">';
+  out.forEach(function (src) { h += '<link rel="preload" as="script" href="' + src + '?v=' + V + '">'; });
+  document.write(h);
+})();
+</script>
 </head>
 <body>
 <div id="app">
@@ -58,22 +87,10 @@
 </div>
 
 <script>
-/* 캐시 문제 방지: 파일마다 버전 값을 붙여 순서대로 로드 (배포 시 V를 고정 문자열로 바꿔도 됨) */
+/* 파일 목록과 버전 값(V)은 위 head 의 스크립트가 정해 두었다. 여기서는 그 목록을 순서대로 불러온다(미리 받아 둔 파일이라 바로 실행된다). */
 (function () {
-  var V = Date.now(), list = ["js/data/mapdata.js", "js/data/places.js", "js/data/deploy.js", "js/data/territories.js", "js/data/routes.js", "js/data/rosters.js", "js/data/generals.js", "js/data/commanders.js", "js/data/kings.js", "js/engine/map.js", "js/engine/game.js", "js/engine/tactics.js", "js/data/commands.js", "js/data/events.js", "js/data/events2.js", "js/data/events3.js", "js/data/events4.js", "js/data/events5.js", "js/data/events6.js", "js/data/events7.js", "js/data/events8.js", "js/data/events9.js", "js/engine/sandbox.js", "js/engine/advisor.js", "js/engine/deploy.js", "js/engine/council.js", "js/engine/auto.js", "js/engine/save.js", "js/engine/history.js", "js/engine/realism.js", "js/engine/threat.js", "js/engine/world.js", "js/engine/hard.js", "js/engine/cause.js", "js/engine/branch.js", "js/engine/naval.js", "js/engine/aiwar.js", "js/engine/aidev.js", "js/engine/intercept.js", "js/engine/ally.js", "js/engine/forces.js", "js/engine/supply.js", "js/engine/geo.js","js/engine/defend.js","js/engine/arms.js","js/engine/pact.js", "js/engine/siege.js", "js/engine/lure.js", "js/engine/foestrat.js", "js/engine/pools.js", "js/engine/endless.js", "js/engine/perf.js", "js/site.js", "js/engine/feats.js", "js/engine/account.js", "js/i18n/i18n.js", "@DICT@", "js/data/scenario_uija.js", "js/data/scenario_uija_timeline.js", "js/data/sc_goguryeo.js", "js/data/sc_baekje.js", "js/data/sc_silla.js", "js/main.js"];
-  var lg = null; try { lg = localStorage.getItem('samgukwang.lang'); } catch (e) { }
-  if (lg !== 'ko' && lg !== 'ja' && lg !== 'en') { var nl = (navigator.language || 'ko').toLowerCase(); lg = nl.indexOf('ko') === 0 ? 'ko' : nl.indexOf('ja') === 0 ? 'ja' : 'en'; }
-  var out = [];
-  list.forEach(function (x) {
-    if (x !== '@DICT@') { out.push(x); return; }
-    if (lg === 'ko') return;
-    ['cmd', 'evt', 'evt4', 'ui', 'names'].forEach(function (k) { out.push('js/i18n/dict_' + lg + '_' + k + '.js'); });
-    out.push('js/i18n/dict_more.js'); out.push('js/i18n/dict_tr6.js');
-    var SCP = { uija: 3, munmu: 1, bojang: 1, yeongyang: 1, seondeok: 1, gogukwon: 1, seong: 1, jinheung: 1, geunchogo: 1, garo: 1, nulji: 1, muyeol: 1 }; /* 시나리오 번역 파일 수 */
-    Object.keys(SCP).forEach(function (id) { for (var n = 1; n <= SCP[id]; n++) out.push('js/i18n/sc/' + lg + '_' + id + '_' + n + '.js'); });
-  });
-  list = out;
-  list.forEach(function (src) { document.write('<script src="' + src + '?v=' + V + '"><\/script>'); });
+  var B = window.__sgBoot;
+  B.list.forEach(function (src) { document.write('<script src="' + src + '?v=' + B.V + '"><\/script>'); });
 })();
 </script>
 </body>
