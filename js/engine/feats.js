@@ -337,16 +337,24 @@
     function fallback() { try { var ta = h('textarea'); ta.value = text; ta.style.cssText = 'position:fixed;left:-999px;top:0'; document.body.appendChild(ta); ta.select(); var ok = document.execCommand('copy'); ta.remove(); done(ok); } catch (e) { done(false); } }
   };
 
-  /* ── 알림(도중 새 업적) ── */
-  function toast(it) {
-    var root = $('#app') || document.body, box = $('#ftoasts');
-    if (!box) { box = h('div'); box.id = 'ftoasts'; root.appendChild(box); }
-    var t = h('div', 'ftoast t-' + it.tier, '<span class="ic">' + it.d.icon + '</span><div><small>' + L3('업적 달성', 'Achievement unlocked', '実績達成') + ' ' + STAR[it.tier] + '</small><b>' + esc(F.name(it)) + '</b><em>' + esc(F.desc(it, it.goal)) + '</em></div>');
-    box.appendChild(t); setTimeout(function () { t.classList.add('out'); setTimeout(function () { t.remove(); }, 700); }, 5200);
+  /* ── 알림(도중 새 업적) ──
+   * 화면 가운데로 크게 뜨지 않게, 지도 왼쪽 아래 구석(범례 바로 위)에 작고 흐릿한 한 줄로만 잠깐 보인다.
+   * 한 해에 여러 개를 달성해도 한 줄로 합친다(마우스를 올리면 전체 이름). 전체 목록은 결말 화면·내 기록에서 본다. */
+  var TIER_RANK = { bronze: 0, silver: 1, gold: 2, legend: 3 };
+  function toast(items) {
+    var root = $('#app') || document.body, box = $('#atoasts');
+    if (!box) { box = h('div'); box.id = 'atoasts'; root.appendChild(box); }
+    var lead = items[0]; items.forEach(function (x) { if ((TIER_RANK[x.tier] || 0) > (TIER_RANK[lead.tier] || 0)) lead = x; });
+    var more = items.length - 1;
+    var t = h('div', 'atoast t-' + lead.tier, '<span class="ic">' + lead.d.icon + '</span><span class="tx"><small>' + L3('업적', 'Achievement', '実績') + '</small> <b>' + esc(F.name(lead)) + '</b>' + (more > 0 ? ' <i>' + L3('외 ' + more + '건', '+' + more + ' more', '他' + more + '件') + '</i>' : '') + '</span>');
+    t.title = items.map(function (x) { return F.name(x); }).join(' · ');
+    while (box.firstChild) box.removeChild(box.firstChild);   // 이전 알림이 남아 있으면 바로 바꿔 끼운다(쌓이지 않게)
+    box.appendChild(t); setTimeout(function () { t.classList.add('out'); setTimeout(function () { if (t.parentNode) t.remove(); }, 900); }, 3600);
   }
   function flush(sb) {
     var f = S_(sb); if (!f.q || !f.q.length) return;
-    var ids = f.q.splice(0, f.q.length); ids.slice(0, 4).forEach(function (id, i) { var it = IDX[id]; if (it) setTimeout(function () { toast(it); }, i * 700); });
+    var ids = f.q.splice(0, f.q.length), its = ids.map(function (id) { return IDX[id]; }).filter(Boolean);
+    if (its.length) toast(its);
   }
 
   /* ── 엔진에 걸기 ── */

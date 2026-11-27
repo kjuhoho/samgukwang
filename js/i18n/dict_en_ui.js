@@ -17,7 +17,7 @@
     '내정': 'Domestic', '군사': 'Military', '외교': 'Diplomacy', '특수': 'Special', '참모의 말': 'Advisor says', '최근 기록': 'Recent log', '시행 중인 법령': 'Laws in force', '계속': 'Continue', '취소': 'Cancel', '목록으로': 'Back to list',
     '— 행동력 부족': '— Not enough action points', '— 자원 부족': '— Not enough resources', '— 조건 미충족': '— Conditions not met', '— 재사용까지 {n}년': '— Available again in {n} yr', '비용 없음': 'No cost',
     '현재 관계 {n}': 'Current relation {n}', '(국력 {n} · 적의 {n})': '(Power {n} · Hostility {n})', '(국력 {n} · 개입 {n})': '(Power {n} · Involvement {n})',
-    '{n}년': 'Year {n}', '{n}년 결산': 'Year {n} Summary', '— 수입 금 +{n} 군량 +{n}(군 유지비 포함).': '— Income: gold +{n}, provisions +{n} (army upkeep included).',
+    '{n}년': 'Year {n}', '{n}년 결산': 'Year {n} Summary', '— 수입 금 +{n} 군량 +{n}(군 유지비 포함).': '— Income: gold +{n} provisions +{n} (army upkeep included).',
     '📍 사건 위치 다시 보기': '📍 Show event location again', '실제 역사 메모': 'Historical Note', '출처': 'Source',
     '큰 급보는 없습니다. 법령을 정비하거나 군을 키우기 좋은 때입니다.': 'No major alarms. A good time to build up laws or the army.',
     '나라가 안정되어 있습니다. 힘을 키울 때입니다.': 'The realm is stable. Time to build strength.',

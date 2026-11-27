@@ -40,6 +40,7 @@
     box.appendChild(t); setTimeout(function () { t.classList.add('out'); setTimeout(function () { t.remove(); }, 700); }, 4800);
   }
   A.say = say;
+  A.sendFeedback = function (d) { return A._ad && A._ad.feedback ? A._ad.feedback(d) : Promise.reject({ code: 'feedback/unavailable' }); };   // 의견·제보 게시판이 쓴다
   function errMsg(e) {
     var c = (e && e.code) || '';
     if (/popup-closed|cancelled-popup/.test(c)) return L3('로그인을 취소했습니다.', 'Login cancelled.', 'ログインをキャンセルしました。');
@@ -64,6 +65,7 @@
       list: function (u) { return Promise.resolve(rd(u)); },
       put: function (u, rec) { var a = rd(u).filter(function (x) { return x.id !== rec.id; }); a.unshift(rec); try { localStorage.setItem(ck(u), JSON.stringify(a)); } catch (e) { } return Promise.resolve(); },
       clear: function (u) { try { localStorage.removeItem(ck(u)); } catch (e) { } return Promise.resolve(); },
+      feedback: function (d) { var a = []; try { a = JSON.parse(localStorage.getItem('samgukwang.mock.feedback') || '[]'); } catch (e) { } a.unshift(Object.assign({ at: Date.now() }, d)); try { localStorage.setItem('samgukwang.mock.feedback', JSON.stringify(a.slice(0, 50))); } catch (e) { } return new Promise(function (res) { setTimeout(res, 250); }); },
       drop: function () { try { localStorage.removeItem(UK); } catch (e) { } cb(null); return Promise.resolve(); }   // 계정(로그인 정보) 삭제
     };
   }
@@ -101,6 +103,9 @@
           .then(function (snap) { var a = []; snap.forEach(function (d) { a.push(d.data()); }); return a; });
       },
       put: function (u, rec) { return lf().then(function (X) { var fs = X.fs; return fs.setDoc(fs.doc(db, 'users', u.uid, 'records', rec.id), JSON.parse(JSON.stringify(rec))); }); },
+      feedback: function (d) {   // 의견·제보 게시판(js/engine/board.js): feedback 컬렉션에 새 글 1건. 쓰기 전용이라 읽을 수 없다(규칙: tools/firebase/firestore.rules)
+        return lf().then(function (X) { var fs = X.fs; return fs.addDoc(fs.collection(db, 'feedback'), Object.assign({}, d, { at: fs.serverTimestamp() })); });
+      },
       clear: function (u) {
         return lf().then(function (X) {
           var fs = X.fs;
@@ -211,6 +216,7 @@
       li(L3('<b>쓰는 곳</b> — 로그인 유지, 기록·업적의 보관과 표시. 광고나 제3자 제공에는 쓰지 않습니다.', '<b>Used for</b> — keeping you logged in, and storing and showing your records and achievements. Never for ads or sharing with third parties.', '<b>使い道</b> — ログインの維持、記録・実績の保管と表示。広告や第三者提供には使いません。')) +
       li(L3('<b>지우는 법</b> — 「내 기록」 아래의 「기록 모두 삭제」로 기록을, 로그인한 상태에서는 「계정 삭제」로 로그인 정보까지 언제든 지울 수 있습니다.', '<b>Deleting</b> — at the bottom of My Records, “Delete all records” erases your records any time, and while logged in “Delete account” removes your login as well.', '<b>削除</b> — 「マイ記録」下部の「記録をすべて削除」で記録を、ログイン中は「アカウント削除」でログイン情報まで、いつでも消せます。')) +
       li(L3('<b>체험 횟수</b>는 이 기기의 브라우저에만 저장됩니다.', 'The <b>trial turn count</b> is stored only in this browser.', '<b>体験の回数</b>はこの端末のブラウザにのみ保存されます。')) +
+      li(L3('<b>의견·제보 게시판</b>에 쓴 글은 운영자만 읽습니다. 「게임 상황도 함께 보내기」를 켜 두면 언어·화면 크기·브라우저·플레이 중인 왕과 연도·최근 오류 기록이 함께 가며, 이름·이메일·계정 정보는 보내지 않습니다.', 'Posts on the <b>Feedback &amp; Bug Reports</b> board are read only by the developer. If “Include game info” is on, your language, screen size, browser, current king and year, and recent error messages are sent too - never your name, email or account details.', '<b>ご意見・不具合報告</b>に書いた投稿は運営者だけが読みます。「ゲームの状況も一緒に送る」をオンにすると、言語・画面サイズ・ブラウザ・プレイ中の王と年・最近のエラー記録も送られます。お名前・メール・アカウント情報は送りません。')) +
       '</ul><div class="rc-foot"><button class="btn" data-a="x">' + L3('닫기', 'Close', '閉じる') + '</button></div>';
   }
   function openPrivacy() {
@@ -278,7 +284,7 @@
       if (A.user) {
         var nm = (A.user.name || '').trim() || L3('회원', 'Member', '会員'), chip = h('span', 'acct-chip', '<i>' + esc(nm.charAt(0).toUpperCase()) + '</i>' + esc(nm)), out = h('button', 'btn', L3('로그아웃', 'Log out', 'ログアウト'));
         out.onclick = function () { A.logout(); }; box.appendChild(chip); box.appendChild(out);
-      } else if (!A.failed) { var li = gbtn(L3('로그인', 'Log in', 'ログイン'), 'btn'); li.onclick = function () { A.login(); }; box.appendChild(li); }
+      } else if (!A.failed) { var li = gbtn(L3('Google 로그인', 'Log in with Google', 'Googleでログイン'), 'btn'); li.onclick = function () { A.login(); }; box.appendChild(li); }
     }
     var note = $('#acct-note');
     if (!note) { note = h('div'); note.id = 'acct-note'; var kings = $('#kings', t); t.insertBefore(note, kings || null); }

@@ -18,7 +18,7 @@ window.SG = window.SG || {}; SG.data = SG.data || {}; SG.scenarios = SG.scenario
     wa: { levy: 'wa_levy', line: 'wa_line', elite: 'wa_line', horse: 'wa_line', archer: 'wa_archer', guard: 'wa_line', garrison: 'wa_garrison', navy: 'wa_navy', scout: 'wa_archer', siege: 'wa_archer' }
   };
   var ROLE_OF = { baekje_levy: 'levy', baekje_bangun: 'line', baekje_gyebaek: 'elite', baekje_horse: 'horse', baekje_archer: 'archer', baekje_guard: 'guard', baekje_garrison: 'garrison', baekje_navy: 'navy', baekje_scout: 'scout', baekje_siege: 'siege' };
-  var REALM_N = { royal: '왕권', train: '훈련', defense: '방비', navy: '수군력', econ: '산업', intel: '첩보', b_line: '보병 숙련', b_elite: '정예 숙련', b_cav: '기병 숙련', b_rng: '궁노 숙련', b_siege: '공성 숙련' };
+  var REALM_N = { royal: '왕권', train: '훈련', defense: '방비', navy: '수군력', econ: '산업', agri: '농업', trade: '상공업', store: '곡창', intel: '첩보', b_line: '보병 숙련', b_elite: '정예 숙련', b_cav: '기병 숙련', b_rng: '궁노 숙련', b_siege: '공성 숙련' };
   var RES_N = { troops: '병력', food: '군량', gold: '금', people: '민심', morale: '사기' };
   var NONFIELD = { garrison: 1, navy_war: 1, navy_transport: 1, scout: 1, guard: 1 };
   SG.sideRoles = SIDE_ROLES;
@@ -159,6 +159,7 @@ window.SG = window.SG || {}; SG.data = SG.data || {}; SG.scenarios = SG.scenario
     var t = cfg.turnTitle ? cfg.turnTitle(s.year) : (this.cfg.country || '') + ' ' + s.year + '년';
     var body = [];
     body.push('<div class="realm">' + ['royal', 'train', 'defense', 'econ', 'intel', 'navy'].map(function (k) { return bar(REALM_N[k], s.realm[k]); }).join('') + '</div>');
+    if (this.domPanel) body.push(this.domPanel());   // 내정 현황·올해 예상 결산 (domestic.js)
     if (s.last) body.push('<div class="quote">' + s.last + '</div>');
     if (SG.branchPanel) body.push(SG.branchPanel(this));
     var adv = SG.advisor ? SG.advisor.advise(this) : null;
@@ -204,7 +205,7 @@ window.SG = window.SG || {}; SG.data = SG.data || {}; SG.scenarios = SG.scenario
     this.cmds().filter(function (c) { return c.cat === s.tab; }).forEach(function (c) {
       var why = self.cmdAvail(c), label = self.L(c.name), tag = self.isHist(c) ? '<span class="tag">역사</span>' : c.hist === '가상' ? '<span class="tag dim">가상</span>' : '';
       var b = h('button', 'ch cmd', tag + label + '<small>' + self.L(c.desc) + ' <i>[' + self.costText(c) + ']</i>' + (why ? ' <em>— ' + why + '</em>' : '') + '</small>');
-      b.disabled = !!why; b.onclick = function () { self.run(c); }; list.appendChild(b);
+      b.disabled = !!why; b.setAttribute('data-cid', c.id); b.onclick = function () { self.run(c); }; list.appendChild(b);
     });
     var f = h('form', 'free', '<input type="text" placeholder="하고 싶은 일을 문장으로 (예: 신라를 공격한다 / 군사를 훈련시켜라 / 율령을 반포하라)"><button class="btn" type="submit">교지</button>');
     f.onsubmit = function (e) { e.preventDefault(); var v = $('input', f).value.trim(); if (v) self.free(v); };
@@ -436,15 +437,23 @@ window.SG = window.SG || {}; SG.data = SG.data || {}; SG.scenarios = SG.scenario
   };
 
   /* ── 한 해의 끝: 수입·세계 변화·랜덤 사건 ── */
-  P.foodFlow = function (army) {   // 해마다의 군량 수지(수입 - 군 유지비). army를 주면 그 병력일 때의 값: 병력을 사들이기 전에 미리 가늠하는 데 쓴다
+  /* 해마다의 금·군량 수지는 항목(parts)의 합이다. 기본 수입(base)과 군 유지비(upkeep)는 여기서, 농업·상공업·산업 단계 같은 내정 항목은 domestic.js 가 덧붙인다.
+   * army를 주면 그 병력일 때의 값: 병력을 사들이기 전에 미리 가늠하는 데 쓴다 */
+  P.foodParts = function (army) {
     var rl = this.s.realm, res = this.g.state.res, T = (army == null ? this.armyTotal() : army) / 1000;
-    return Math.round(9 + rl.econ * 0.28 + (res.people - 50) * 0.05 - T * 0.30 - T * T * 0.0025);
+    return { base: 9 + rl.econ * 0.28 + (res.people - 50) * 0.05, upkeep: -(T * 0.30 + T * T * 0.0025) };
   };
+  P.goldParts = function (army) {
+    var rl = this.s.realm, res = this.g.state.res, T = (army == null ? this.armyTotal() : army) / 1000;
+    return { base: 6 + rl.econ * 0.14 + (res.people - 50) * 0.06, upkeep: -T * 0.11 };
+  };
+  function sumParts(o) { var t = 0; for (var k in o) if (typeof o[k] === 'number' && isFinite(o[k])) t += o[k]; return t; }
+  P.foodFlow = function (army) { return Math.round(sumParts(this.foodParts(army))); };   // 해마다의 군량 수지(수입 - 군 유지비)
+  P.goldFlow = function (army) { return Math.round(sumParts(this.goldParts(army))); };   // 해마다의 금 수지
   P.yearEnd = function () {
     var self = this, g = this.g, s = this.s, cfg = this.cfg, res = g.state.res, rl = s.realm;
-    var T = this.armyTotal() / 1000;
     // 수입·유지비
-    var gi = Math.round(6 + rl.econ * 0.14 + (res.people - 50) * 0.06 - T * 0.11), fi = this.foodFlow();
+    var gi = this.goldFlow(), fi = this.foodFlow(), dn = this.domNote ? this.domNote() : '';   // dn: 내정 항목별 결산 문구 (domestic.js)
     // 법령의 해마다 효과
     var lawChips = '';
     for (var id in s.laws) { var L = this.lawById(id); if (L && L.yearly) lawChips += this.eff(L.yearly); }
@@ -452,6 +461,7 @@ window.SG = window.SG || {}; SG.data = SG.data || {}; SG.scenarios = SG.scenario
     function dk(v, k) { return k * Math.max(1, v / 75); } // 한계는 없지만 높을수록 유지가 어렵다
     rl.train = clamp(rl.train - dk(rl.train, 2), 0, 999); rl.intel = clamp(rl.intel - dk(rl.intel, 1), 0, 999); rl.defense = clamp(rl.defense - dk(rl.defense, 1), 0, 999);
     if (rl.econ > 70) rl.econ -= Math.max(1, rl.econ / 90); // 한계 수확 체감
+    if (this.domYear) this.domYear();   // 농업·상공업·곡창의 해마다 변화 (domestic.js)
     var starve = '';
     if (res.food <= 0) { res.food = 0; g.apply({ people: -5, morale: -5 }); var lv = this.units.levy; if (g.state.army[lv]) g.state.army[lv] = Math.round(g.state.army[lv] * 0.9); starve = '<br>군량이 바닥나 병사들이 이탈하고 민심이 흔들렸습니다.'; g.renderArmy(); }
     if (res.gold < 0) { res.gold = 0; g.apply({ morale: -3, people: -2 }); starve += '<br>봉록과 상여가 밀려 불만이 쌓였습니다.'; }
@@ -459,7 +469,7 @@ window.SG = window.SG || {}; SG.data = SG.data || {}; SG.scenarios = SG.scenario
     this.world();
     for (var k in s.cd) if (s.cd[k] > 0) s.cd[k]--;
     s.ap = 3;
-    var summary = '<b>' + s.year + '년 결산</b> — 수입 금 ' + (gi >= 0 ? '+' : '') + gi + ', 군량 ' + (fi >= 0 ? '+' : '') + fi + '(군 유지비 포함).' + starve + lawChips;
+    var summary = '<b>' + s.year + '년 결산</b> — 수입 금 ' + (gi >= 0 ? '+' : '') + gi + ', 군량 ' + (fi >= 0 ? '+' : '') + fi + '(군 유지비 포함).' + dn + starve + lawChips;
     this.chain = this.rollEvents();
     var inv = this.invasion(); if (inv) this.chain.unshift({ inv: inv });
     this.summary = summary;

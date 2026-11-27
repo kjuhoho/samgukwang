@@ -23,9 +23,7 @@
   function ready(f) { if (document.readyState !== 'loading') f(); else document.addEventListener('DOMContentLoaded', f); }
   ready(function () {
     var app = document.getElementById('app'); if (!app) return;
-    // 타이틀 화면의 의견 링크
-    var t = document.querySelector('#title > div');
-    if (t) { var a = document.createElement('a'); a.className = 'fb-link'; a.href = CFG.FEEDBACK_URL; a.target = '_blank'; a.rel = 'noopener'; a.textContent = '💬 의견 보내기 · 버그 제보'; t.appendChild(a); }
+    // 의견·제보는 js/engine/board.js(게시판)가 맡는다. FEEDBACK_URL 은 게시판에서 보내지 못할 때의 GitHub 안내에 쓴다.
     // 모바일: 정무창을 접고 지도를 크게 보는 버튼
     var b = document.createElement('button'); b.id = 'mtoggle'; b.type = 'button'; b.textContent = '🗺 지도 보기';
     b.onclick = function () { var on = document.body.classList.toggle('mapview'); b.textContent = on ? '📜 정무 열기' : '🗺 지도 보기'; };

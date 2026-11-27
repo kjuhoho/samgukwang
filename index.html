@@ -32,12 +32,12 @@
   var host = location.hostname;
   var dev = location.protocol === 'file:' || !host || host === 'localhost' || host === '127.0.0.1' || host === '[::1]' || /\.localhost$/.test(host);
   var V = dev ? Date.now() : (Date.parse(document.lastModified) || Date.now());
-  var list = ["js/data/mapdata.js", "js/data/places.js", "js/data/deploy.js", "js/data/territories.js", "js/data/routes.js", "js/data/rosters.js", "js/data/generals.js", "js/data/commanders.js", "js/data/kings.js", "js/engine/map.js", "js/engine/game.js", "js/engine/tactics.js", "js/data/commands.js", "js/data/events.js", "js/data/events2.js", "js/data/events3.js", "js/data/events4.js", "js/data/events5.js", "js/data/events6.js", "js/data/events7.js", "js/data/events8.js", "js/data/events9.js", "js/engine/sandbox.js", "js/engine/advisor.js", "js/engine/deploy.js", "js/engine/council.js", "js/engine/auto.js", "js/engine/save.js", "js/engine/history.js", "js/engine/realism.js", "js/engine/threat.js", "js/engine/world.js", "js/engine/hard.js", "js/engine/cause.js", "js/engine/branch.js", "js/engine/naval.js", "js/engine/aiwar.js", "js/engine/aidev.js", "js/engine/intercept.js", "js/engine/ally.js", "js/engine/forces.js", "js/engine/supply.js", "js/engine/geo.js","js/engine/defend.js","js/engine/arms.js","js/engine/pact.js", "js/engine/siege.js", "js/engine/lure.js", "js/engine/foestrat.js", "js/engine/pools.js", "js/engine/endless.js", "js/engine/perf.js", "js/site.js", "js/engine/feats.js", "js/engine/account.js", "js/i18n/i18n.js", "@DICT@", "@B:scen", "js/data/scenario_uija.js", "js/data/scenario_uija_timeline.js", "js/data/sc_goguryeo.js", "js/data/sc_baekje.js", "js/data/sc_silla.js", "js/main.js"];
+  var list = ["js/data/mapdata.js", "js/data/places.js", "js/data/deploy.js", "js/data/territories.js", "js/data/routes.js", "js/data/rosters.js", "js/data/generals.js", "js/data/commanders.js", "js/data/kings.js", "js/engine/map.js", "js/engine/game.js", "js/engine/tactics.js", "js/data/commands.js", "js/data/events.js", "js/data/events2.js", "js/data/events3.js", "js/data/events4.js", "js/data/events5.js", "js/data/events6.js", "js/data/events7.js", "js/data/events8.js", "js/data/events9.js", "js/engine/sandbox.js", "js/engine/advisor.js", "js/engine/deploy.js", "js/engine/council.js", "js/engine/auto.js", "js/engine/save.js", "js/engine/history.js", "js/engine/realism.js", "js/engine/threat.js", "js/engine/world.js", "js/engine/hard.js", "js/engine/cause.js", "js/engine/branch.js", "js/engine/naval.js", "js/engine/aiwar.js", "js/engine/aidev.js", "js/engine/intercept.js", "js/engine/ally.js", "js/engine/forces.js", "js/engine/supply.js", "js/engine/domestic.js", "js/engine/geo.js","js/engine/defend.js","js/engine/arms.js","js/engine/pact.js", "js/engine/siege.js", "js/engine/lure.js", "js/engine/foestrat.js", "js/engine/pools.js", "js/engine/endless.js", "js/engine/perf.js", "js/site.js", "js/engine/board.js", "js/engine/feats.js", "js/engine/account.js", "js/i18n/i18n.js", "@DICT@", "@B:scen", "js/data/scenario_uija.js", "js/data/scenario_uija_timeline.js", "js/data/sc_goguryeo.js", "js/data/sc_baekje.js", "js/data/sc_silla.js", "js/main.js"];
   var lg = null; try { lg = localStorage.getItem('samgukwang.lang'); } catch (e) { }
   if (lg !== 'ko' && lg !== 'ja' && lg !== 'en') { var nl = (navigator.language || 'ko').toLowerCase(); lg = nl.indexOf('ko') === 0 ? 'ko' : nl.indexOf('ja') === 0 ? 'ja' : 'en'; }
   var out = [], parts = [], cur = null;
   function begin(name) { cur = { file: 'js/bundle/' + name + '.js', from: out.length, to: out.length }; parts.push(cur); }
-  begin('core');
+  begin('core2');   /* 첫 묶음 이름. 이 묶음에 들어가는 파일 구성이 바뀌면 숫자를 올린다(옛 index.html 을 캐시한 방문자와 새 묶음이 섞이지 않게) */
   list.forEach(function (x) {
     if (x.indexOf('@B:') === 0) { begin(x.slice(3)); return; }
     if (x !== '@DICT@') { out.push(x); cur.to = out.length; return; }
@@ -90,6 +90,7 @@
 
   <div id="title">
     <div>
+      <div class="lang-top" id="toptools"></div>
       <div class="logo">三國王</div>
       <div class="kor">삼 국 왕</div>
       <p>고구려·백제·신라의 왕이 되어, 사료 속 분기점마다 결단하십시오.<br>당신의 선택이 역사를 바꿀 수 있습니다.</p>

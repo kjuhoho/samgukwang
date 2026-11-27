@@ -1,4 +1,4 @@
-/* 三國王 묶음 파일: core.js — 개별 JS 파일 56개를 순서대로 이어 붙인 자동 생성 파일입니다. 직접 고치지 마세요(원본: js/ 아래 개별 파일, 생성: tools/build_bundle.js) */
+/* 三國王 묶음 파일: core2.js — 개별 JS 파일 58개를 순서대로 이어 붙인 자동 생성 파일입니다. 직접 고치지 마세요(원본: js/ 아래 개별 파일, 생성: tools/build_bundle.js) */
 /* ==== js/data/mapdata.js ==== */
 window.__sgL=1;
 // 자동 생성 파일 — tools/build_map_data.py (Natural Earth 1:10m, 퍼블릭 도메인). 직접 수정하지 말 것.
@@ -1354,7 +1354,7 @@ SG.data.commands = [
   { id: 'fortify', cat: '군사', name: '산성 보수·증축', desc: '국경과 요충의 산성을 손봅니다.', cost: { gold: 6, food: 3 }, hist: '역사', note: '655년 마천성을 중수한 기록이 있습니다.', eff: { realm: { defense: 9 } }, lines: ['요충의 산성들에 새 성가퀴와 우물이 보강되었습니다.', '백성들이 돌을 날라 국경 산성이 한층 높아졌습니다.'] },
   { id: 'navy', cat: '군사', name: '수군·조선 증강', desc: '서해를 지킬 전선을 만듭니다. (수군 +0.5천)', cost: { gold: 7 }, hist: '일반', eff: { realm: { navy: 10 }, army: { baekje_navy: 500 } }, lines: ['큰 강 하구 조선소에서 새 전선이 진수되었습니다.'] },
   { id: 'scouts', cat: '군사', name: '척후망·첩보 강화', desc: '국경 척후를 늘려 적정을 살핍니다.', cost: { gold: 4 }, hist: '일반', eff: { realm: { intel: 14 }, army: { baekje_scout: 300 } }, lines: ['국경마다 척후가 늘고 봉수가 정비되었습니다. 적의 움직임이 한결 잘 보입니다.'] },
-  { id: 'deploy', cat: '군사', name: '병력 배치 조정', desc: '수도와 전선 성에 주둔시킬 병력 비율을 정합니다. (침공·방어전에서 그 방면의 방어력에 영향)', cost: {}, hist: '일반', needs: 'deploy', eff: {}, lines: ['장수들을 불러 병력을 새로 나누어 배치했습니다.'] },
+  { id: 'deploy', cat: '군사', name: '병력 배치 조정', desc: '소유한 모든 성에 주둔시킬 병력 비율을 정합니다. (침공·방어전에서 그 방면의 방어력에 영향, 병력을 둔 성은 적도 노리기 어렵습니다)', cost: {}, hist: '일반', needs: 'deploy', eff: {}, lines: ['장수들을 불러 병력을 새로 나누어 배치했습니다.'] },
   { id: 'parade', cat: '군사', name: '열병과 포상', desc: '군을 사열하고 공을 세운 자를 상합니다.', cost: { gold: 5 }, hist: '일반', eff: { fx: { morale: 9 }, realm: { royal: 3 } }, lines: ['열병식에서 왕이 직접 공을 세운 장수에게 말과 곡식을 내렸습니다.'] },
   { id: 'war', cat: '군사', name: '{rival} 정벌 (전쟁)', desc: '{rival}의 성을 골라 군을 보냅니다. (자유 입력: "{rival}를 공격")', cost: { food: 6 }, hist: '역사', note: '의자왕은 642·645·647·648·649·655년에 {rival}를 공격했습니다.', needs: 'target', eff: {}, ap: 2 },
 
@@ -3440,7 +3440,7 @@ window.SG = window.SG || {}; SG.data = SG.data || {}; SG.scenarios = SG.scenario
     wa: { levy: 'wa_levy', line: 'wa_line', elite: 'wa_line', horse: 'wa_line', archer: 'wa_archer', guard: 'wa_line', garrison: 'wa_garrison', navy: 'wa_navy', scout: 'wa_archer', siege: 'wa_archer' }
   };
   var ROLE_OF = { baekje_levy: 'levy', baekje_bangun: 'line', baekje_gyebaek: 'elite', baekje_horse: 'horse', baekje_archer: 'archer', baekje_guard: 'guard', baekje_garrison: 'garrison', baekje_navy: 'navy', baekje_scout: 'scout', baekje_siege: 'siege' };
-  var REALM_N = { royal: '왕권', train: '훈련', defense: '방비', navy: '수군력', econ: '산업', intel: '첩보', b_line: '보병 숙련', b_elite: '정예 숙련', b_cav: '기병 숙련', b_rng: '궁노 숙련', b_siege: '공성 숙련' };
+  var REALM_N = { royal: '왕권', train: '훈련', defense: '방비', navy: '수군력', econ: '산업', agri: '농업', trade: '상공업', store: '곡창', intel: '첩보', b_line: '보병 숙련', b_elite: '정예 숙련', b_cav: '기병 숙련', b_rng: '궁노 숙련', b_siege: '공성 숙련' };
   var RES_N = { troops: '병력', food: '군량', gold: '금', people: '민심', morale: '사기' };
   var NONFIELD = { garrison: 1, navy_war: 1, navy_transport: 1, scout: 1, guard: 1 };
   SG.sideRoles = SIDE_ROLES;
@@ -3581,6 +3581,7 @@ window.SG = window.SG || {}; SG.data = SG.data || {}; SG.scenarios = SG.scenario
     var t = cfg.turnTitle ? cfg.turnTitle(s.year) : (this.cfg.country || '') + ' ' + s.year + '년';
     var body = [];
     body.push('<div class="realm">' + ['royal', 'train', 'defense', 'econ', 'intel', 'navy'].map(function (k) { return bar(REALM_N[k], s.realm[k]); }).join('') + '</div>');
+    if (this.domPanel) body.push(this.domPanel());   // 내정 현황·올해 예상 결산 (domestic.js)
     if (s.last) body.push('<div class="quote">' + s.last + '</div>');
     if (SG.branchPanel) body.push(SG.branchPanel(this));
     var adv = SG.advisor ? SG.advisor.advise(this) : null;
@@ -3626,7 +3627,7 @@ window.SG = window.SG || {}; SG.data = SG.data || {}; SG.scenarios = SG.scenario
     this.cmds().filter(function (c) { return c.cat === s.tab; }).forEach(function (c) {
       var why = self.cmdAvail(c), label = self.L(c.name), tag = self.isHist(c) ? '<span class="tag">역사</span>' : c.hist === '가상' ? '<span class="tag dim">가상</span>' : '';
       var b = h('button', 'ch cmd', tag + label + '<small>' + self.L(c.desc) + ' <i>[' + self.costText(c) + ']</i>' + (why ? ' <em>— ' + why + '</em>' : '') + '</small>');
-      b.disabled = !!why; b.onclick = function () { self.run(c); }; list.appendChild(b);
+      b.disabled = !!why; b.setAttribute('data-cid', c.id); b.onclick = function () { self.run(c); }; list.appendChild(b);
     });
     var f = h('form', 'free', '<input type="text" placeholder="하고 싶은 일을 문장으로 (예: 신라를 공격한다 / 군사를 훈련시켜라 / 율령을 반포하라)"><button class="btn" type="submit">교지</button>');
     f.onsubmit = function (e) { e.preventDefault(); var v = $('input', f).value.trim(); if (v) self.free(v); };
@@ -3858,15 +3859,23 @@ window.SG = window.SG || {}; SG.data = SG.data || {}; SG.scenarios = SG.scenario
   };
 
   /* ── 한 해의 끝: 수입·세계 변화·랜덤 사건 ── */
-  P.foodFlow = function (army) {   // 해마다의 군량 수지(수입 - 군 유지비). army를 주면 그 병력일 때의 값: 병력을 사들이기 전에 미리 가늠하는 데 쓴다
+  /* 해마다의 금·군량 수지는 항목(parts)의 합이다. 기본 수입(base)과 군 유지비(upkeep)는 여기서, 농업·상공업·산업 단계 같은 내정 항목은 domestic.js 가 덧붙인다.
+   * army를 주면 그 병력일 때의 값: 병력을 사들이기 전에 미리 가늠하는 데 쓴다 */
+  P.foodParts = function (army) {
     var rl = this.s.realm, res = this.g.state.res, T = (army == null ? this.armyTotal() : army) / 1000;
-    return Math.round(9 + rl.econ * 0.28 + (res.people - 50) * 0.05 - T * 0.30 - T * T * 0.0025);
+    return { base: 9 + rl.econ * 0.28 + (res.people - 50) * 0.05, upkeep: -(T * 0.30 + T * T * 0.0025) };
   };
+  P.goldParts = function (army) {
+    var rl = this.s.realm, res = this.g.state.res, T = (army == null ? this.armyTotal() : army) / 1000;
+    return { base: 6 + rl.econ * 0.14 + (res.people - 50) * 0.06, upkeep: -T * 0.11 };
+  };
+  function sumParts(o) { var t = 0; for (var k in o) if (typeof o[k] === 'number' && isFinite(o[k])) t += o[k]; return t; }
+  P.foodFlow = function (army) { return Math.round(sumParts(this.foodParts(army))); };   // 해마다의 군량 수지(수입 - 군 유지비)
+  P.goldFlow = function (army) { return Math.round(sumParts(this.goldParts(army))); };   // 해마다의 금 수지
   P.yearEnd = function () {
     var self = this, g = this.g, s = this.s, cfg = this.cfg, res = g.state.res, rl = s.realm;
-    var T = this.armyTotal() / 1000;
     // 수입·유지비
-    var gi = Math.round(6 + rl.econ * 0.14 + (res.people - 50) * 0.06 - T * 0.11), fi = this.foodFlow();
+    var gi = this.goldFlow(), fi = this.foodFlow(), dn = this.domNote ? this.domNote() : '';   // dn: 내정 항목별 결산 문구 (domestic.js)
     // 법령의 해마다 효과
     var lawChips = '';
     for (var id in s.laws) { var L = this.lawById(id); if (L && L.yearly) lawChips += this.eff(L.yearly); }
@@ -3874,6 +3883,7 @@ window.SG = window.SG || {}; SG.data = SG.data || {}; SG.scenarios = SG.scenario
     function dk(v, k) { return k * Math.max(1, v / 75); } // 한계는 없지만 높을수록 유지가 어렵다
     rl.train = clamp(rl.train - dk(rl.train, 2), 0, 999); rl.intel = clamp(rl.intel - dk(rl.intel, 1), 0, 999); rl.defense = clamp(rl.defense - dk(rl.defense, 1), 0, 999);
     if (rl.econ > 70) rl.econ -= Math.max(1, rl.econ / 90); // 한계 수확 체감
+    if (this.domYear) this.domYear();   // 농업·상공업·곡창의 해마다 변화 (domestic.js)
     var starve = '';
     if (res.food <= 0) { res.food = 0; g.apply({ people: -5, morale: -5 }); var lv = this.units.levy; if (g.state.army[lv]) g.state.army[lv] = Math.round(g.state.army[lv] * 0.9); starve = '<br>군량이 바닥나 병사들이 이탈하고 민심이 흔들렸습니다.'; g.renderArmy(); }
     if (res.gold < 0) { res.gold = 0; g.apply({ morale: -3, people: -2 }); starve += '<br>봉록과 상여가 밀려 불만이 쌓였습니다.'; }
@@ -3881,7 +3891,7 @@ window.SG = window.SG || {}; SG.data = SG.data || {}; SG.scenarios = SG.scenario
     this.world();
     for (var k in s.cd) if (s.cd[k] > 0) s.cd[k]--;
     s.ap = 3;
-    var summary = '<b>' + s.year + '년 결산</b> — 수입 금 ' + (gi >= 0 ? '+' : '') + gi + ', 군량 ' + (fi >= 0 ? '+' : '') + fi + '(군 유지비 포함).' + starve + lawChips;
+    var summary = '<b>' + s.year + '년 결산</b> — 수입 금 ' + (gi >= 0 ? '+' : '') + gi + ', 군량 ' + (fi >= 0 ? '+' : '') + fi + '(군 유지비 포함).' + dn + starve + lawChips;
     this.chain = this.rollEvents();
     var inv = this.invasion(); if (inv) this.chain.unshift({ inv: inv });
     this.summary = summary;
@@ -4039,6 +4049,13 @@ window.SG = window.SG || {};
     ['peace_silla', /화친|화해|강화|휴전|평화/],
     ['ally_goguryeo', /동맹|연합|공조/],
     ['buy_grain', /(군량|곡식|식량|양식|쌀|양곡)을? ?(사|구입|구매|매입|조달|확보)|(군량|곡식|식량|양곡) ?(구입|구매|매입|조달)/],
+    ['irrigation', /수리|관개|저수지|물길|수로|제방을? ?(쌓|보수|수리|정비)|보를? ?(쌓|만|고치)/],
+    ['plow', /우경|쟁기|철제 ?농기구|농기구 ?(보급|나눠|지급)|소로 ?(밭|농사)/],
+    ['granary', /곡창|창고를? ?(증설|늘|더 ?짓|새로 ?짓)|곳간을? ?(늘|증설|짓)|관곡/],
+    ['grain_levy', /(곡식|곡물|양곡|식량)을? ?(더 ?)?(거두|징수|징발|걷)|추가 ?징수|곡물 ?징수/],
+    ['market', /시장을? ?(열|개설|세우|만들|키우)|시전|장터|상인(을|들을)? ?(보호|우대)/],
+    ['workshop', /공방|수공업|장인을? ?(모|양성|키우)|도자기|직조|길쌈/],
+    ['port', /항구|교역망|포구|나루|교역로/],
     ['trade_envoy', /무역|교역|상단|무역선|시장/],
     ['wa_envoy', /원군 ?외교|먼 ?나라/],
     ['hostage', /인질/],
@@ -4070,6 +4087,7 @@ window.SG = window.SG || {};
     ['parade', /열병|사열|포상|논공|상을 ?내/]
   ];
   var LAW_RULES = [
+    ['tunjeonje', /둔전제|군둔|군이 ?농사|병사가 ?농사/], ['landreform', /균전|정전|토지 ?(분배|재분배|개혁)|땅을 ?(고르게|나눠)/], ['coinage', /화폐|도량형|동전|주화|저울/], ['marketlaw', /상업 ?장려|시전 ?설치|상인 ?장려|장사를 ?장려/],
     ['yulyeong', /율령|형법|법전|법전/], ['gunyeok', /군역|병역/], ['pyeongchang', /상평|곡물 ?비축|비축/], ['tradelaw', /교역 ?장려|해상 ?교역/],
     ['noble_audit', /식읍|귀족.*(정리|줄)/], ['reclaim', /개간 ?장려/], ['inspect', /감찰|감사|비리/], ['martial', /군율|군기/], ['taxcut', /세금|조세|감면/], ['buddhism', /불교 ?진흥/]
   ];
@@ -4170,7 +4188,8 @@ window.SG = window.SG || {};
       var nxt = (sb.cfg.timeline || []).filter(function (a) { return a.y === s.year + 1 && a.hint; })[0];
       var ff = sb.foodFlow ? sb.foodFlow() : 0;
       if (res.food < 18) out.push('곡식 창고가 비어 갑니다. 군이 크면 유지비가 큽니다. 농사 장려나 진휼을 서두르고, 금이 있다면 「군량 구입」으로 시장에서 곡식을 사들이십시오.');
-      else if (ff < 0 && res.food < -ff * 3) out.push('해마다 군량이 ' + (-ff) + '씩 줄어드는 형편이라 곳간이 오래가지 못합니다. 농사 장려·둔전으로 수입을 늘리거나 「군량 구입」으로 미리 쌓아 두십시오.');
+      else if (ff < 0 && res.food < -ff * 3) out.push('해마다 군량이 ' + (-ff) + '씩 줄어드는 형편이라 곳간이 오래가지 못합니다. 수리 시설·농기구·둔전으로 농업을 키워 수입을 늘리거나, 「군량 구입」·「곡물 추가 징수」로 급한 불을 끄십시오.');
+      var da = sb.domAdvice ? sb.domAdvice() : ''; if (da) out.push(da);
       if (res.gold < 8) out.push('금고가 바닥입니다. 교역이나 호구 조사로 재정을 메워야 합니다.');
       if (res.people < 38) out.push('민심이 흉흉합니다. 대사면, 조세 감면, 진휼 중 하나는 필요합니다.');
       if (w.silla.hostility > 62 && rl.defense < 55) out.push(n.silla + '의 적의가 높은데 방비가 약합니다. 산성을 손보고 첩보를 늘려야 합니다.');
@@ -4224,7 +4243,7 @@ window.__sgL=25;
 /* 배치·지도 상호작용 확장 (Sandbox 확장)
  *  - 시기별 성 소유·표시, 아군/타국 주둔 깃발(첩보 수준에 따른 오차)
  *  - 지도에서 성을 눌러 공격 목표 지정 / 임의의 적 성 공격
- *  - 병력 배치 조정(수도·전선 주둔 비율 → 해당 방면 방어력)
+ *  - 병력 배치 조정(소유한 모든 성의 주둔 비율 → 해당 방면 방어력·적의 공격 목표 선택·출병 거점)
  *  - 사건 화면: 해당 위치로 카메라 이동·적군 진로 표시, 선택지에 마우스를 올리면 그 지점으로 이동
  *  - 자유 입력: 해석 + 결과 + 수치 변화 표시 */
 (function () {
@@ -4237,6 +4256,7 @@ window.__sgL=25;
   function dist(a, b) { return Math.hypot((a.lon - b.lon) * 0.8, a.lat - b.lat); }
   function fmt(n) { return n >= 10000 ? (Math.round(n / 1000) / 10) + '만' : (Math.round(n / 100) / 10) + '천'; }
   function hash(str) { var x = 0; for (var i = 0; i < str.length; i++) x = (x * 31 + str.charCodeAt(i)) | 0; return ((x >>> 0) % 1000) / 500 - 1; }
+  function L3(ko, en, ja) { var l = SG.i18n && SG.i18n.lang; return l === 'en' ? en : l === 'ja' ? ja : ko; }
   function peninsula(pl) { return pl.lon >= 124 && pl.lon <= 130.6 && pl.lat >= 33 && pl.lat <= 40.5; }
 
   /* ── 소유·존재 ── */
@@ -4270,17 +4290,41 @@ window.__sgL=25;
     mine.sort(function (a, b) { return dist(a, foe) - dist(b, foe); });
     var fronts = [];
     mine.forEach(function (pl) { if (fronts.length < 4 && fronts.every(function (f) { return dist(f, pl) > 0.45; }) && (!cap || dist(cap, pl) > 0.3)) fronts.push(pl); });
-    if (cap) out.push({ pl: cap, role: 'capital', share: s.deploy[cap.id] != null ? s.deploy[cap.id] : 30 });
-    fronts.forEach(function (pl, i) { out.push({ pl: pl, role: 'front', share: s.deploy[pl.id] != null ? s.deploy[pl.id] : FRONT_DEF[i] }); });
+    if (cap) out.push({ pl: cap, role: 'capital', share: self.shareOf(cap, 30) });
+    fronts.forEach(function (pl, i) { out.push({ pl: pl, role: 'front', share: self.shareOf(pl, FRONT_DEF[i]) }); });
     var tot = out.reduce(function (t, x) { return t + x.share; }, 0);
     if (tot > 100) out.forEach(function (x) { x.share = Math.floor(x.share * 100 / tot); });
     return out;
   };
+  // 성 하나의 주둔 비율: 병력 배치 화면에서 조정하는 동안에는 미리보기 값(_dpTmp)을, 아니면 저장된 값(s.deploy)을, 둘 다 없으면 기본값 def 를 쓴다
+  P.shareOf = function (pl, def) {
+    var t = this._dpTmp, d = this.s.deploy || {};
+    return t && t[pl.id] != null ? t[pl.id] : (d[pl.id] != null ? d[pl.id] : def);
+  };
+  // 도성·전선 말고도 소유한 본토의 어느 성에든 병력을 둘 수 있다(role:'post'). 주둔 비율이 0인 성은 목록에 넣지 않는다(성 수비대만 있는 성)
+  P.allStations = function () {
+    var self = this, core = this.stations(), seen = {}, out = core.slice(), home = this.homeRegion ? this.homeRegion() : null;
+    core.forEach(function (x) { seen[x.pl.id] = 1; });
+    this.places().forEach(function (pl) {
+      if (seen[pl.id] || self.ownerOf(pl) !== self.side) return;
+      if (home != null && SG.regionOf && SG.regionOf(pl) !== home) return;
+      var sh = self.shareOf(pl, 0); if (sh > 0) out.push({ pl: pl, role: 'post', share: sh });
+    });
+    var tot = out.reduce(function (t, x) { return t + x.share; }, 0);
+    if (tot > 100) out = out.map(function (x) { return { pl: x.pl, role: x.role, share: Math.floor(x.share * 100 / tot) }; });
+    return out;
+  };
   P.landTotal = function () { var A = this.g.state.army, t = 0; for (var k in A) { var U = SG.unitById(k); if (U && !NAV[U.base]) t += A[k]; } return t; };
+  // 어떤 지점을 칠 때의 출병·합류 거점: 가장 가까운 도성·전선 거점. 그 방면(약 180km 안)에 더 많은 병력을 둔 성이 있으면 그 성이 맡는다(병력을 둔 성이 오히려 손해가 되지 않게)
+  P.stationFor = function (pl) {
+    var best = null;
+    this.stations().forEach(function (x) { var d = pl ? dist(x.pl, pl) : 0; if (!best || d < best.d) best = { x: x, d: d }; });
+    this.allStations().forEach(function (x) { if (x.role !== 'post') return; var d = pl ? dist(x.pl, pl) : 0; if (d < 1.6 && (!best || x.share > best.x.share)) best = { x: x, d: d }; });
+    return best;
+  };
   P.nearestStation = function (placeId) {
-    var pl = SG.placeById(placeId), st = this.stations(), best = null;
-    st.forEach(function (x) { var d = pl ? dist(x.pl, pl) : 0; if (!best || d < best.d) best = { x: x, d: d }; });
-    return best && best.x;
+    var b = this.stationFor(SG.placeById(placeId));
+    return b && b.x;
   };
   P.fuzz = function (n, key) {
     var i = this.s.realm.intel; if (i < 10) return '?';
@@ -4308,7 +4352,7 @@ window.__sgL=25;
     m.setDynTerritory(sites);
     // 아군
     var land = this.landTotal();
-    this.stations().forEach(function (x) {
+    this.allStations().forEach(function (x) {
       var n = Math.round(land * x.share / 100 / 100) * 100; if (n <= 0) return;
       m.setToken('own_' + x.pl.id, self.side, '', fmt(n), x.pl.lon, x.pl.lat, 'own'); m.markPlace(x.pl.id, 'own', true);
     });
@@ -4395,7 +4439,7 @@ window.__sgL=25;
   var _run = P.run;
   P.run = function (c, opt) {
     opt = opt || {}; var s = this.s;
-    if (c.needs === 'deploy' && !opt.deployed) { var w1 = this.cmdAvail(c); if (w1) { s.last = '지금은 할 수 없습니다 — ' + w1; return this.renderTurn(); } return this.deployUI(c); }
+    if (c.needs === 'deploy' && !opt.deployed) { var w1 = this.cmdAvail(c); if (w1) { s.last = '지금은 할 수 없습니다 — ' + w1; return this.renderTurn(); } return this.deployUI(c, opt); }
     if (c.needs === 'target' && opt.target) {
       var w2 = this.cmdAvail(c); if (w2) { s.last = '지금은 할 수 없습니다 — ' + w2; return this.renderTurn(); }
       return this.warFlow(opt.target, c);
@@ -4441,31 +4485,96 @@ window.__sgL=25;
     else if (pl) g.map.focus(pl.lon, pl.lat, 900, 700);
   };
 
-  /* ── 병력 배치 조정 ── */
-  P.deployUI = function (c) {
-    var self = this, g = this.g, st = this.stations(), wrap = h('div', 'modal dock'), card = h('div', 'card'), vals = {};
-    card.innerHTML = '<h2>병력 배치</h2><div class="sub">수도와 전선에 주둔시킬 병력 비율입니다. 합이 100%를 넘을 수 없고, 남는 분은 후방·예비군입니다.<br>침공이나 방어전이 벌어진 방면에 병력이 많을수록 방어가 유리합니다.</div><div id="dp-list"></div><div class="note" id="dp-fb"></div><div style="display:flex;gap:8px;justify-content:flex-end;margin-top:10px"><button class="btn" id="dp-x">취소</button><button class="btn pri" id="dp-ok">배치 확정</button></div>';
-    var box = $('#dp-list', card), land = this.landTotal();
-    st.forEach(function (x) {
-      vals[x.pl.id] = x.share;
-      var row = h('div', 'dp-st', '<div><b>' + x.pl.name + '</b> <small>' + (x.role === 'capital' ? '도성 방비' : '전선 · ' + (x.pl.modern || '')) + '</small></div><input type="range" min="0" max="70" value="' + x.share + '"><div class="v"></div>');
-      var rng = $('input', row), v = $('.v', row);
-      function upd() { v.textContent = vals[x.pl.id] + '%'; }
-      rng.oninput = function () { var val = +rng.value, oth = Object.keys(vals).reduce(function (t, k) { return t + (k === x.pl.id ? 0 : vals[k]); }, 0); if (oth + val > 100) { val = 100 - oth; rng.value = val; } vals[x.pl.id] = val; upd(); fb(); };
-      row.onmouseenter = function () { g.map.focus(x.pl.lon, x.pl.lat, 900, 600); };
-      upd(); box.appendChild(row);
-    });
-    function fb() { var used = Object.keys(vals).reduce(function (t, k) { return t + vals[k]; }, 0); $('#dp-fb', card).innerHTML = '후방·예비 <b>' + (100 - used) + '%</b> · 야전 가능 병력 ' + land.toLocaleString() + '명 기준. 수도 30% · 전선 합 55%가 기본 배치입니다.'; }
-    fb(); wrap.appendChild(card); g.root.appendChild(wrap);
-    $('#dp-x', card).onclick = function () { wrap.remove(); self.renderTurn(); };
-    $('#dp-ok', card).onclick = function () { wrap.remove(); self.s.deploy = self.s.deploy || {}; for (var k in vals) self.s.deploy[k] = vals[k]; self.run(c, { deployed: true }); };
+  /* ── 병력 배치 조정: 소유한 본토의 모든 성에 주둔 비율을 정한다 ──
+   *  도성·전선 요충뿐 아니라 소유한 어느 성에든 병력을 둘 수 있다(s.deploy[성 id] = %). 병력을 둔 성은
+   *  ① 그 방면 방어가 단단해지고(defend.js defInfo) ② 적이 노리기 어려워지며(aiwar.js) ③ 그 방면을 칠 때의 출병 거점이 된다(stationFor). */
+  var KIND = { capital: ['도성', 'Capital', '都城'], city: ['성', 'City', '城'], fortress: ['요새', 'Fortress', '要塞'], port: ['항구', 'Port', '港'], pass: ['관문', 'Pass', '関門'] };
+  // 배치 대상: 도성 → 전선 요충 → 그 밖의 소유 성(적에게 가까운 순). 바다 건너 거점은 제외(그곳 주둔군이 따로 지킨다)
+  P.deployList = function () {
+    var self = this, core = this.stations(), seen = {}, out = [], foe = this.foeCenter(), home = this.homeRegion ? this.homeRegion() : null;
+    core.forEach(function (x) { seen[x.pl.id] = 1; out.push({ pl: x.pl, role: x.role }); });
+    var posts = this.places().filter(function (p) { return !seen[p.id] && self.ownerOf(p) === self.side && (home == null || !SG.regionOf || SG.regionOf(p) === home); });
+    posts.sort(function (a, b) { return dist(a, foe) - dist(b, foe); });
+    posts.forEach(function (p) { out.push({ pl: p, role: 'post' }); });
+    return out;
   };
-  // 어떤 지점의 전투에서 그 방면 주둔 비율이 주는 보정
+  // 기본 배치: 도성 30% + 전선 22·15·10·8%, 나머지 성은 0%
+  P.deployDefaults = function () { var d = {}, fi = 0; this.stations().forEach(function (x) { d[x.pl.id] = x.role === 'capital' ? 30 : FRONT_DEF[fi++]; }); return d; };
+  P.deployUI = function (c, opt) {
+    var self = this, g = this.g, s = this.s, wrap = h('div', 'modal dock'), card = h('div', 'card dpcard'), vals = {}, rows = {}, land = this.landTotal(), focus = opt && opt.focus, list = this.deployList(), cur = {}, tm = null;
+    this.stations().forEach(function (x) { cur[x.pl.id] = x.share; });
+    list.forEach(function (x) { vals[x.pl.id] = cur[x.pl.id] != null ? cur[x.pl.id] : Math.max(0, Math.round(+(s.deploy && s.deploy[x.pl.id]) || 0)); });
+    var home = this.homeRegion ? this.homeRegion() : null, over = this.places().filter(function (p) { return self.ownerOf(p) === self.side && home != null && SG.regionOf && SG.regionOf(p) !== home; }).length;
+    card.innerHTML = '<h2>' + L3('병력 배치', 'Troop Deployment', '兵力配置') + '</h2><div class="sub">' +
+      L3('소유한 모든 성에 병력을 나누어 둘 수 있습니다. 합이 100%를 넘을 수 없고, 남는 분은 후방·예비군입니다.<br>침공을 받은 성은 그 성과 가까운 곳에 둔 병력으로 막습니다. 병력을 많이 둔 성은 적이 노리기도 어렵습니다.',
+        'You can station troops at any castle you hold. The total cannot exceed 100%; the rest stay in the rear as reserves.<br>An invaded castle is defended by the troops stationed near it, and enemies are less eager to attack a heavily garrisoned castle.',
+        '所有するどの城にも兵を配置できます。合計は100%を超えられず、残りは後方・予備軍になります。<br>侵攻を受けた城は、その近くに置いた兵で防ぎます。兵を多く置いた城は敵も攻めにくくなります。') +
+      '</div><div id="dp-list"></div><div class="note" id="dp-fb"></div><div class="dp-act"><button class="btn" id="dp-df">' + L3('기본 배치로', 'Default layout', '初期配置に戻す') + '</button><span></span><button class="btn" id="dp-x">' + L3('취소', 'Cancel', 'キャンセル') + '</button><button class="btn pri" id="dp-ok">' + L3('배치 확정', 'Confirm', '配置を確定') + '</button></div>';
+    function sumOther(id) { return Object.keys(vals).reduce(function (t, k) { return t + (k === id ? 0 : vals[k]); }, 0); }
+    function mk(x) {
+      var pl = x.pl, kd = KIND[pl.kind] || KIND.city, kn = L3(kd[0], kd[1], kd[2]);
+      var role = x.role === 'capital' ? L3('도성 방비', 'Capital garrison', '都の守備') : x.role === 'front' ? L3('전선', 'Front', '前線') + ' · ' + kn : kn;
+      var row = h('div', 'dp-st' + (focus === pl.id ? ' focus' : ''), '<div><b>' + pl.name + '</b> <small>' + role + (pl.modern ? ' · ' + pl.modern : '') + '</small><small class="dp-d"></small></div><input type="range" min="0" max="70" value="' + vals[pl.id] + '"><div class="v"></div>');
+      var rng = $('input', row), v = $('.v', row);
+      rng.oninput = function () { var val = +rng.value, oth = sumOther(pl.id); if (oth + val > 100) { val = Math.max(0, 100 - oth); rng.value = val; } vals[pl.id] = val; v.textContent = val + '%'; sched(); };
+      rng.onchange = function () { redraw(); };
+      row.onmouseenter = function () { g.map.focus(pl.lon, pl.lat, 900, 600); };
+      v.textContent = vals[pl.id] + '%'; rows[pl.id] = { row: row, rng: rng, v: v, d: $('.dp-d', row), pl: pl };
+      return row;
+    }
+    // 합계와 성마다 "침공이 닥치면 이 성에서 막아 낼 병력"을 미리 계산해 보여 준다(방어 계산 defInfo 를 그대로 쓴다)
+    function refresh() {
+      var used = Object.keys(vals).reduce(function (t, k) { return t + vals[k]; }, 0);
+      $('#dp-fb', card).innerHTML = L3('후방·예비 <b>' + (100 - used) + '%</b> · 야전 가능 병력 ' + land.toLocaleString() + '명 기준. 기본 배치는 도성 30% · 전선 합 55%입니다.',
+        'Rear/reserve <b>' + (100 - used) + '%</b> - based on ' + land.toLocaleString() + ' field troops. The default layout is 30% at the capital and 55% across the front.',
+        '後方・予備 <b>' + (100 - used) + '%</b> ・ 野戦兵力' + land.toLocaleString() + '名を基準。初期配置は都30%・前線計55%です。');
+      self._dpTmp = vals;
+      try {
+        list.forEach(function (x) {
+          var r = rows[x.pl.id], n = Math.round(land * vals[x.pl.id] / 10000) * 100, i = null;
+          try { i = self.defInfo({ place: x.pl.id, defense: true, enemy: { total: 0 } }, null); } catch (e) { }
+          var m = i ? Math.round(i.local / 100) * 100 : 0;
+          r.d.textContent = (n > 0 ? L3('주둔 약 ' + n.toLocaleString() + '명', 'Stationed ~' + n.toLocaleString(), '駐屯 約' + n.toLocaleString() + '名') : L3('주둔군 없음(성 수비대만)', 'No garrison (castle guard only)', '駐屯なし(城の守備隊のみ)')) +
+            (i ? ' · ' + L3('침공 시 막아 낼 병력 약 ' + m.toLocaleString() + '명', 'defenders if attacked ~' + m.toLocaleString(), '侵攻時の防衛兵力 約' + m.toLocaleString() + '名') : '');
+        });
+      } finally { self._dpTmp = null; }
+    }
+    function sched() { clearTimeout(tm); tm = setTimeout(refresh, 70); }
+    function redraw() { self._dpTmp = vals; try { self.drawDeploy(); } finally { self._dpTmp = null; } }   // 지도의 깃발도 미리보기 값으로 다시 그린다
+    var box = $('#dp-list', card);
+    function head(t) { box.appendChild(h('div', 'dp-h', t)); }
+    var cap = list.filter(function (x) { return x.role === 'capital'; }), fr = list.filter(function (x) { return x.role === 'front'; }), posts = list.filter(function (x) { return x.role === 'post'; });
+    if (cap.length) { head(L3('도성', 'Capital', '都城')); cap.forEach(function (x) { box.appendChild(mk(x)); }); }
+    if (fr.length) { head(L3('전선 요충', 'Frontier strongholds', '前線の要衝')); fr.forEach(function (x) { box.appendChild(mk(x)); }); }
+    if (posts.length) {
+      var act = posts.filter(function (x) { return vals[x.pl.id] > 0 || x.pl.id === focus; }), idle = posts.filter(function (x) { return !(vals[x.pl.id] > 0 || x.pl.id === focus); });
+      head(L3('그 밖의 소유 성', 'Other castles you hold', 'その他の所有城') + ' (' + posts.length + ')');
+      act.forEach(function (x) { box.appendChild(mk(x)); });
+      if (idle.length) {
+        var det = h('details', 'dp-more', '<summary>' + L3('병력을 두지 않은 성 ' + idle.length + '곳 — 눌러서 펼치기', idle.length + ' castles without troops - click to expand', '兵を置いていない城' + idle.length + 'か所 — クリックで展開') + '</summary>');
+        idle.forEach(function (x) { det.appendChild(mk(x)); }); box.appendChild(det);
+      }
+    }
+    if (over) box.appendChild(h('div', 'note', L3('바다 건너 거점 ' + over + '곳은 이 배치와 별개로 그곳 주둔군이 지킵니다.', over + ' overseas holding(s) are guarded by their own garrisons, separately from this layout.', '海の向こうの拠点' + over + 'か所は、この配置とは別に現地の駐屯軍が守ります。')));
+    refresh(); wrap.appendChild(card); g.root.appendChild(wrap);
+    if (focus && rows[focus]) { var fo = rows[focus]; setTimeout(function () { try { fo.row.scrollIntoView({ block: 'center' }); } catch (e) { } }, 60); g.map.focus(fo.pl.lon, fo.pl.lat, 900, 600); }
+    $('#dp-x', card).onclick = function () { clearTimeout(tm); wrap.remove(); self.renderTurn(); };
+    $('#dp-df', card).onclick = function () {
+      var d = self.deployDefaults();
+      list.forEach(function (x) { var val = d[x.pl.id] || 0; vals[x.pl.id] = val; rows[x.pl.id].rng.value = val; rows[x.pl.id].v.textContent = val + '%'; });
+      refresh(); redraw();
+    };
+    $('#dp-ok', card).onclick = function () {
+      clearTimeout(tm); wrap.remove(); s.deploy = s.deploy || {};
+      list.forEach(function (x) { var k = x.pl.id; if (x.role === 'post' && !vals[k]) delete s.deploy[k]; else s.deploy[k] = vals[k]; });
+      self.run(c, { deployed: true });
+    };
+  };
+  // 어떤 지점의 전투에서 그 방면 주둔 비율이 주는 보정(출병 때). 방어전은 defend.js 의 defInfo 가 따로 계산한다
   P.deployFactor = function (bt, anchor) {
     var pid = bt.place || (anchor && anchor.place), pl = pid && SG.placeById(pid); if (!pl) return null;
-    var st = this.stations(), best = null, nf = Math.max(1, st.filter(function (x) { return x.role === 'front'; }).length);
-    st.forEach(function (x) { var d = dist(x.pl, pl); if (d < 1.6 && (!best || d < best.d)) best = { x: x, d: d }; });
-    if (!best) return null;
+    var best = this.stationFor(pl), nf = Math.max(1, this.stations().filter(function (x) { return x.role === 'front'; }).length);
+    if (!best || best.d >= 1.6) return null;
     var avg = best.x.role === 'capital' ? 30 : 55 / nf, f = clamp(0.65 + 0.35 * best.x.share / avg, 0.65, 1.5);
     return { f: f, name: best.x.pl.name, share: best.x.share };
   };
@@ -4597,10 +4706,12 @@ window.__sgL=25;
     var self = this, ow = this.ownerOf(pl), acts = [], html = '', inTurn = !!$('#chron .endyear');
     html += '<small>현재 소유: <b>' + (SG.sideName[ow] || '—') + '</b>' + (this.s.owners && this.s.owners[pl.id] === this.side ? ' (점령)' : '') + '</small>';
     if (ow === this.side) {
-      var st = this.stations().filter(function (x) { return x.pl.id === pl.id; })[0];
+      var st = this.allStations().filter(function (x) { return x.pl.id === pl.id; })[0], hm = this.homeRegion ? this.homeRegion() : null, isHome = hm == null || !SG.regionOf || SG.regionOf(pl) === hm;
       if (st) html += '<br><small>주둔 비율 ' + st.share + '% · 약 ' + fmt(Math.round(this.landTotal() * st.share / 10000) * 100) + ' 명</small>';
+      else if (isHome) html += '<br><small>' + L3('주둔 비율 0% (성 수비대만 있음)', 'Stationed 0% (castle garrison only)', '駐屯割合0%(城の守備隊のみ)') + '</small>';
+      else html += '<br><small>' + L3('바다 건너 거점 — 그곳 주둔군이 지킵니다', 'Overseas holding - guarded by its own garrison', '海の向こうの拠点 — 現地の駐屯軍が守ります') + '</small>';
       var wd = this.cmds().filter(function (c) { return c.id === 'deploy'; })[0];
-      if (inTurn && wd && !this.cmdAvail(wd)) acts.push({ label: '병력 배치 조정', fn: function () { self.run(wd); } });
+      if (inTurn && wd && isHome && !this.cmdAvail(wd)) acts.push({ label: L3('병력 배치 조정', 'Adjust deployment', '兵力配置の調整'), fn: function () { self.run(wd, { focus: pl.id }); } });
     } else {
       var t = this.targets().filter(function (x) { return x.place === pl.id; })[0];
       if (t) {
@@ -6394,8 +6505,8 @@ window.__sgL=37;
     var self = this, s = this.s, y = s.year, N = this.names; s.threat = s.threat || {}; s.ai = s.ai || {};
     if (s.ai.strikeY === y || (s.threat.last != null && y - s.threat.last < 1)) return null;
     var mine = this.myPlaces().filter(function (p) { return p.id !== self.cfg.capPlace; }); if (!mine.length) return null;
-    var away = this.awayNow ? this.awayNow() : null, mor = this.g.state.res.morale, dom = this.dominance ? this.dominance() : 0, st = this.stations(), share = {};
-    st.forEach(function (x) { share[x.pl.id] = x.share; });
+    var away = this.awayNow ? this.awayNow() : null, mor = this.g.state.res.morale, dom = this.dominance ? this.dominance() : 0, st = this.allStations(), share = {};
+    st.forEach(function (x) { share[x.pl.id] = x.role === 'post' ? Math.max(x.share, 16) : x.share; });
     var picked = null, ext = this.extStrike ? this.extStrike() : 1;   // 후계 시대에는 공세가 잦아진다
     shuffle(this.aliveRoles()).some(function (r) {
       var side = self.sides[r], w = s.world[r]; if (!side || side === self.side || (s.coal && s.coal.members.indexOf(r) >= 0)) return false;
@@ -7296,8 +7407,377 @@ window.__sgL=42;
 })();
 
 ;
-/* ==== js/engine/geo.js ==== */
+/* ==== js/engine/domestic.js ==== */
 window.__sgL=43;
+/* 내정 고도화(domestic.js) — 해마다의 금·군량 수입을 만드는 요소를 나누고, 정책의 효과가 눈에 보이게 한다.
+ *  · 산업(econ): 기존 그대로. 이제 산업이 60·75·90을 넘으면 「번성·융성·태평」 단계 보너스(금·군량 수입)가 붙는다.
+ *  · 농업(agri): 군량 수입. 수리 시설·농기구·개간·둔전으로 올리고, 높을수록 가뭄·홍수·대기근도 덜 겪는다.
+ *  · 상공업(trade): 금 수입. 시장·공방·항구로 올린다.
+ *  · 곡창(store): 쌓아 둔 군량에 환곡 이자가 붙고 대기근 피해가 줄어든다.
+ *  · 법령: 둔전제(군 유지비 절감) · 균전제(농업↑) · 화폐·도량형 통일(금 수입 +15%) · 상업 장려령(상공업↑).
+ * 새 수치(agri·trade·store)는 예전 저장 파일에는 없으므로 0 으로 보고 계산한다(= 예전과 같은 수입).
+ * 해마다의 수지는 항목(goldParts / foodParts)의 합이며, 정무 화면의 「내정 현황」에서 항목별로 확인할 수 있다.
+ * 문장은 함수 안에서 L3()로 지금 언어에 맞춰 고르고, 명령·법령의 이름·설명·문장만 T()로 번역 사전에 올린다(파일을 읽을 때 한 번). */
+(function () {
+  var P = SG.Sandbox.prototype;
+  var TR = SG.data.tr6 = SG.data.tr6 || { en: {}, ja: {} };
+  function T(k, e, j) { TR.en[k] = e; TR.ja[k] = j; var I = SG.i18n; if (I && I.dict && I.dict.en) { I.dict.en[k] = e; I.dict.ja[k] = j; } return k; }
+  function L3(ko, en, ja) { var l = SG.i18n && SG.i18n.lang; return l === 'en' ? en : l === 'ja' ? ja : ko; }
+  function clamp(v, a, b) { return Math.max(a, Math.min(b, v)); }
+  function h(tag, cls, html) { var e = document.createElement(tag); if (cls) e.className = cls; if (html != null) e.innerHTML = html; return e; }
+  function num(v) { return typeof v === 'number' && isFinite(v) ? v : 0; }
+  function r1(v) { return Math.round(v * 10) / 10; }
+  function sg(v) { v = r1(v); return (v > 0 ? '+' : v < 0 ? '−' : '') + Math.abs(v); }   // 부호를 붙인 소수 한 자리
+  function sr(v) { v = Math.round(v); return (v > 0 ? '+' : v < 0 ? '−' : '') + Math.abs(v); }   // 부호를 붙인 정수
+  function sum(o) { var t = 0; for (var k in o) t += num(o[k]); return t; }
+  function esc(s) { return String(s).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;'); }
+
+  var CFG = SG.DOMESTIC = {
+    max: 100,                                                  // 농업·상공업·곡창의 상한
+    tiers: [{ at: 90, k: 'peace', gold: 5, food: 7 }, { at: 75, k: 'rise', gold: 3, food: 4 }, { at: 60, k: 'bloom', gold: 1, food: 2 }],   // 산업 단계(높은 쪽부터)
+    knee: 50,                                                  // 농업·상공업은 이 점수까지가 한 점당 효과가 크다(그 위는 반)
+    agri: [0.35, 0.14],                                        // 농업 한 점당 군량 수입: [~knee, knee 초과] (농업 100이면 해마다 군량 +24.5)
+    trade: [0.30, 0.12],                                       // 상공업 한 점당 금 수입 (상공업 100이면 해마다 금 +21)
+    interest: { rate: 0.0008, cap: 200 },                      // 곡창 이자 = min(군량, cap) × 곡창 × rate (곡창 50·군량 100이면 해마다 4)
+    econSoft: { from: 70, span: 80, min: 0.25 },               // 산업이 70을 넘으면 오르는 폭이 줄어든다(80 더 오르면 1/4까지). 예전엔 한도 없이 올라 수입이 폭증했다
+    jindae: 3,                                                 // 사건에서 진대법을 시행했을 때(flags.jindae) 해마다 군량
+    decay: { from: 60, div: 30, store: 70 }                    // 농업·상공업은 60을 넘는 만큼의 1/30이, 곡창은 70을 넘는 만큼의 1/40이 해마다 줄어든다
+  };
+  var KEYS = ['agri', 'trade', 'store'];
+
+  /* ── 이름·말 ── */
+  var SL = {
+    econ: ['산업', 'Economy', '産業'], agri: ['농업', 'Agriculture', '農業'], trade: ['상공업', 'Commerce', '商工業'], store: ['곡창', 'Granary', '穀倉'],
+    gold: ['금', 'Gold', '金'], food: ['군량', 'Provisions', '軍糧']
+  };
+  function sl(k) { var x = SL[k]; return L3(x[0], x[1], x[2]); }
+  var TIER = { peace: ['태평', 'Golden Age', '太平'], rise: ['융성', 'Thriving', '隆盛'], bloom: ['번성', 'Prospering', '繁盛'] };
+  function tierName(t) { var x = TIER[t.k]; return L3(x[0], x[1], x[2]); }
+  var LB = {   // 수입 항목 이름
+    base: ['기본(산업·민심)', 'Base (economy & favor)', '基本(産業・民心)'], tier: ['산업 단계', 'Economy stage', '産業段階'],
+    agri: ['농업', 'Agriculture', '農業'], trade: ['상공업', 'Commerce', '商工業'], store: ['곡창 이자', 'Granary interest', '穀倉の利子'],
+    jindae: ['진대법', 'Spring loans', '賑貸法'], law: ['법령 효과', 'Law bonus', '法令の効果'],
+    upkeep: ['군 유지비', 'Army upkeep', '軍の維持費'], save: ['둔전제 절감', 'Military-farm savings', '屯田制の節減']
+  };
+  var ORDER = ['base', 'tier', 'agri', 'trade', 'store', 'jindae', 'law', 'upkeep', 'save'];
+  var GRP = { farm: ['🌾 농업·군량', '🌾 Farming & Grain', '🌾 農業・軍糧'], biz: ['💰 상공업·재정', '💰 Commerce & Finance', '💰 商工業・財政'], court: ['🏛 왕권·민생', '🏛 Court & People', '🏛 王権・民生'] };
+
+  /* ── 번역: 능력치 칩(「농업 +10」)과 막대 이름 ── */
+  [['농업', 'Agriculture', '農業'], ['상공업', 'Commerce', '商工業'], ['곡창', 'Granary', '穀倉']].forEach(function (x) {
+    T(x[0], x[1], x[2]);
+    ['+', '−', '-'].forEach(function (sgn) { T(x[0] + ' ' + sgn + '{n}', x[1] + ' ' + sgn + '{n}', x[2] + sgn + '{n}'); });
+  });
+  Object.keys(GRP).forEach(function (k) { T(GRP[k][0], GRP[k][1], GRP[k][2]); });
+
+  /* ═════ 데이터: 명령 ═════ */
+  var cmds = SG.data.commands, byId = {};
+  function reindex() { byId = {}; SG.data.commands.forEach(function (c) { byId[c.id] = c; }); }
+  reindex();
+  function add(list) { list.forEach(function (c) { if (!byId[c.id]) { SG.data.commands.push(c); byId[c.id] = c; } }); }
+  add([
+    {
+      id: 'irrigation', cat: '내정', grp: 'farm', hist: '일반', cost: { gold: 7 }, eff: { realm: { agri: 10 }, fx: { people: 1 } },
+      name: T('수리 시설 정비', 'Irrigation Works', '水利施設の整備'),
+      desc: T('제방과 저수지·물길을 손봐 가뭄과 홍수에 강한 농토를 만듭니다. 농업이 오르면 해마다 군량 수입이 늘고, 가뭄·홍수도 덜 겪습니다.',
+        'Repair dikes, reservoirs and channels so fields stand up to drought and flood. Higher agriculture raises yearly grain income and makes droughts and floods rarer.',
+        '堤防・貯水池・水路を整え、干ばつにも洪水にも強い農地を作ります。農業が上がると毎年の軍糧収入が増え、干ばつや洪水も減ります。'),
+      lines: [T('저수지와 물길이 손질되어 메마르던 논에 물이 돌기 시작했습니다.', 'The reservoirs and channels were repaired, and water began to reach the parched paddies.', '貯水池と水路が直され、乾いていた田に水が回り始めました。'),
+        T('제방을 새로 쌓고 보를 고쳐, 가뭄에도 홍수에도 버틸 농토가 늘었습니다.', 'New dikes and weirs left more farmland able to withstand both drought and flood.', '堤を新たに築き堰を直して、干ばつにも洪水にも耐える農地が増えました。')]
+    },
+    {
+      id: 'plow', cat: '내정', grp: 'farm', hist: '일반', cost: { gold: 6 }, eff: { realm: { agri: 8, econ: 1 }, fx: { people: 1 } },
+      name: T('우경·철제 농기구 보급', 'Ox Plows & Iron Farm Tools', '牛耕・鉄製農具の普及'),
+      desc: T('소를 부리는 쟁기와 철제 농기구를 농가에 나눠 수확을 늘립니다. 농업과 산업이 오릅니다.',
+        'Hand out ox-drawn plows and iron farm tools to raise yields. Raises agriculture and economy.',
+        '牛に引かせる鋤と鉄製の農具を農家に配り、収穫を増やします。農業と産業が上がります。'),
+      lines: [T('대장간에서 쇠스랑과 쟁기날이 쏟아져 나와 농가마다 나눠졌습니다.', 'Forges turned out rakes and plowshares, and every farm household received some.', '鍛冶場から熊手と鋤先が次々に作られ、農家ごとに配られました。'),
+        T('소로 밭을 가는 법이 퍼지자 같은 땅에서 거두는 곡식이 눈에 띄게 늘었습니다.', 'As plowing with oxen spread, the same land yielded visibly more grain.', '牛で田畑を耕す方法が広まると、同じ土地から取れる穀物が目に見えて増えました。')]
+    },
+    {
+      id: 'granary', cat: '내정', grp: 'farm', hist: '일반', cost: { gold: 8 }, eff: { realm: { store: 12 }, fx: { food: 6 } },
+      name: T('곡창 증설', 'Expand Granaries', '穀倉の増設'),
+      desc: T('관곡을 쌓아 둘 창고를 늘립니다. 곡창이 클수록 쌓아 둔 군량에 환곡 이자가 붙고 대기근 피해가 줄어듭니다. 흩어진 관곡을 거두어 군량도 조금 채웁니다.',
+        'Build more storehouses for state grain. Larger granaries earn lending interest on the grain you hold and soften great famines. Scattered state grain is gathered in, adding a little provisions.',
+        '官穀をためる倉を増やします。穀倉が大きいほど、蓄えた軍糧に還穀の利子がつき、大飢饉の被害も減ります。散らばっていた官穀を集め、軍糧も少し補います。'),
+      lines: [T('새 곡식 창고가 줄지어 서고, 흩어져 있던 관곡이 한곳에 모였습니다.', 'New granaries rose in rows, and state grain that had been scattered was gathered in one place.', '新しい穀倉が並び建ち、散らばっていた官穀が一か所に集められました。'),
+        T('창고마다 곡식 장부가 정리되어 비축이 한결 든든해졌습니다.', 'With each storehouse’s ledger put in order, the reserves felt far sturdier.', '倉ごとに穀物の帳簿が整えられ、備蓄がぐっと頼もしくなりました。')]
+    },
+    {
+      id: 'grain_levy', cat: '내정', grp: 'farm', hist: '일반', cd: 3, cost: {}, eff: { fx: { people: -6 } },
+      name: T('곡물 추가 징수', 'Extra Grain Levy', '穀物の追加徴収'),
+      desc: T('급한 대로 농가에서 곡식을 더 거둡니다. 군량이 바로 늘지만 백성의 원성을 삽니다. 산업과 농업이 높을수록 많이 거둡니다. (3년에 한 번)',
+        'Squeeze extra grain from farm households in an emergency. Provisions rise at once, but the people resent it. The higher your economy and agriculture, the more you collect. (Once every 3 years)',
+        '急場しのぎに農家から穀物を余分に取り立てます。軍糧はすぐ増えますが、民の恨みを買います。産業と農業が高いほど多く集まります。(3年に一度)'),
+      lines: [T('관리들이 마을을 돌며 곡식을 더 거두어 갔습니다. 농가의 한숨이 깊습니다.', 'Officials went from village to village collecting extra grain. The sighs in the farmhouses ran deep.', '役人たちが村を回って穀物を余分に取り立てました。農家のため息が深まっています。')],
+      fn: function (g, S) {
+        var rl = (S && S.realm) || {}, n = Math.round(8 + (rl.econ || 0) * 0.06 + (rl.agri || 0) * 0.10);
+        return { fx: { food: n }, text: L3('거둔 곡식 ' + n + '이 창고로 들어왔습니다.', n + ' units of grain were collected into the granaries.', '集めた穀物' + n + 'が倉に入りました。') };
+      }
+    },
+    {
+      id: 'market', cat: '내정', grp: 'biz', hist: '일반', cost: { gold: 6 }, eff: { realm: { trade: 10 }, fx: { people: 1 } },
+      name: T('시장 개설·상인 보호', 'Open Markets & Protect Merchants', '市場の開設・商人の保護'),
+      desc: T('장터를 열고 상인을 보호해 상공업을 키웁니다. 상공업이 오르면 해마다 금 수입이 늘어납니다.',
+        'Open marketplaces and protect merchants to grow commerce. Higher commerce raises yearly gold income.',
+        '市を開き商人を保護して、商工業を育てます。商工業が上がると毎年の金の収入が増えます。'),
+      lines: [T('성 밑에 장터가 서고 각지의 상인들이 모여들었습니다.', 'A marketplace opened below the walls and merchants gathered from every region.', '城下に市が立ち、各地の商人が集まってきました。'),
+        T('상인들에게 거래 허가와 보호가 내려져 시장이 북적이기 시작했습니다.', 'Merchants were granted trading permits and protection, and the market began to bustle.', '商人に取引の許可と保護が与えられ、市はにぎわい始めました。')]
+    },
+    {
+      id: 'workshop', cat: '내정', grp: 'biz', hist: '일반', cost: { gold: 8 }, eff: { realm: { trade: 7, econ: 3 } },
+      name: T('관영 공방·수공업 진흥', 'State Workshops & Crafts', '官営工房・手工業の振興'),
+      desc: T('직조·도자·철기 공방을 세우고 장인을 모읍니다. 상공업과 산업이 오릅니다.',
+        'Set up weaving, pottery and ironworking workshops and gather artisans. Raises commerce and economy.',
+        '織物・陶磁・鉄器の工房を設け、職人を集めます。商工業と産業が上がります。'),
+      lines: [T('관영 공방에서 비단과 도자기, 철기가 쏟아져 나왔습니다.', 'State workshops poured out silk, ceramics and ironware.', '官営の工房から絹や陶磁器、鉄器が次々に作られました。'),
+        T('솜씨 좋은 장인들이 모여 새 공방이 문을 열었습니다.', 'Skilled artisans gathered and a new workshop opened its doors.', '腕のいい職人たちが集まり、新しい工房が開かれました。')]
+    },
+    {
+      id: 'port', cat: '내정', grp: 'biz', hist: '일반', cost: { gold: 9 }, eff: { realm: { trade: 9, navy: 2 } },
+      name: T('항구·교역망 확충', 'Expand Ports & Trade Routes', '港・交易網の拡充'),
+      desc: T('항구와 나루를 넓히고 교역로를 정비합니다. 상공업과 수군력이 오릅니다.',
+        'Widen harbors and ferry crossings and improve trade routes. Raises commerce and naval power.',
+        '港と渡し場を広げ、交易路を整えます。商工業と水軍力が上がります。'),
+      lines: [T('항구에 부두가 늘고 교역선이 줄지어 드나들기 시작했습니다.', 'New piers went up at the harbor, and trading ships began coming and going in a line.', '港に埠頭が増え、交易船が連なって出入りし始めました。'),
+        T('나루와 포구가 정비되어 물자가 막힘없이 오갑니다.', 'With the ferries and harbors in order, goods now move without a hitch.', '渡し場と港が整えられ、物資が滞りなく行き来します。')]
+    }
+  ]);
+  // 기존 내정 명령도 새 수치에 이어 둔다: 농사 장려는 농업을, 황무지 개간은 농업을 더 크게 올린다
+  if (byId.farm && byId.farm.eff && byId.farm.eff.realm) byId.farm.eff.realm.agri = 3;
+  if (byId.tunjeon && byId.tunjeon.eff && byId.tunjeon.eff.realm) byId.tunjeon.eff.realm.agri = 6;
+  // 분야별로 묶고 보기 좋게 정렬(내정 탭만). 다른 분야 명령의 자리는 그대로 둔다
+  var ORDER_CMD = {
+    farm: ['farm', 'tunjeon', 'irrigation', 'plow', 'granary', 'relief', 'grain_levy', 'buy_grain'],
+    biz: ['census', 'market', 'workshop', 'port'],
+    court: ['law', 'officials', 'academy', 'amnesty', 'court_gift', 'purge', 'temple', 'palace', 'ritual', 'feast']
+  };
+  (function () {
+    var flat = [], rank = {};
+    ['farm', 'biz', 'court'].forEach(function (gp) { ORDER_CMD[gp].forEach(function (id) { rank[id] = flat.length; flat.push(id); if (byId[id]) byId[id].grp = gp; }); });
+    var idx = [], list = [];
+    SG.data.commands.forEach(function (c, i) { if (c.cat === '내정') { idx.push(i); list.push({ c: c, i: i }); } });
+    list.sort(function (a, b) { var ra = rank[a.c.id] == null ? 1000 : rank[a.c.id], rb = rank[b.c.id] == null ? 1000 : rank[b.c.id]; return ra - rb || a.i - b.i; });
+    idx.forEach(function (at, k) { SG.data.commands[at] = list[k].c; });
+  })();
+
+  /* ═════ 데이터: 법령 ═════ */
+  var laws = SG.data.laws = SG.data.laws || [];
+  function lawById(id) { return laws.filter(function (l) { return l.id === id; })[0]; }
+  [{
+    id: 'tunjeonje', hist: '가상', cost: { gold: 5 }, eff: {}, dom: { upkeep: 0.25 }, yearly: { realm: { train: -1 } },
+    name: T('둔전제 (군이 농사를 겸함)', 'Military Farms', '屯田制(軍が農耕を兼ねる)'),
+    desc: T('평시의 군사들이 변경에서 농사를 짓습니다. 군 유지비(군량)가 4분의 1 줄지만 훈련도가 해마다 조금 닳습니다.',
+      'Soldiers farm the frontier in peacetime. Army grain upkeep falls by a quarter, but training slips a little every year.',
+      '平時の兵が辺境で農耕をします。軍の維持費(軍糧)が4分の1減りますが、訓練度が毎年少しずつ落ちます。')
+  }, {
+    id: 'landreform', hist: '가상', cost: { gold: 8 }, eff: { realm: { royal: -5 }, fx: { people: 3 } }, yearly: { realm: { agri: 1.5, royal: -0.5 }, fx: { people: 1 } },
+    name: T('균전제 (토지 재분배)', 'Equal-Field System', '均田制(土地の再分配)'),
+    desc: T('농민에게 땅을 고르게 나눠 농사를 안정시킵니다. 농업과 민심이 해마다 오르지만, 귀족의 반발로 왕권이 해마다 조금 닳습니다.',
+      'Land is divided evenly among farmers to steady agriculture. Agriculture and public favor rise every year, but noble resentment wears royal authority down a little each year.',
+      '農民に土地を均等に分けて農業を安定させます。農業と民心が毎年上がりますが、貴族の反発で王権が毎年少しずつ削られます。')
+  }, {
+    id: 'coinage', hist: '가상', cost: { gold: 10 }, eff: { realm: { royal: 2 } }, dom: { goldMul: 0.15 },
+    name: T('화폐·도량형 통일', 'Unify Coinage & Measures', '貨幣・度量衡の統一'),
+    desc: T('화폐와 말·저울 같은 도량형을 통일해 거래의 비용을 줄입니다. 해마다 금 수입이 15% 늘어납니다.',
+      'Unify coinage and measures such as bushels and scales to cut the cost of trade. Gold income rises 15% every year.',
+      '貨幣や升・秤などの度量衡を統一して、取引の費用を減らします。毎年の金の収入が15%増えます。')
+  }, {
+    id: 'marketlaw', hist: '가상', cost: { gold: 6 }, eff: {}, yearly: { realm: { trade: 1.5, royal: -0.5 } },
+    name: T('상업 장려령 (시전 설치)', 'Commerce Promotion Edict', '商業奨励令(市廛の設置)'),
+    desc: T('도성과 큰 고을에 시전을 두고 상인의 세를 낮춥니다. 상공업이 해마다 오르지만, 상인이 힘을 얻어 왕권이 해마다 조금 닳습니다.',
+      'Set up merchant quarters in the capital and large towns and lower merchants’ taxes. Commerce rises every year, but empowered merchants wear royal authority down a little each year.',
+      '都と大きな邑に市廛を置き、商人の税を軽くします。商工業が毎年上がりますが、商人が力をつけて王権が毎年少しずつ削られます。')
+  }].forEach(function (l) { if (!lawById(l.id)) laws.push(l); });
+  // 기존 법령도 새 수치에 이어 둔다: 개간 장려령 → 농업, 곡물 비축 제도 → 곡창
+  var lr = lawById('reclaim'); if (lr && lr.yearly && lr.yearly.realm) lr.yearly.realm.agri = 1;
+  var lp = lawById('pyeongchang'); if (lp && lp.yearly) { lp.yearly.realm = lp.yearly.realm || {}; lp.yearly.realm.store = 1; }
+
+  /* ═════ 가뭄·홍수·대기근: 농업·곡창이 높으면 덜 일어난다 ═════ */
+  function calamity(id, wA, wS, max) {
+    var ev = (SG.data.events || []).filter(function (e) { return e.id === id; })[0]; if (!ev || ev._domShield) return;
+    var old = ev.cond; ev._domShield = 1;
+    ev.cond = function (s) {
+      if (old && !old.apply(this, arguments)) return false;
+      var rl = (s && s.realm) || {}, p = Math.min(max, ((rl.agri || 0) * wA + (rl.store || 0) * wS) / 100);
+      return !(p > 0 && Math.random() < p);
+    };
+  }
+  calamity('drought', 0.6, 0.2, 0.5); calamity('flood', 0.5, 0.1, 0.4); calamity('x_famine', 0.4, 0.4, 0.6);
+
+  /* ═════ 수입 항목 ═════ */
+  function lvl(v, k, knee) { v = Math.max(0, num(v)); return k[0] * Math.min(v, knee) + k[1] * Math.max(0, v - knee); }
+  P.domTier = function () { var e = num(this.s.realm.econ); for (var i = 0; i < CFG.tiers.length; i++) if (e >= CFG.tiers[i].at) return CFG.tiers[i]; return null; };
+  P.domNextTier = function () { var e = num(this.s.realm.econ), nx = null; CFG.tiers.forEach(function (t) { if (t.at > e && (!nx || t.at < nx.at)) nx = t; }); return nx; };
+  P.domMods = function () {   // 시행 중인 법령의 dom 보정을 합친다
+    var m = { goldMul: 0, upkeep: 0 }, self = this;
+    Object.keys(this.s.laws || {}).forEach(function (id) { var L = self.lawById(id); if (L && L.dom) for (var k in L.dom) m[k] = (m[k] || 0) + L.dom[k]; });
+    return m;
+  };
+  var _fp = P.foodParts;
+  P.foodParts = function () {
+    var p = _fp.apply(this, arguments), rl = this.s.realm, res = this.g.state.res, m = this.domMods(), tr = this.domTier(), v;
+    if (tr) p.tier = tr.food;
+    if ((v = lvl(rl.agri, CFG.agri, CFG.knee))) p.agri = v;
+    if ((v = Math.min(Math.max(res.food, 0), CFG.interest.cap) * num(rl.store) * CFG.interest.rate)) p.store = v;
+    if (this.g.state.flags && this.g.state.flags.jindae) p.jindae = CFG.jindae;
+    if (m.upkeep && p.upkeep < 0) p.save = -p.upkeep * Math.min(0.6, m.upkeep);
+    return p;
+  };
+  var _gp = P.goldParts;
+  P.goldParts = function () {
+    var p = _gp.apply(this, arguments), rl = this.s.realm, m = this.domMods(), tr = this.domTier(), v;
+    if (tr) p.tier = tr.gold;
+    if ((v = lvl(rl.trade, CFG.trade, CFG.knee))) p.trade = v;
+    if (m.goldMul) p.law = (p.base + num(p.tier) + num(p.trade)) * m.goldMul;
+    return p;
+  };
+  P.domFlows = function () { return { g: sum(this.goldParts()), f: sum(this.foodParts()) }; };
+
+  // 국정 수치를 올릴 때의 한계: ① 농업·상공업·곡창은 100을 넘지 않는다 ② 산업은 70을 넘으면 오르는 폭이 줄어든다(넘치는 만큼은 칩에도 나오지 않는다)
+  var _eff = P.eff;
+  P.eff = function (e, tgt) {
+    if (e && e.realm && (e.realm.agri || e.realm.trade || e.realm.store || e.realm.econ > 0)) {
+      var rl = this.s.realm, r2 = Object.assign({}, e.realm), S = CFG.econSoft, ec = num(rl.econ);
+      KEYS.forEach(function (k) { if (r2[k] > 0) r2[k] = Math.max(0, Math.min(r2[k], CFG.max - num(rl[k]))); });
+      if (r2.econ > 0 && ec > S.from) r2.econ *= clamp(1 - (ec - S.from) / S.span, S.min, 1);
+      e = Object.assign({}, e, { realm: r2 });
+    }
+    return _eff.call(this, e, tgt);
+  };
+
+  // 올릴 수 있는 게 이 새 수치뿐인 명령은, 그 수치가 이미 가득 차 있으면 쓸 수 없게 한다(행동력과 금을 헛되이 쓰지 않도록)
+  var _ca = P.cmdAvail;
+  P.cmdAvail = function (c) {
+    var why = _ca.apply(this, arguments); if (why || !c || !c.eff || !c.eff.realm) return why;
+    var r = c.eff.realm, gain = Object.keys(r).filter(function (k) { return r[k] > 0; });
+    if (gain.length && gain.every(function (k) { return KEYS.indexOf(k) >= 0 && num(this.s.realm[k]) >= CFG.max - 0.5; }, this))
+      return L3(gain.map(sl).join('·') + '이 이미 최고 수준입니다', gain.map(sl).join('/') + ' already at maximum', gain.map(sl).join('・') + 'はすでに最大です');
+    return why;
+  };
+
+  // 해마다: 농업·상공업은 높을수록, 곡창은 70을 넘으면 조금씩 줄어든다(가꾸지 않으면 쇠퇴)
+  P.domYear = function () {
+    var rl = this.s.realm;
+    ['agri', 'trade'].forEach(function (k) { if (rl[k] != null) { var v = rl[k]; if (v > CFG.decay.from) v -= (v - CFG.decay.from) / CFG.decay.div; rl[k] = clamp(v, 0, CFG.max); } });
+    if (rl.store != null) { var s = rl.store; if (s > CFG.decay.store) s -= (s - CFG.decay.store) / 40; rl.store = clamp(s, 0, CFG.max); }
+  };
+
+  /* ═════ 화면: 내정 현황 ═════ */
+  function tip(k) {
+    var a = CFG.agri, t = CFG.trade;
+    if (k === 'agri') return L3('군량 수입 한 점당 +' + a[0] + ' (50 넘으면 +' + a[1] + '). 높을수록 가뭄·홍수·대기근을 덜 겪습니다. 60을 넘으면 해마다 조금씩 줄어듭니다.',
+      'Yearly provisions +' + a[0] + ' per point (+' + a[1] + ' above 50). Higher values mean fewer droughts, floods and famines. Above 60 it slowly declines each year.',
+      '軍糧収入は1点につき+' + a[0] + '(50超は+' + a[1] + ')。高いほど干ばつ・洪水・大飢饉が減ります。60を超えると毎年少しずつ下がります。');
+    if (k === 'trade') return L3('금 수입 한 점당 +' + t[0] + ' (50 넘으면 +' + t[1] + '). 60을 넘으면 해마다 조금씩 줄어듭니다.',
+      'Yearly gold +' + t[0] + ' per point (+' + t[1] + ' above 50). Above 60 it slowly declines each year.',
+      '金の収入は1点につき+' + t[0] + '(50超は+' + t[1] + ')。60を超えると毎年少しずつ下がります。');
+    return L3('쌓아 둔 군량(최대 ' + CFG.interest.cap + ')에 곡창 점수만큼 환곡 이자가 붙고, 대기근을 덜 겪습니다. 70을 넘으면 해마다 조금씩 줄어듭니다.',
+      'Held provisions (up to ' + CFG.interest.cap + ') earn lending interest in proportion to this score, and great famines become rarer. Above 70 it slowly declines each year.',
+      '蓄えた軍糧(最大' + CFG.interest.cap + ')に、この点数に応じて還穀の利子がつき、大飢饉も減ります。70を超えると毎年少しずつ下がります。');
+  }
+  function partsHtml(parts) {
+    var out = [];
+    ORDER.forEach(function (k) {
+      var v = parts[k]; if (!num(v) || Math.abs(v) < 0.05) return;
+      var x = LB[k]; out.push('<span class="dom-i"><i>' + L3(x[0], x[1], x[2]) + '</i> <b class="' + (v > 0 ? 'p' : 'm') + '">' + sg(v) + '</b></span>');
+    });
+    return out.join('');
+  }
+  P.domPanel = function () {
+    var self = this, rl = this.s.realm, gp = this.goldParts(), fp = this.foodParts(), tr = this.domTier(), nt = this.domNextTier();
+    var g = Math.round(sum(gp)), f = Math.round(sum(fp));
+    var bars = KEYS.map(function (k) { var v = num(rl[k]); return '<div class="rb" title="' + esc(tip(k)) + '"><i>' + sl(k) + '</i><span><u style="width:' + clamp(v, 0, 100) + '%"></u></span><b>' + Math.round(v) + '</b></div>'; }).join('');
+    var stage = tr ? tierName(tr) : L3('보통', 'Ordinary', '並');
+    var nxt = nt ? ' <small>(' + L3('산업 ' + nt.at + ' → ' + tierName(nt), 'Economy ' + nt.at + ' → ' + tierName(nt), '産業' + nt.at + ' → ' + tierName(nt)) + ')</small>' : '';
+    var cls = function (v) { return v < 0 ? 'm' : 'p'; };
+    return '<div class="dom"><div class="dom-h"><b>🏛 ' + L3('내정 현황', 'Domestic Affairs', '内政の状況') + '</b><span>' + L3('산업 단계', 'Economy stage', '産業段階') + ' <em class="tier' + (tr ? '' : ' off') + '">' + stage + '</em>' + nxt + '</span></div>' +
+      '<div class="dom-b">' + bars + '</div>' +
+      '<div class="dom-fc">' + L3('올해 예상 결산', 'Projected year-end', '今年の予想決算') + ' — ' + sl('gold') + ' <b class="' + cls(g) + '">' + (g > 0 ? '+' : '') + g + '</b> · ' + sl('food') + ' <b class="' + cls(f) + '">' + (f > 0 ? '+' : '') + f + '</b> <small>(' + L3('군 유지비 포함', 'army upkeep included', '軍の維持費を含む') + ')</small></div>' +
+      '<details class="dom-d"><summary>' + L3('수입 내역 보기', 'Income breakdown', '収入の内訳') + '</summary><div class="dom-l"><u>' + sl('gold') + '</u>' + partsHtml(gp) + '</div><div class="dom-l"><u>' + sl('food') + '</u>' + partsHtml(fp) + '</div></details></div>';
+  };
+
+  // 해를 넘길 때의 결산 줄: 내정이 이번 해 수입에 보탠 몫
+  P.domNote = function () {
+    var gp = this.goldParts(), fp = this.foodParts(), tr = this.domTier(), bits = [];
+    function add(label, v, res) { if (Math.abs(v) >= 0.05) bits.push(label + ': ' + res + ' ' + sg(v)); }
+    if (tr) bits.push(L3('산업 단계 「', 'Economy stage "', '産業段階「') + tierName(tr) + L3('」', '"', '」') + ': ' + sl('gold') + ' ' + sg(gp.tier) + ', ' + sl('food') + ' ' + sg(fp.tier));
+    add(sl('agri'), num(fp.agri), sl('food')); add(sl('trade'), num(gp.trade), sl('gold'));
+    add(L3('곡창 이자', 'Granary interest', '穀倉の利子'), num(fp.store), sl('food')); add(L3('진대법', 'Spring loans', '賑貸法'), num(fp.jindae), sl('food'));
+    add(L3('법령 효과', 'Law bonus', '法令の効果'), num(gp.law), sl('gold')); add(L3('둔전제 절감', 'Military-farm savings', '屯田制の節減'), num(fp.save), sl('food'));
+    return bits.length ? '<br><small>🌾 ' + L3('내정이 보탠 몫', 'Domestic contribution', '内政の寄与') + ' — ' + bits.join(' · ') + '</small>' : '';
+  };
+
+  // 명령·법령을 내리고 나면 연간 수지가 얼마나 달라졌는지 바로 보여 준다(군을 늘리면 유지비가 는다는 것도 보인다)
+  var _run = P.run;
+  P.run = function () {
+    var outer = !this._domFc;
+    if (outer) this._domFc = this.domFlows();
+    try { return _run.apply(this, arguments); } finally { if (outer) this._domFc = null; }
+  };
+  var _after = P.after;
+  P.after = function () {
+    var b = this._domFc;
+    if (b) {
+      this._domFc = null;
+      try {
+        var n = this.domFlows(), dg = n.g - b.g, df = n.f - b.f;
+        if (Math.abs(dg) >= 0.15 || Math.abs(df) >= 0.15) {
+          var bit = function (v, res) { return Math.abs(v) >= 0.15 ? sl(res) + ' <b class="' + (v > 0 ? 'p' : 'm') + '">' + sg(v) + '</b>' : ''; };
+          var parts = [bit(dg, 'gold'), bit(df, 'food')].filter(Boolean).join(' · ');
+          this.s.last = (this.s.last || '') + '<div class="domfc">📈 ' + L3('연간 수지 변화', 'Yearly balance change', '年間収支の変化') + ' — ' + parts + ' <small>(' + L3('금 ' + sr(n.g) + ' · 군량 ' + sr(n.f) + ' / 해', 'gold ' + sr(n.g) + ' · provisions ' + sr(n.f) + ' per year', '金' + sr(n.g) + '・軍糧' + sr(n.f) + ' / 年') + ')</small></div>';
+        }
+      } catch (e) { }
+    }
+    return _after.apply(this, arguments);
+  };
+
+  // 내정 탭: 분야별 소제목
+  var _dc = P.drawChoices;
+  P.drawChoices = function () {
+    var r = _dc.apply(this, arguments);
+    try {
+      var list = document.querySelector('#chron .cmdlist'); if (!list) return r;
+      var meta = {}; this.cmds().forEach(function (c) { meta[c.id] = c; });
+      var last = null;
+      [].slice.call(list.children).forEach(function (b) {
+        var c = meta[b.getAttribute && b.getAttribute('data-cid')]; if (!c || c.cat !== '내정') return;
+        var gp = c.grp || 'court';
+        if (gp !== last) { last = gp; var x = GRP[gp] || GRP.court; list.insertBefore(h('div', 'cmdgrp', L3(x[0], x[1], x[2])), b); }
+      });
+    } catch (e) { }
+    return r;
+  };
+
+  // 참모의 말: 내정이 약한 곳을 짚어 준다
+  P.domAdvice = function () {
+    var rl = this.s.realm, res = this.g.state.res, out = [], gf = this.goldFlow(), ff = this.foodFlow(), nt = this.domNextTier(), ec = num(rl.econ);
+    if (num(rl.agri) < 25 && ff < 14) out.push(L3('농업 기반이 약해 군량 수입이 빠듯합니다. 「수리 시설 정비」와 「우경·철제 농기구 보급」으로 농업을 키우면 해마다 군량이 늘고 흉년도 덜 겪습니다.',
+      'Agriculture is weak and your grain income is thin. Irrigation works and ox plows with iron tools will raise yearly provisions and make famine rarer.', '農業の基盤が弱く、軍糧収入が苦しい状況です。「水利施設の整備」と「牛耕・鉄製農具の普及」で農業を育てれば、毎年の軍糧が増え、凶作にも強くなります。'));
+    if (num(rl.trade) < 25 && gf < 16) out.push(L3('상공업이 거의 일지 않았습니다. 「시장 개설」이나 「관영 공방」을 세우면 해마다 금 수입이 늘어납니다.',
+      'Commerce has barely begun. Opening markets or founding state workshops will raise your yearly gold income.', '商工業がほとんど興っていません。「市場の開設」や「官営工房」を設ければ、毎年の金の収入が増えます。'));
+    if (nt && nt.at - ec > 0 && nt.at - ec <= 8) out.push(L3('산업이 ' + nt.at + '을 넘으면 「' + tierName(nt) + '」 단계에 들어 금·군량 수입이 한층 늘어납니다. 농사 장려나 개간으로 조금만 더 끌어올려 보십시오.',
+      'Once your economy passes ' + nt.at + ', it enters the "' + tierName(nt) + '" stage and brings in more gold and provisions. A little more farming promotion or land clearing will get you there.', '産業が' + nt.at + 'を超えると「' + tierName(nt) + '」の段階に入り、金と軍糧の収入がさらに増えます。農耕の奨励や開墾でもう少し押し上げてみましょう。'));
+    if (num(rl.store) < 20 && res.food >= 70) out.push(L3('곳간에 곡식이 넉넉한데 곡창이 작아 이자도 못 받고 대기근에도 약합니다. 「곡창 증설」을 고려하십시오.',
+      'Your stores are full but the granaries are small, earning no interest and leaving you exposed to great famine. Consider expanding the granaries.', '蔵に穀物は十分ありますが、穀倉が小さいため利子も得られず、大飢饉にも弱い状態です。「穀倉の増設」を検討してください。'));
+    return out.length ? out[Math.floor(Math.random() * out.length)] : '';
+  };
+
+  /* ═════ 맡긴 정무(자동 진행): 새 수치도 산업과 같은 비중으로 채점한다(단, 효과 대비 점수는 낮춰 과열을 막는다) ═════ */
+  var _at = P.autoTemper;
+  if (_at) P.autoTemper = function () { var r = _at.apply(this, arguments); if (r && r.m) KEYS.forEach(function (k) { r.m[k] = r.m.econ; }); return r; };
+  var _se = P.autoScoreEff, AUTO_W = { agri: 0.45, trade: 0.45, store: 0.25 };
+  if (_se) P.autoScoreEff = function (e, cost) {
+    if (e && e.realm && (e.realm.agri || e.realm.trade || e.realm.store)) {
+      var r = Object.assign({}, e.realm); KEYS.forEach(function (k) { if (r[k]) r[k] *= AUTO_W[k]; });
+      e = Object.assign({}, e, { realm: r });
+    }
+    return _se.call(this, e, cost);
+  };
+})();
+
+;
+/* ==== js/engine/geo.js ==== */
+window.__sgL=44;
 /* 지리와 수군: 육지로 이어진 곳은 걸어서 가고, 바다 건너 땅은 수군(또는 이미 확보한 교두보)이 있어야 간다.
  *  - 땅덩이(육지권)를 나눈다: 대륙(요동·한반도), 산둥·장난 해안, 왜(규슈·혼슈), 그리고 섬들.
  *  - 목표와 같은 땅덩이에 내가 점령한 성이 있으면 거기서 출발하므로 수군도, 도해 위험도 필요 없다.
@@ -7431,7 +7911,7 @@ window.__sgL=43;
 
 ;
 /* ==== js/engine/defend.js ==== */
-window.__sgL=44;
+window.__sgL=45;
 /* 방어 병력: 침공을 받으면 '그 성의 수비대와 가까운 진영의 병력'만으로 막는다 (게임 추상화 모델 — 사료 수치가 아니다)
  *  - 병력은 수도·전선 진영(병력 배치)에 나뉘어 있다. 침공받은 곳과 가까운 진영의 병력은 달려오지만, 먼 곳의 병력은 제때 오지 못한다.
  *  - 진영의 몫 × 거리에 따른 합류율(가까울수록 높고 약 290km 밖은 0). 어느 진영에도 속하지 않은 후방·예비군은 일부만 합류한다.
@@ -7485,7 +7965,7 @@ window.__sgL=44;
       var fy = clamp((s.realm.navy - 30) / 140, 0, 0.5);
       i.over = true; i.base = this.baseTroops(pl); i.ferry = tot * fy; i.local = Math.min(tot, i.base + i.ferry);
     } else {
-      var st = this.stations(), sumSh = 0; st.forEach(function (x) { sumSh += x.share; });
+      var st = this.allStations(), sumSh = 0; st.forEach(function (x) { sumSh += x.share; });
       var stN = sumSh / 100 * L, resN = Math.max(0, 100 - sumSh) / 100 * L, ab = Math.min(abroad(this), 0.4 * L);
       var fromRes = Math.min(resN, ab), fromSt = ab - fromRes, sc = stN > 0 ? clamp(1 - fromSt / stN, 0.3, 1) : 1, atN = 0, near = 0;   // 해외 거점에 나간 병력은 예비군부터 빠지고, 모자라면 진영들이 나누어 부담한다
       st.forEach(function (x) { var n = x.share / 100 * L * sc, d = dist(x.pl, pl); if (d <= 0.3) atN = Math.max(atN, n); else near += n * m.send * reach(d, m.sc); });
@@ -7548,7 +8028,7 @@ window.__sgL=44;
 
 ;
 /* ==== js/engine/arms.js ==== */
-window.__sgL=45;
+window.__sgL=46;
 /* 군비 경쟁 (게임 추상화 모델)
  * 플레이어가 병력을 대량으로 사들이면, 이웃 나라도 위협을 느끼고 병력을 사들여 균형을 맞춘다.
  *  - 반응의 크기 = 우리 군세가 얼마나 불었는가 × 그 나라가 우리를 얼마나 경계하는가(국경·관계·적의·우리의 덩치)
@@ -7714,7 +8194,7 @@ window.__sgL=45;
 
 ;
 /* ==== js/engine/pact.js ==== */
-window.__sgL=46;
+window.__sgL=47;
 /* 동맹과 명분 (게임 추상화 모델)
  * 우호도가 높은 나라(동맹)는 우리를 거의 치지 않는다. 그래도 칼을 뽑는다면 반드시 '명분'이 있어야 하고, 그 순간 동맹은 깨진다.
  *  - 역사 속 명분: 553년 신라의 나제동맹 파기, 475년 한성 함락으로 이어진 고구려의 남진, 645·660년 당의 정벌, 670년 나당전쟁 …(해당 시기에만)
@@ -7869,7 +8349,7 @@ window.__sgL=46;
 
 ;
 /* ==== js/engine/siege.js ==== */
-window.__sgL=47;
+window.__sgL=48;
 /* 공성·수성 — 성벽, 자연 지형, 공성기
    성을 치는 쪽은 공성기로 성벽을 허물어야 하고, 성을 지키는 쪽은 성벽·자연 지형·수비 병종(수비대·궁노병)으로 유리하다.
    실제 계산은 tactics.js 의 SG.battle(성벽 체력 모델)이 하고, 여기서는 성벽 정보(walls)를 만들어 전투에 붙이며
@@ -8040,7 +8520,7 @@ window.__sgL=47;
 
 ;
 /* ==== js/engine/lure.js ==== */
-window.__sgL=48;
+window.__sgL=49;
 /* 진을 치고 성 밖에서 싸우기 — 도발·출격·구원군
    성을 곧바로 들이치지 않고 성 밖 들판에 진을 치고 도발하면, 수비군이 (구원군과 함께) 성문을 열고 나와 성벽 없는 들판에서 싸우는 일이 있다.
    이기면 수비군이 크게 줄어 성을 치기 쉬워지고, 응하지 않으면 대치가 길어져 구원군이 성에 들어오고 양쪽 사기가 닳는다.
@@ -8301,7 +8781,7 @@ window.__sgL=48;
 
 ;
 /* ==== js/engine/foestrat.js ==== */
-window.__sgL=49;
+window.__sgL=50;
 /* 상대국의 전략 — 적도 작전(태세)을 고른다.
    ① 플레이어와 싸우는 적 지휘관: 눈에 보이는 편성·지형·성벽을 보고, 후보 작전마다 "상대가 고를 법한 작전들"에 맞서 보아 가장 나은 것을 고른다.
       상대의 실제 선택은 모른다. 지휘관 솜씨(훈련)가 낮으면 가끔 차선을 고른다. 첩보가 높으면 군사 회의에서 적의 작전과 속셈을 알 수 있다.
@@ -8554,7 +9034,7 @@ window.__sgL=49;
 
 ;
 /* ==== js/engine/pools.js ==== */
-window.__sgL=50;
+window.__sgL=51;
 /* 나라별 병력 풀: 쓰면 줄고, 천천히 찬다 (게임 추상화 모델 — 사료 수치가 아니다)
  *  ① 전투에서 잃은 병력만큼 그 나라의 총병력(forces.js 의 milOf)이 준다 — 우리와의 싸움, 나라끼리의 싸움, 연합군 모두.
  *  ② 총병력이 평시(상한의 72%)보다 줄면
@@ -8745,7 +9225,7 @@ window.__sgL=50;
 
 ;
 /* ==== js/engine/endless.js ==== */
-window.__sgL=51;
+window.__sgL=52;
 /* 끝장 모드: 재위가 끝나도(패업·중흥·유지·쇠락·생존 결말) 후계 시대로 이어서 계속 통치한다.
  * - 한 번에 20년씩 연장. 연장 구간에는 짜인 사건이 없고 랜덤 사건·침공·정무가 이어진다.
  * - 망국·정변·민란·항복·퇴위는 진짜 끝이다.
@@ -8784,7 +9264,7 @@ window.__sgL=51;
 
 ;
 /* ==== js/engine/perf.js ==== */
-window.__sgL=52;
+window.__sgL=53;
 /* 속도 모듈: 같은 결과를 되풀이해서 계산하던 곳을 줄인다. 게임 규칙·결과·화면은 그대로이고 처리 시간만 줄어든다.
  *  ① 배치도(drawDeploy)를 그리는 동안은 게임 상태가 바뀌지 않으므로, 성 목록(places)·내 성 목록(myPlaces)·공격 대상(targets)을
  *     한 번만 계산해 재사용한다. (전에는 적 병력 표시 하나마다 전체를 다시 계산해서, 한 번 그릴 때 성 목록을 385번,
@@ -8853,7 +9333,7 @@ window.__sgL=52;
 
 ;
 /* ==== js/site.js ==== */
-window.__sgL=53;
+window.__sgL=54;
 /* 사이트 설정: 방문자 집계 · 의견 창구 · 모바일 지도 보기 버튼.
    방문자 집계는 GOATCOUNTER_CODE 를 채우면 켜진다 (goatcounter.com 무료 가입 후 사이트 코드). */
 (function () {
@@ -8879,9 +9359,7 @@ window.__sgL=53;
   function ready(f) { if (document.readyState !== 'loading') f(); else document.addEventListener('DOMContentLoaded', f); }
   ready(function () {
     var app = document.getElementById('app'); if (!app) return;
-    // 타이틀 화면의 의견 링크
-    var t = document.querySelector('#title > div');
-    if (t) { var a = document.createElement('a'); a.className = 'fb-link'; a.href = CFG.FEEDBACK_URL; a.target = '_blank'; a.rel = 'noopener'; a.textContent = '💬 의견 보내기 · 버그 제보'; t.appendChild(a); }
+    // 의견·제보는 js/engine/board.js(게시판)가 맡는다. FEEDBACK_URL 은 게시판에서 보내지 못할 때의 GitHub 안내에 쓴다.
     // 모바일: 정무창을 접고 지도를 크게 보는 버튼
     var b = document.createElement('button'); b.id = 'mtoggle'; b.type = 'button'; b.textContent = '🗺 지도 보기';
     b.onclick = function () { var on = document.body.classList.toggle('mapview'); b.textContent = on ? '📜 정무 열기' : '🗺 지도 보기'; };
@@ -8890,8 +9368,228 @@ window.__sgL=53;
 })();
 
 ;
+/* ==== js/engine/board.js ==== */
+window.__sgL=55;
+/* 의견·제보 게시판: 타이틀 오른쪽 위의 「💬 의견·제보」 버튼과 게임 화면 위쪽의 💬 버튼에서 바로 열린다.
+ *  - 글 종류(의견·오류 제보·질문·기타) 고르고 → 내용(최대 1000자) 쓰고 → 「보내기」. 운영자에게만 전달된다(Firestore 'feedback' 컬렉션, 쓰기 전용 — 규칙은 tools/firebase/firestore.rules).
+ *  - 「게임 상황도 함께 보내기」(기본 켜짐): 언어·화면 크기·브라우저·지금 하는 왕과 연도·최근 자바스크립트 오류 기록. 이름·이메일·계정 정보는 보내지 않는다.
+ *  - 보내지 못하면(오프라인·서버 설정 전) 글을 이 기기의 「내가 보낸 글」에 보관하고, 복사하기·GitHub 이슈로 남기기 길을 안내한다. 쓰던 글은 닫아도 임시 저장된다.
+ *  - 도배 방지: 이 기기에서 20초에 1건, 하루 10건까지.
+ *  글은 모두 L3(ko, en, ja)로 지금 언어에 맞춰 고른다. */
+(function () {
+  var SITE = window.SITE || {};
+  var B = SG.board = { errs: [] };
+  var MAX = 1000, MIN = 5;
+  var K = { draft: 'samgukwang.fb.draft', mine: 'samgukwang.fb.mine', log: 'samgukwang.fb.log' };
+  var CATS = {
+    idea: { ic: '💡', n: ['의견', 'Idea', 'ご意見'], hint: ['예) 이런 기능이 있으면 좋겠어요 / 이 부분이 불편했어요', 'e.g. I would love a feature like... / This part felt awkward', '例) こんな機能があると嬉しい / ここが使いにくかった'] },
+    bug: { ic: '🐞', n: ['오류 제보', 'Bug', '不具合'], hint: ['어느 화면에서, 무엇을 눌렀더니, 어떻게 되었는지 적어 주세요. (기대한 모습과 실제 모습)', 'Which screen, what you clicked, and what happened (what you expected vs. what you saw).', 'どの画面で、何を押して、どうなったか(期待した動きと実際の動き)を書いてください。'] },
+    ask: { ic: '❓', n: ['질문', 'Question', '質問'], hint: ['궁금한 점을 적어 주세요.', 'Ask anything about the game.', '気になることを書いてください。'] },
+    etc: { ic: '✍', n: ['기타', 'Other', 'その他'], hint: ['자유롭게 적어 주세요.', 'Write anything you like.', '自由にお書きください。'] }
+  };
+
+  function $(s, r) { return (r || document).querySelector(s); }
+  function h(tag, cls, html) { var e = document.createElement(tag); if (cls) e.className = cls; if (html != null) e.innerHTML = html; return e; }
+  function L3(ko, en, ja) { var l = SG.i18n && SG.i18n.lang; return l === 'en' ? en : l === 'ja' ? ja : ko; }
+  function T3(a) { return L3(a[0], a[1], a[2]); }
+  function esc(t) { return String(t == null ? '' : t).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+  function lsGet(k, d) { try { var v = JSON.parse(localStorage.getItem(k) || 'null'); return v == null ? d : v; } catch (e) { return d; } }
+  function lsSet(k, v) { try { if (v == null) localStorage.removeItem(k); else localStorage.setItem(k, JSON.stringify(v)); } catch (e) { } }
+  function newId() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 7); }
+  function pad(n) { return (n < 10 ? '0' : '') + n; }
+  function fmtDate(t) { var d = new Date(t || 0); return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()) + ' ' + pad(d.getHours()) + ':' + pad(d.getMinutes()); }
+
+  /* ── 최근 오류 기록(오류 제보에 함께 보낸다). 이 파일이 일찍 불러와지므로 뒤에 오는 파일의 오류도 잡힌다 ── */
+  function pushErr(m) {
+    m = String(m || '').replace(/\s+/g, ' ').slice(0, 200); if (!m) return;
+    var a = B.errs; if (a.length && a[a.length - 1] === m) return; a.push(m); if (a.length > 3) a.shift();
+  }
+  window.addEventListener('error', function (e) { try { if (e && e.message) pushErr(e.message + (e.filename ? ' @' + String(e.filename).split('/').pop().split('?')[0] + ':' + (e.lineno || 0) : '')); } catch (x) { } });
+  window.addEventListener('unhandledrejection', function (e) { try { var r = e && e.reason; pushErr('promise: ' + ((r && (r.message || r.code)) || r)); } catch (x) { } });
+
+  /* ── 함께 보내는 정보 ── */
+  function browser() {
+    var ua = navigator.userAgent || '', f = [['Edg', 'Edge'], ['OPR', 'Opera'], ['Firefox', 'Firefox'], ['Chrome', 'Chrome'], ['Safari', 'Safari']], i, m, name = 'other';
+    for (i = 0; i < f.length; i++) { m = new RegExp(f[i][0] + '/([0-9]+)').exec(ua); if (m) { name = f[i][1] + ' ' + m[1]; break; } }
+    return name + (/Windows/.test(ua) ? ' / Win' : /Android/.test(ua) ? ' / Android' : /iPhone|iPad/.test(ua) ? ' / iOS' : /Mac/.test(ua) ? ' / Mac' : /Linux/.test(ua) ? ' / Linux' : '');
+  }
+  function ctxInfo() {
+    var o = { lang: (SG.i18n && SG.i18n.lang) || 'ko', ver: String((window.__sgBoot && window.__sgBoot.V) || '').slice(0, 24), scr: window.innerWidth + 'x' + window.innerHeight, mob: /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent || ''), ua: browser().slice(0, 60) };
+    try {
+      var sb = SG.game && SG.game.sb, tt = $('#title');
+      if (sb && sb.s && tt && getComputedStyle(tt).display === 'none') { var who = $('#hud .who b'); o.ctx = ((who && who.textContent) || '').trim() + ' ' + sb.s.year; }
+    } catch (e) { }
+    if (B.errs.length) o.err = B.errs.join(' | ').slice(0, 600);
+    return o;
+  }
+  function ctxLines(c) {
+    var lab = { lang: ['언어', 'Language', '言語'], ver: ['버전', 'Version', 'バージョン'], scr: ['화면 크기', 'Screen size', '画面サイズ'], mob: ['기기', 'Device', '端末'], ua: ['브라우저', 'Browser', 'ブラウザ'], ctx: ['게임 상황', 'Game state', 'ゲームの状況'], err: ['최근 오류 기록', 'Recent errors', '最近のエラー'] }, out = [];
+    ['lang', 'ver', 'scr', 'mob', 'ua', 'ctx', 'err'].forEach(function (k) {
+      if (c[k] == null || c[k] === '') return;
+      var v = k === 'mob' ? (c.mob ? L3('휴대폰·태블릿', 'Phone / tablet', 'スマホ・タブレット') : L3('컴퓨터', 'Computer', 'パソコン')) : c[k];
+      out.push('<b>' + T3(lab[k]) + '</b> ' + esc(v));
+    });
+    return out;
+  }
+  function payload(cat, msg, withCtx) {
+    var d = { v: 1, cat: cat, msg: msg };
+    if (withCtx) { var c = ctxInfo(); Object.keys(c).forEach(function (k) { if (c[k] !== '' && c[k] != null) d[k] = c[k]; }); }
+    return d;
+  }
+
+  /* ── 보내기 · 도배 방지 · 내가 보낸 글 ── */
+  function send(d) {
+    var A = SG.account;
+    return new Promise(function (res, rej) {
+      if (!A || !A.sendFeedback) { rej({ code: 'feedback/unavailable' }); return; }
+      var done = false, t = setTimeout(function () { if (!done) { done = true; rej({ code: 'feedback/timeout' }); } }, 12000);
+      A.sendFeedback(d).then(function () { if (!done) { done = true; clearTimeout(t); res(); } }, function (e) { if (!done) { done = true; clearTimeout(t); rej(e || {}); } });
+    });
+  }
+  function recent() { var now = Date.now(); return lsGet(K.log, []).filter(function (t) { return typeof t === 'number' && now - t < 864e5; }); }
+  function tooFast() { var a = recent(); if (a.length && Date.now() - a[a.length - 1] < 20000) return 'fast'; if (a.length >= 10) return 'many'; return ''; }
+  function logSend() { var a = recent(); a.push(Date.now()); lsSet(K.log, a.slice(-20)); }
+  function upsertMine(m) {
+    var a = lsGet(K.mine, []).filter(function (x) { return x && x.id !== m.id; }); a.unshift(m); lsSet(K.mine, a.slice(0, 20));
+  }
+  function reason(e) {
+    var c = String((e && (e.code || e.message)) || '');
+    if (/permission-denied/.test(c)) return L3('아직 글을 받을 준비가 끝나지 않았습니다(관리자 설정 필요). 글은 이 기기에 보관했으니, 아래 「복사」나 「GitHub」로 남겨 주세요.', 'The board is not ready to receive posts yet (the site owner still needs to finish setup). Your post is kept on this device - please use "Copy" or "GitHub" below.', 'まだ投稿を受け付ける準備ができていません(管理者の設定が必要)。内容はこの端末に保管しました。下の「コピー」か「GitHub」をご利用ください。');
+    if (/timeout|unavailable|network|offline/.test(c)) return L3('인터넷에 연결되지 않았거나 서버가 응답하지 않습니다. 글은 이 기기에 보관했으니, 연결된 뒤 다시 보내 주세요.', 'You seem to be offline, or the server did not respond. Your post is kept on this device - please send it again once you are connected.', 'インターネットに接続されていないか、サーバーが応答しません。内容はこの端末に保管しました。接続後にもう一度送ってください。');
+    return L3('보내지 못했습니다. 글은 이 기기에 보관했습니다. 잠시 뒤 다시 시도하거나 아래 「복사」·「GitHub」를 이용해 주세요.', 'Could not send. Your post is kept on this device. Try again shortly, or use "Copy" / "GitHub" below.', '送信できませんでした。内容はこの端末に保管しました。しばらくしてからもう一度試すか、下の「コピー」「GitHub」をご利用ください。') + (c ? ' (' + esc(c.replace(/^[a-z]+\//, '').slice(0, 40)) + ')' : '');
+  }
+  function copyText(text, btn) {
+    var F = SG.feats;
+    if (F && F.copy) { F.copy(text, btn); return; }
+    try { navigator.clipboard.writeText(text); } catch (e) { }
+  }
+  function ghUrl(cat, msg) {
+    var base = SITE.FEEDBACK_URL || 'https://github.com/kjuhoho/samgukwang/issues/new';
+    if (!msg) return base;
+    var t = '[' + T3(CATS[cat].n) + '] ' + msg.replace(/\s+/g, ' ').slice(0, 50);
+    return base + (base.indexOf('?') < 0 ? '?' : '&') + 'title=' + encodeURIComponent(t) + '&body=' + encodeURIComponent(msg.slice(0, 1500));
+  }
+
+  /* ── 화면 ── */
+  B.open = function (opt) {
+    opt = opt || {};
+    if ($('.modal.fb')) return;
+    var root = (SG.game && SG.game.root) || $('#app') || document.body;
+    var wrap = h('div', 'modal top fb'), card = h('div', 'card fbcard'), body, dr = lsGet(K.draft, null);
+    var st = { tab: opt.tab || 'w', cat: opt.cat && CATS[opt.cat] ? opt.cat : 'idea', rid: newId(), msg: '', ctx: true, sent: false };
+    if (dr && typeof dr.msg === 'string' && dr.msg) { st.msg = dr.msg.slice(0, MAX); if (CATS[dr.cat] && !opt.cat) st.cat = dr.cat; st.rid = dr.rid || st.rid; }
+    wrap.appendChild(card); root.appendChild(wrap);
+    function close() { document.removeEventListener('keydown', onKey); wrap.remove(); }
+    function onKey(e) { if (e.key === 'Escape') close(); }
+    document.addEventListener('keydown', onKey);
+    wrap.onmousedown = function (e) { if (e.target === wrap) close(); };
+    function saveDraft() { var ta = $('#fb-t', card); if (ta) st.msg = ta.value; lsSet(K.draft, st.msg.trim() ? { cat: st.cat, msg: st.msg, rid: st.rid } : null); }
+
+    function render() {
+      var mine = lsGet(K.mine, []);
+      card.innerHTML = '<h2>💬 ' + L3('의견·제보 게시판', 'Feedback & Bug Reports', 'ご意見・不具合報告') + '</h2>' +
+        '<p class="fb-lead">' + L3('불편했던 점, 오류, 바라는 점을 바로 적어 보내 주세요. 보내신 글은 운영자만 읽고, 게임을 고치는 데 씁니다.', 'Tell us what felt off, what broke, or what you would like to see. Only the developer reads your post, and it is used to improve the game.', '不便だった点、不具合、ご要望をそのままお書きください。投稿は運営者だけが読み、ゲームの改善に使います。') + '</p>' +
+        '<div class="fb-tabs"><button type="button" data-t="w"' + (st.tab === 'w' ? ' class="on"' : '') + '>✍ ' + L3('글쓰기', 'Write', '書く') + '</button><button type="button" data-t="m"' + (st.tab === 'm' ? ' class="on"' : '') + '>📮 ' + L3('내가 보낸 글', 'My posts', '送信した投稿') + ' (' + mine.length + ')</button></div><div class="fb-body"></div>';
+      body = $('.fb-body', card);
+      if (st.tab === 'm') viewMine(); else if (st.sent) viewOk(); else viewWrite();
+    }
+
+    function viewWrite() {
+      body.innerHTML =
+        '<div class="fb-cats" role="radiogroup">' + Object.keys(CATS).map(function (k) { return '<button type="button" role="radio" data-c="' + k + '"' + (k === st.cat ? ' class="on" aria-checked="true"' : ' aria-checked="false"') + '>' + CATS[k].ic + ' ' + T3(CATS[k].n) + '</button>'; }).join('') + '</div>' +
+        '<textarea id="fb-t" maxlength="' + MAX + '" rows="6"></textarea>' +
+        '<div class="fb-row"><span id="fb-n"></span><span>' + L3('이름·이메일 같은 개인정보는 적지 마세요.', 'Please do not write names, emails or other personal details.', 'お名前・メールなどの個人情報は書かないでください。') + '</span></div>' +
+        '<label class="fb-ck"><input type="checkbox" id="fb-c"' + (st.ctx ? ' checked' : '') + '><span>' + L3('게임 상황도 함께 보내기 (오류를 찾는 데 도움이 됩니다)', 'Include game info (helps us track down bugs)', 'ゲームの状況も一緒に送る(不具合の調査に役立ちます)') + ' <a id="fb-w">' + L3('무엇을 보내나요?', 'What is sent?', '何を送る?') + '</a></span></label>' +
+        '<div class="fb-what" id="fb-wh" hidden></div><div class="rc-err" id="fb-e"></div>' +
+        '<div class="rc-foot"><span class="fb-sub"><a id="fb-cp">📋 ' + L3('복사', 'Copy', 'コピー') + '</a><a id="fb-gh">↗ GitHub</a></span><button type="button" class="btn" data-a="x">' + L3('닫기', 'Close', '閉じる') + '</button><button type="button" class="btn pri" id="fb-go">' + L3('보내기', 'Send', '送信') + '</button></div>';
+      var ta = $('#fb-t', card), n = $('#fb-n', card);
+      ta.value = st.msg; ta.placeholder = T3(CATS[st.cat].hint);
+      function cnt() { n.textContent = ta.value.length + ' / ' + MAX; }
+      cnt(); ta.oninput = function () { cnt(); saveDraft(); };
+      [].slice.call(card.querySelectorAll('.fb-cats button')).forEach(function (b) {
+        b.onclick = function () { st.cat = b.getAttribute('data-c'); saveDraft(); [].slice.call(card.querySelectorAll('.fb-cats button')).forEach(function (x) { var on = x === b; x.classList.toggle('on', on); x.setAttribute('aria-checked', on ? 'true' : 'false'); }); ta.placeholder = T3(CATS[st.cat].hint); };
+      });
+      $('#fb-c', card).onchange = function () { st.ctx = this.checked; };
+      $('#fb-w', card).onclick = function (e) {
+        e.preventDefault();   // 라벨 안의 링크라서, 막지 않으면 체크 상자가 같이 바뀐다
+        var wh = $('#fb-wh', card); if (!wh.hidden) { wh.hidden = true; return; }
+        wh.innerHTML = ctxLines(ctxInfo()).join('<br>') + '<br><small>' + L3('이름·이메일·계정 정보는 보내지 않습니다.', 'Your name, email and account details are never sent.', 'お名前・メール・アカウント情報は送りません。') + '</small>'; wh.hidden = false;
+      };
+      $('#fb-cp', card).onclick = function () { var t = ta.value.trim(); if (t) copyText(t, this); };
+      $('#fb-gh', card).onclick = function () { window.open(ghUrl(st.cat, ta.value.trim()), '_blank', 'noopener'); };
+      $('#fb-go', card).onclick = submit;
+      setTimeout(function () { try { ta.focus(); } catch (e) { } }, 30);
+    }
+
+    function lock(on, label) { var go = $('#fb-go', card); if (!go) return; go.disabled = !!on; if (label) go.textContent = label; else go.textContent = L3('보내기', 'Send', '送信'); }
+
+    function submit() {
+      var ta = $('#fb-t', card), err = $('#fb-e', card), msg = (ta.value || '').trim();
+      err.textContent = '';
+      if (msg.length < MIN) { err.textContent = L3('내용을 ' + MIN + '자 이상 적어 주세요.', 'Please write at least ' + MIN + ' characters.', MIN + '文字以上で内容をお書きください。'); ta.focus(); return; }
+      var th = tooFast();
+      if (th) { err.textContent = th === 'fast' ? L3('방금 보내셨습니다. 20초쯤 뒤에 다시 보내 주세요.', 'You just sent one. Please wait about 20 seconds.', 'いま送信されました。20秒ほど待ってからもう一度お送りください。') : L3('오늘 보낼 수 있는 글(10건)을 모두 보내셨습니다. 내일 다시 이용해 주세요.', 'You have reached today\'s limit (10 posts). Please come back tomorrow.', '本日の送信上限(10件)に達しました。明日またご利用ください。'); return; }
+      st.msg = ta.value; var d = payload(st.cat, msg, $('#fb-c', card).checked), cat = st.cat, rid = st.rid;
+      lock(true, L3('보내는 중…', 'Sending...', '送信中...'));
+      send(d).then(function () {
+        logSend(); upsertMine({ id: rid, at: Date.now(), cat: cat, msg: msg, st: 'ok' }); lsSet(K.draft, null); st.msg = ''; st.sent = true; st.rid = newId(); render();
+      }, function (e) {
+        upsertMine({ id: rid, at: Date.now(), cat: cat, msg: msg, d: d, st: 'wait' });
+        if ($('#fb-go', card)) { lock(false); $('#fb-e', card).innerHTML = reason(e); }
+      });
+    }
+
+    function viewOk() {
+      body.innerHTML = '<div class="fb-ok"><i>✔</i><b>' + L3('보냈습니다. 고맙습니다!', 'Sent. Thank you!', '送信しました。ありがとうございます!') + '</b><p>' + L3('운영자가 읽고 게임을 고치는 데 반영합니다. (개별 답장은 드리지 못할 수 있습니다.)', 'The developer will read it and use it to improve the game. (We may not be able to reply individually.)', '運営者が読み、ゲームの改善に役立てます。(個別のご返信はできない場合があります。)') + '</p></div>' +
+        '<div class="rc-foot"><button type="button" class="btn" data-a="more">' + L3('더 쓰기', 'Write another', 'もう一件書く') + '</button><button type="button" class="btn pri" data-a="x">' + L3('닫기', 'Close', '閉じる') + '</button></div>';
+    }
+
+    function viewMine() {
+      var mine = lsGet(K.mine, []);
+      if (!mine.length) { body.innerHTML = '<div class="rc-empty">' + L3('아직 보낸 글이 없습니다.', 'You have not sent anything yet.', 'まだ送信した投稿はありません。') + '</div>'; return; }
+      body.innerHTML = '<div class="fb-list"></div><div class="rc-foot"><button type="button" class="btn" data-a="x">' + L3('닫기', 'Close', '閉じる') + '</button></div>';
+      var list = $('.fb-list', body);
+      mine.forEach(function (m) {
+        var c = CATS[m.cat] || CATS.etc, ok = m.st === 'ok';
+        var it = h('div', 'fb-item', '<div class="hd"><b>' + c.ic + ' ' + T3(c.n) + '</b><span>' + fmtDate(m.at) + '</span><span class="st ' + (ok ? 'ok' : 'wait') + '">' + (ok ? '✔ ' + L3('전달됨', 'Delivered', '送信済み') : '⏳ ' + L3('보내지 못함', 'Not sent', '未送信')) + '</span></div><div class="tx">' + esc(m.msg) + '</div><div class="ac"></div>');
+        var ac = $('.ac', it);
+        if (!ok && m.d) { var rb = h('button', 'btn', L3('다시 보내기', 'Send again', '再送信')); rb.type = 'button'; rb.onclick = function () { rb.disabled = true; rb.textContent = L3('보내는 중…', 'Sending...', '送信中...'); send(m.d).then(function () { logSend(); upsertMine({ id: m.id, at: m.at, cat: m.cat, msg: m.msg, st: 'ok' }); var dd = lsGet(K.draft, null); if (dd && dd.rid === m.id) { lsSet(K.draft, null); st.msg = ''; } render(); }, function (e) { rb.disabled = false; rb.textContent = L3('다시 보내기', 'Send again', '再送信'); var s = $('.st', it); s.textContent = '⏳ ' + L3('아직 보내지 못했습니다', 'Still not sent', 'まだ送信できません'); }); }; ac.appendChild(rb); }
+        var cb = h('button', 'btn', '📋 ' + L3('복사', 'Copy', 'コピー')); cb.type = 'button'; cb.onclick = function () { copyText(m.msg, cb); }; ac.appendChild(cb);
+        var db = h('button', 'btn', L3('목록에서 지우기', 'Remove from list', 'リストから削除')); db.type = 'button'; db.onclick = function () { lsSet(K.mine, lsGet(K.mine, []).filter(function (x) { return x && x.id !== m.id; })); render(); }; ac.appendChild(db);
+        list.appendChild(it);
+      });
+    }
+
+    card.onclick = function (e) {
+      var t = e.target; if (!t || !t.getAttribute) return;
+      var tab = t.getAttribute('data-t'), a = t.getAttribute('data-a');
+      if (tab) { saveDraft(); st.tab = tab; st.sent = false; render(); }
+      else if (a === 'x') close();
+      else if (a === 'more') { st.sent = false; st.msg = ''; st.tab = 'w'; render(); }
+    };
+    render();
+    return { close: close };
+  };
+
+  /* ── 버튼 달기: 타이틀 도구줄 + 게임 화면 위쪽 ── */
+  function mount() {
+    var tb = document.getElementById('toptools');
+    if (tb && !document.getElementById('fb-top')) {
+      var b = h('button', 'btn', '💬 ' + L3('의견·제보', 'Feedback', 'ご意見・不具合報告')); b.id = 'fb-top'; b.type = 'button';
+      b.title = L3('의견·오류 제보 게시판', 'Feedback & bug reports', 'ご意見・不具合報告'); b.onclick = function () { B.open(); }; tb.appendChild(b);
+    }
+    var hud = document.getElementById('hud');
+    if (hud && !document.getElementById('btn-fb')) {
+      var f = h('button', 'btn', '💬'); f.id = 'btn-fb'; f.type = 'button';
+      f.title = L3('의견·오류 제보 게시판', 'Feedback & bug reports', 'ご意見・不具合報告'); f.onclick = function () { B.open(); }; hud.appendChild(f);
+    }
+  }
+  if (document.readyState !== 'loading') mount(); else document.addEventListener('DOMContentLoaded', mount);
+})();
+
+;
 /* ==== js/engine/feats.js ==== */
-window.__sgL=54;
+window.__sgL=56;
 /* 업적·치적 시스템
  *  ① 재위 중 통계(전투·점령·극값·연승·평화 기간·주요 장면)를 s.feat 에 쌓는다. 저장 파일에 함께 들어가므로 이어하기에서도 이어진다.
  *  ② 업적은 DEFS 데이터로 정의한다(goals 가 여러 개면 단계가 오르는 업적). 해마다 판정해 새로 얻으면 알림을 띄우고,
@@ -9231,16 +9929,24 @@ window.__sgL=54;
     function fallback() { try { var ta = h('textarea'); ta.value = text; ta.style.cssText = 'position:fixed;left:-999px;top:0'; document.body.appendChild(ta); ta.select(); var ok = document.execCommand('copy'); ta.remove(); done(ok); } catch (e) { done(false); } }
   };
 
-  /* ── 알림(도중 새 업적) ── */
-  function toast(it) {
-    var root = $('#app') || document.body, box = $('#ftoasts');
-    if (!box) { box = h('div'); box.id = 'ftoasts'; root.appendChild(box); }
-    var t = h('div', 'ftoast t-' + it.tier, '<span class="ic">' + it.d.icon + '</span><div><small>' + L3('업적 달성', 'Achievement unlocked', '実績達成') + ' ' + STAR[it.tier] + '</small><b>' + esc(F.name(it)) + '</b><em>' + esc(F.desc(it, it.goal)) + '</em></div>');
-    box.appendChild(t); setTimeout(function () { t.classList.add('out'); setTimeout(function () { t.remove(); }, 700); }, 5200);
+  /* ── 알림(도중 새 업적) ──
+   * 화면 가운데로 크게 뜨지 않게, 지도 왼쪽 아래 구석(범례 바로 위)에 작고 흐릿한 한 줄로만 잠깐 보인다.
+   * 한 해에 여러 개를 달성해도 한 줄로 합친다(마우스를 올리면 전체 이름). 전체 목록은 결말 화면·내 기록에서 본다. */
+  var TIER_RANK = { bronze: 0, silver: 1, gold: 2, legend: 3 };
+  function toast(items) {
+    var root = $('#app') || document.body, box = $('#atoasts');
+    if (!box) { box = h('div'); box.id = 'atoasts'; root.appendChild(box); }
+    var lead = items[0]; items.forEach(function (x) { if ((TIER_RANK[x.tier] || 0) > (TIER_RANK[lead.tier] || 0)) lead = x; });
+    var more = items.length - 1;
+    var t = h('div', 'atoast t-' + lead.tier, '<span class="ic">' + lead.d.icon + '</span><span class="tx"><small>' + L3('업적', 'Achievement', '実績') + '</small> <b>' + esc(F.name(lead)) + '</b>' + (more > 0 ? ' <i>' + L3('외 ' + more + '건', '+' + more + ' more', '他' + more + '件') + '</i>' : '') + '</span>');
+    t.title = items.map(function (x) { return F.name(x); }).join(' · ');
+    while (box.firstChild) box.removeChild(box.firstChild);   // 이전 알림이 남아 있으면 바로 바꿔 끼운다(쌓이지 않게)
+    box.appendChild(t); setTimeout(function () { t.classList.add('out'); setTimeout(function () { if (t.parentNode) t.remove(); }, 900); }, 3600);
   }
   function flush(sb) {
     var f = S_(sb); if (!f.q || !f.q.length) return;
-    var ids = f.q.splice(0, f.q.length); ids.slice(0, 4).forEach(function (id, i) { var it = IDX[id]; if (it) setTimeout(function () { toast(it); }, i * 700); });
+    var ids = f.q.splice(0, f.q.length), its = ids.map(function (id) { return IDX[id]; }).filter(Boolean);
+    if (its.length) toast(its);
   }
 
   /* ── 엔진에 걸기 ── */
@@ -9303,7 +10009,7 @@ window.__sgL=54;
 
 ;
 /* ==== js/engine/account.js ==== */
-window.__sgL=55;
+window.__sgL=57;
 /* 계정·체험판·내 기록
  *  ① 로그인: Firebase Authentication(구글 로그인) + Firestore(기록). SITE.FIREBASE 설정이 비어 있으면 로그인·체험판 제한은 꺼지고
  *     기록은 이 기기에만 저장된다(설정을 채우면 자동으로 켜진다). 개발 시험용 가짜 로그인(mock)은 내 컴퓨터(localhost)에서만 켤 수 있다.
@@ -9346,6 +10052,7 @@ window.__sgL=55;
     box.appendChild(t); setTimeout(function () { t.classList.add('out'); setTimeout(function () { t.remove(); }, 700); }, 4800);
   }
   A.say = say;
+  A.sendFeedback = function (d) { return A._ad && A._ad.feedback ? A._ad.feedback(d) : Promise.reject({ code: 'feedback/unavailable' }); };   // 의견·제보 게시판이 쓴다
   function errMsg(e) {
     var c = (e && e.code) || '';
     if (/popup-closed|cancelled-popup/.test(c)) return L3('로그인을 취소했습니다.', 'Login cancelled.', 'ログインをキャンセルしました。');
@@ -9370,6 +10077,7 @@ window.__sgL=55;
       list: function (u) { return Promise.resolve(rd(u)); },
       put: function (u, rec) { var a = rd(u).filter(function (x) { return x.id !== rec.id; }); a.unshift(rec); try { localStorage.setItem(ck(u), JSON.stringify(a)); } catch (e) { } return Promise.resolve(); },
       clear: function (u) { try { localStorage.removeItem(ck(u)); } catch (e) { } return Promise.resolve(); },
+      feedback: function (d) { var a = []; try { a = JSON.parse(localStorage.getItem('samgukwang.mock.feedback') || '[]'); } catch (e) { } a.unshift(Object.assign({ at: Date.now() }, d)); try { localStorage.setItem('samgukwang.mock.feedback', JSON.stringify(a.slice(0, 50))); } catch (e) { } return new Promise(function (res) { setTimeout(res, 250); }); },
       drop: function () { try { localStorage.removeItem(UK); } catch (e) { } cb(null); return Promise.resolve(); }   // 계정(로그인 정보) 삭제
     };
   }
@@ -9407,6 +10115,9 @@ window.__sgL=55;
           .then(function (snap) { var a = []; snap.forEach(function (d) { a.push(d.data()); }); return a; });
       },
       put: function (u, rec) { return lf().then(function (X) { var fs = X.fs; return fs.setDoc(fs.doc(db, 'users', u.uid, 'records', rec.id), JSON.parse(JSON.stringify(rec))); }); },
+      feedback: function (d) {   // 의견·제보 게시판(js/engine/board.js): feedback 컬렉션에 새 글 1건. 쓰기 전용이라 읽을 수 없다(규칙: tools/firebase/firestore.rules)
+        return lf().then(function (X) { var fs = X.fs; return fs.addDoc(fs.collection(db, 'feedback'), Object.assign({}, d, { at: fs.serverTimestamp() })); });
+      },
       clear: function (u) {
         return lf().then(function (X) {
           var fs = X.fs;
@@ -9517,6 +10228,7 @@ window.__sgL=55;
       li(L3('<b>쓰는 곳</b> — 로그인 유지, 기록·업적의 보관과 표시. 광고나 제3자 제공에는 쓰지 않습니다.', '<b>Used for</b> — keeping you logged in, and storing and showing your records and achievements. Never for ads or sharing with third parties.', '<b>使い道</b> — ログインの維持、記録・実績の保管と表示。広告や第三者提供には使いません。')) +
       li(L3('<b>지우는 법</b> — 「내 기록」 아래의 「기록 모두 삭제」로 기록을, 로그인한 상태에서는 「계정 삭제」로 로그인 정보까지 언제든 지울 수 있습니다.', '<b>Deleting</b> — at the bottom of My Records, “Delete all records” erases your records any time, and while logged in “Delete account” removes your login as well.', '<b>削除</b> — 「マイ記録」下部の「記録をすべて削除」で記録を、ログイン中は「アカウント削除」でログイン情報まで、いつでも消せます。')) +
       li(L3('<b>체험 횟수</b>는 이 기기의 브라우저에만 저장됩니다.', 'The <b>trial turn count</b> is stored only in this browser.', '<b>体験の回数</b>はこの端末のブラウザにのみ保存されます。')) +
+      li(L3('<b>의견·제보 게시판</b>에 쓴 글은 운영자만 읽습니다. 「게임 상황도 함께 보내기」를 켜 두면 언어·화면 크기·브라우저·플레이 중인 왕과 연도·최근 오류 기록이 함께 가며, 이름·이메일·계정 정보는 보내지 않습니다.', 'Posts on the <b>Feedback &amp; Bug Reports</b> board are read only by the developer. If “Include game info” is on, your language, screen size, browser, current king and year, and recent error messages are sent too - never your name, email or account details.', '<b>ご意見・不具合報告</b>に書いた投稿は運営者だけが読みます。「ゲームの状況も一緒に送る」をオンにすると、言語・画面サイズ・ブラウザ・プレイ中の王と年・最近のエラー記録も送られます。お名前・メール・アカウント情報は送りません。')) +
       '</ul><div class="rc-foot"><button class="btn" data-a="x">' + L3('닫기', 'Close', '閉じる') + '</button></div>';
   }
   function openPrivacy() {
@@ -9584,7 +10296,7 @@ window.__sgL=55;
       if (A.user) {
         var nm = (A.user.name || '').trim() || L3('회원', 'Member', '会員'), chip = h('span', 'acct-chip', '<i>' + esc(nm.charAt(0).toUpperCase()) + '</i>' + esc(nm)), out = h('button', 'btn', L3('로그아웃', 'Log out', 'ログアウト'));
         out.onclick = function () { A.logout(); }; box.appendChild(chip); box.appendChild(out);
-      } else if (!A.failed) { var li = gbtn(L3('로그인', 'Log in', 'ログイン'), 'btn'); li.onclick = function () { A.login(); }; box.appendChild(li); }
+      } else if (!A.failed) { var li = gbtn(L3('Google 로그인', 'Log in with Google', 'Googleでログイン'), 'btn'); li.onclick = function () { A.login(); }; box.appendChild(li); }
     }
     var note = $('#acct-note');
     if (!note) { note = h('div'); note.id = 'acct-note'; var kings = $('#kings', t); t.insertBefore(note, kings || null); }
@@ -9706,7 +10418,7 @@ window.__sgL=55;
 
 ;
 /* ==== js/i18n/i18n.js ==== */
-window.__sgL=56;
+window.__sgL=58;
 /* 다국어(한국어·일본어·영어). 원문(한국어)을 키로 하는 사전을 쓰며, 사전에 없는 문장은 한국어 그대로 보인다.
    ① 데이터(명령·사건·장소·인물·시나리오)는 시작할 때 한 번에 번역해 바꿔 둔다.
    ② 화면에 나타나는 글(DOM)·알림창은 실시간으로 번역한다. 숫자는 {n} 으로 바꿔 같은 문장틀로 찾는다.
@@ -9871,11 +10583,23 @@ window.__sgL=56;
     LANGS.forEach(function (l) { var o = document.createElement('option'); o.value = l[0]; o.textContent = l[1]; if (l[0] === I.lang) o.selected = true; s.appendChild(o); });
     s.onchange = function () { I.set(s.value); }; return s;
   }
+  // 타이틀 화면용: 한국어 | 日本語 | English 를 한눈에 보이는 세 칸 버튼으로(누르면 바로 바뀜)
+  function langSeg() {
+    var d = document.createElement('div'); d.className = 'langseg'; d.setAttribute('role', 'group'); d.setAttribute('aria-label', 'Language');
+    LANGS.forEach(function (l) {
+      var b = document.createElement('button'); b.type = 'button'; b.textContent = l[1]; b.lang = l[0]; b.setAttribute('translate', 'no');
+      var on = l[0] === I.lang; if (on) b.className = 'on'; b.setAttribute('aria-pressed', on ? 'true' : 'false');
+      b.onclick = function () { if (l[0] !== I.lang) I.set(l[0]); };
+      d.appendChild(b);
+    });
+    return d;
+  }
   window.addEventListener('DOMContentLoaded', function () {
     I.localizeData();
     var hud = document.getElementById('hud');
     if (hud) hud.appendChild(selector());
-    var t = document.querySelector('#title > div'); if (t) { var w = document.createElement('div'); w.className = 'lang-top'; w.appendChild(selector()); t.insertBefore(w, t.firstChild); }
+    var t = document.querySelector('#title > div');
+    if (t) { var w = t.querySelector('.lang-top'); if (!w) { w = document.createElement('div'); w.className = 'lang-top'; t.insertBefore(w, t.firstChild); } w.appendChild(langSeg()); }
     start();
     try { if (localStorage.getItem('samgukwang.resume')) { localStorage.removeItem('samgukwang.resume'); setTimeout(function () { if (SG.save && SG.save.read()) SG.save.load(); }, 300); } } catch (e) { }
   });

@@ -49,7 +49,7 @@ SG.i18n.add('en', {
   '큰 강 하구 조선소에서 새 전선이 진수되었습니다.': 'New warships were launched from the shipyard at the great river\'s mouth.',
   '척후망·첩보 강화': 'Strengthen Scouts & Intelligence', '국경 척후를 늘려 적정을 살핍니다.': 'Add border scouts to watch the enemy.',
   '국경마다 척후가 늘고 봉수가 정비되었습니다. 적의 움직임이 한결 잘 보입니다.': 'Scouts increased along the border and the beacons were restored. Enemy movements are much easier to see.',
-  '병력 배치 조정': 'Adjust Troop Deployment', '수도와 전선 성에 주둔시킬 병력 비율을 정합니다. (침공·방어전에서 그 방면의 방어력에 영향)': 'Set the share of troops stationed at the capital and frontier fortresses. (Affects defense in that sector during invasions)',
+  '병력 배치 조정': 'Adjust Troop Deployment', '소유한 모든 성에 주둔시킬 병력 비율을 정합니다. (침공·방어전에서 그 방면의 방어력에 영향, 병력을 둔 성은 적도 노리기 어렵습니다)': 'Set the share of troops stationed at each castle you hold. (Affects defense in that sector during invasions; enemies also hesitate to attack a heavily garrisoned castle)',
   '장수들을 불러 병력을 새로 나누어 배치했습니다.': 'The generals were summoned and the troops redeployed.',
   '열병과 포상': 'Review & Reward', '군을 사열하고 공을 세운 자를 상합니다.': 'Review the army and reward those who earned merit.',
   '열병식에서 왕이 직접 공을 세운 장수에게 말과 곡식을 내렸습니다.': 'At the review, the king personally granted horses and grain to the meritorious generals.',
@@ -800,7 +800,7 @@ window.__sgL=4;
     '내정': 'Domestic', '군사': 'Military', '외교': 'Diplomacy', '특수': 'Special', '참모의 말': 'Advisor says', '최근 기록': 'Recent log', '시행 중인 법령': 'Laws in force', '계속': 'Continue', '취소': 'Cancel', '목록으로': 'Back to list',
     '— 행동력 부족': '— Not enough action points', '— 자원 부족': '— Not enough resources', '— 조건 미충족': '— Conditions not met', '— 재사용까지 {n}년': '— Available again in {n} yr', '비용 없음': 'No cost',
     '현재 관계 {n}': 'Current relation {n}', '(국력 {n} · 적의 {n})': '(Power {n} · Hostility {n})', '(국력 {n} · 개입 {n})': '(Power {n} · Involvement {n})',
-    '{n}년': 'Year {n}', '{n}년 결산': 'Year {n} Summary', '— 수입 금 +{n} 군량 +{n}(군 유지비 포함).': '— Income: gold +{n}, provisions +{n} (army upkeep included).',
+    '{n}년': 'Year {n}', '{n}년 결산': 'Year {n} Summary', '— 수입 금 +{n} 군량 +{n}(군 유지비 포함).': '— Income: gold +{n} provisions +{n} (army upkeep included).',
     '📍 사건 위치 다시 보기': '📍 Show event location again', '실제 역사 메모': 'Historical Note', '출처': 'Source',
     '큰 급보는 없습니다. 법령을 정비하거나 군을 키우기 좋은 때입니다.': 'No major alarms. A good time to build up laws or the army.',
     '나라가 안정되어 있습니다. 힘을 키울 때입니다.': 'The realm is stable. Time to build strength.',
@@ -1043,7 +1043,7 @@ window.__sgL=6;
     ['고구려가 먼저 손을 내밀 조짐이 있습니다.', 'There are signs that Goguryeo may reach out first.', '高句麗の方から手を差し伸べる兆しがあります。'],
     ['당군이 {n}월 초 백제 앞바다에 도착합니다. 군량과 병력, 훈련을 충분히 쌓아 두십시오.', 'The Tang army arrives off Baekje’s coast in early month {n}. Stockpile enough provisions, troops and training.', '唐軍が{n}月初め百済の沖に到着します。軍糧・兵力・訓練を十分に蓄えておいてください。'],
     ['곡식 창고가 비어 갑니다. 군이 크면 유지비가 큽니다. 농사 장려나 진휼을 서두르고, 금이 있다면 「군량 구입」으로 시장에서 곡식을 사들이십시오.', 'The granary is running empty, and a big army is costly to feed. Hurry farming incentives or famine relief, and if you have gold, use “Buy Grain” to purchase grain on the market.', '穀倉が空になりつつあります。軍が大きいと維持費がかさみます。勧農か賑恤を急ぎ、金があるなら「軍糧の購入」で市場から穀物を買い入れてください。'],
-    ['해마다 군량이 {n}씩 줄어드는 형편이라 곳간이 오래가지 못합니다. 농사 장려·둔전으로 수입을 늘리거나 「군량 구입」으로 미리 쌓아 두십시오.', 'Grain shrinks by {n} each year, so the stores will not last. Raise income through farming incentives or military farms, or stock up in advance with “Buy Grain”.', '毎年軍糧が{n}ずつ減る状況で、蔵は長くもちません。勧農・屯田で収入を増やすか、「軍糧の購入」で前もって備蓄してください。'],
+    ['해마다 군량이 {n}씩 줄어드는 형편이라 곳간이 오래가지 못합니다. 수리 시설·농기구·둔전으로 농업을 키워 수입을 늘리거나, 「군량 구입」·「곡물 추가 징수」로 급한 불을 끄십시오.', 'Grain shrinks by {n} each year, so the stores will not last. Raise income by building up agriculture with irrigation, farm tools and military farms, or put out the fire with “Buy Grain” or “Extra Grain Levy”.', '毎年軍糧が{n}ずつ減る状況で、蔵は長くもちません。水利施設・農具・屯田で農業を育てて収入を増やすか、「軍糧の購入」「穀物の追加徴収」で急場をしのいでください。'],
   ];
   var D = {}; W.forEach(function (w) { D[w[0]] = L === 'ja' ? w[2] : w[1]; }); I.add(L, D);
 

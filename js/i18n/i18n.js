@@ -162,11 +162,23 @@
     LANGS.forEach(function (l) { var o = document.createElement('option'); o.value = l[0]; o.textContent = l[1]; if (l[0] === I.lang) o.selected = true; s.appendChild(o); });
     s.onchange = function () { I.set(s.value); }; return s;
   }
+  // 타이틀 화면용: 한국어 | 日本語 | English 를 한눈에 보이는 세 칸 버튼으로(누르면 바로 바뀜)
+  function langSeg() {
+    var d = document.createElement('div'); d.className = 'langseg'; d.setAttribute('role', 'group'); d.setAttribute('aria-label', 'Language');
+    LANGS.forEach(function (l) {
+      var b = document.createElement('button'); b.type = 'button'; b.textContent = l[1]; b.lang = l[0]; b.setAttribute('translate', 'no');
+      var on = l[0] === I.lang; if (on) b.className = 'on'; b.setAttribute('aria-pressed', on ? 'true' : 'false');
+      b.onclick = function () { if (l[0] !== I.lang) I.set(l[0]); };
+      d.appendChild(b);
+    });
+    return d;
+  }
   window.addEventListener('DOMContentLoaded', function () {
     I.localizeData();
     var hud = document.getElementById('hud');
     if (hud) hud.appendChild(selector());
-    var t = document.querySelector('#title > div'); if (t) { var w = document.createElement('div'); w.className = 'lang-top'; w.appendChild(selector()); t.insertBefore(w, t.firstChild); }
+    var t = document.querySelector('#title > div');
+    if (t) { var w = t.querySelector('.lang-top'); if (!w) { w = document.createElement('div'); w.className = 'lang-top'; t.insertBefore(w, t.firstChild); } w.appendChild(langSeg()); }
     start();
     try { if (localStorage.getItem('samgukwang.resume')) { localStorage.removeItem('samgukwang.resume'); setTimeout(function () { if (SG.save && SG.save.read()) SG.save.load(); }, 300); } } catch (e) { }
   });

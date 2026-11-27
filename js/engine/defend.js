@@ -51,7 +51,7 @@
       var fy = clamp((s.realm.navy - 30) / 140, 0, 0.5);
       i.over = true; i.base = this.baseTroops(pl); i.ferry = tot * fy; i.local = Math.min(tot, i.base + i.ferry);
     } else {
-      var st = this.stations(), sumSh = 0; st.forEach(function (x) { sumSh += x.share; });
+      var st = this.allStations(), sumSh = 0; st.forEach(function (x) { sumSh += x.share; });
       var stN = sumSh / 100 * L, resN = Math.max(0, 100 - sumSh) / 100 * L, ab = Math.min(abroad(this), 0.4 * L);
       var fromRes = Math.min(resN, ab), fromSt = ab - fromRes, sc = stN > 0 ? clamp(1 - fromSt / stN, 0.3, 1) : 1, atN = 0, near = 0;   // 해외 거점에 나간 병력은 예비군부터 빠지고, 모자라면 진영들이 나누어 부담한다
       st.forEach(function (x) { var n = x.share / 100 * L * sc, d = dist(x.pl, pl); if (d <= 0.3) atN = Math.max(atN, n); else near += n * m.send * reach(d, m.sc); });

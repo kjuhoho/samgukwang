@@ -1,7 +1,7 @@
 /* 배치·지도 상호작용 확장 (Sandbox 확장)
  *  - 시기별 성 소유·표시, 아군/타국 주둔 깃발(첩보 수준에 따른 오차)
  *  - 지도에서 성을 눌러 공격 목표 지정 / 임의의 적 성 공격
- *  - 병력 배치 조정(수도·전선 주둔 비율 → 해당 방면 방어력)
+ *  - 병력 배치 조정(소유한 모든 성의 주둔 비율 → 해당 방면 방어력·적의 공격 목표 선택·출병 거점)
  *  - 사건 화면: 해당 위치로 카메라 이동·적군 진로 표시, 선택지에 마우스를 올리면 그 지점으로 이동
  *  - 자유 입력: 해석 + 결과 + 수치 변화 표시 */
 (function () {
@@ -14,6 +14,7 @@
   function dist(a, b) { return Math.hypot((a.lon - b.lon) * 0.8, a.lat - b.lat); }
   function fmt(n) { return n >= 10000 ? (Math.round(n / 1000) / 10) + '만' : (Math.round(n / 100) / 10) + '천'; }
   function hash(str) { var x = 0; for (var i = 0; i < str.length; i++) x = (x * 31 + str.charCodeAt(i)) | 0; return ((x >>> 0) % 1000) / 500 - 1; }
+  function L3(ko, en, ja) { var l = SG.i18n && SG.i18n.lang; return l === 'en' ? en : l === 'ja' ? ja : ko; }
   function peninsula(pl) { return pl.lon >= 124 && pl.lon <= 130.6 && pl.lat >= 33 && pl.lat <= 40.5; }
 
   /* ── 소유·존재 ── */
@@ -47,17 +48,41 @@
     mine.sort(function (a, b) { return dist(a, foe) - dist(b, foe); });
     var fronts = [];
     mine.forEach(function (pl) { if (fronts.length < 4 && fronts.every(function (f) { return dist(f, pl) > 0.45; }) && (!cap || dist(cap, pl) > 0.3)) fronts.push(pl); });
-    if (cap) out.push({ pl: cap, role: 'capital', share: s.deploy[cap.id] != null ? s.deploy[cap.id] : 30 });
-    fronts.forEach(function (pl, i) { out.push({ pl: pl, role: 'front', share: s.deploy[pl.id] != null ? s.deploy[pl.id] : FRONT_DEF[i] }); });
+    if (cap) out.push({ pl: cap, role: 'capital', share: self.shareOf(cap, 30) });
+    fronts.forEach(function (pl, i) { out.push({ pl: pl, role: 'front', share: self.shareOf(pl, FRONT_DEF[i]) }); });
     var tot = out.reduce(function (t, x) { return t + x.share; }, 0);
     if (tot > 100) out.forEach(function (x) { x.share = Math.floor(x.share * 100 / tot); });
     return out;
   };
+  // 성 하나의 주둔 비율: 병력 배치 화면에서 조정하는 동안에는 미리보기 값(_dpTmp)을, 아니면 저장된 값(s.deploy)을, 둘 다 없으면 기본값 def 를 쓴다
+  P.shareOf = function (pl, def) {
+    var t = this._dpTmp, d = this.s.deploy || {};
+    return t && t[pl.id] != null ? t[pl.id] : (d[pl.id] != null ? d[pl.id] : def);
+  };
+  // 도성·전선 말고도 소유한 본토의 어느 성에든 병력을 둘 수 있다(role:'post'). 주둔 비율이 0인 성은 목록에 넣지 않는다(성 수비대만 있는 성)
+  P.allStations = function () {
+    var self = this, core = this.stations(), seen = {}, out = core.slice(), home = this.homeRegion ? this.homeRegion() : null;
+    core.forEach(function (x) { seen[x.pl.id] = 1; });
+    this.places().forEach(function (pl) {
+      if (seen[pl.id] || self.ownerOf(pl) !== self.side) return;
+      if (home != null && SG.regionOf && SG.regionOf(pl) !== home) return;
+      var sh = self.shareOf(pl, 0); if (sh > 0) out.push({ pl: pl, role: 'post', share: sh });
+    });
+    var tot = out.reduce(function (t, x) { return t + x.share; }, 0);
+    if (tot > 100) out = out.map(function (x) { return { pl: x.pl, role: x.role, share: Math.floor(x.share * 100 / tot) }; });
+    return out;
+  };
   P.landTotal = function () { var A = this.g.state.army, t = 0; for (var k in A) { var U = SG.unitById(k); if (U && !NAV[U.base]) t += A[k]; } return t; };
+  // 어떤 지점을 칠 때의 출병·합류 거점: 가장 가까운 도성·전선 거점. 그 방면(약 180km 안)에 더 많은 병력을 둔 성이 있으면 그 성이 맡는다(병력을 둔 성이 오히려 손해가 되지 않게)
+  P.stationFor = function (pl) {
+    var best = null;
+    this.stations().forEach(function (x) { var d = pl ? dist(x.pl, pl) : 0; if (!best || d < best.d) best = { x: x, d: d }; });
+    this.allStations().forEach(function (x) { if (x.role !== 'post') return; var d = pl ? dist(x.pl, pl) : 0; if (d < 1.6 && (!best || x.share > best.x.share)) best = { x: x, d: d }; });
+    return best;
+  };
   P.nearestStation = function (placeId) {
-    var pl = SG.placeById(placeId), st = this.stations(), best = null;
-    st.forEach(function (x) { var d = pl ? dist(x.pl, pl) : 0; if (!best || d < best.d) best = { x: x, d: d }; });
-    return best && best.x;
+    var b = this.stationFor(SG.placeById(placeId));
+    return b && b.x;
   };
   P.fuzz = function (n, key) {
     var i = this.s.realm.intel; if (i < 10) return '?';
@@ -85,7 +110,7 @@
     m.setDynTerritory(sites);
     // 아군
     var land = this.landTotal();
-    this.stations().forEach(function (x) {
+    this.allStations().forEach(function (x) {
       var n = Math.round(land * x.share / 100 / 100) * 100; if (n <= 0) return;
       m.setToken('own_' + x.pl.id, self.side, '', fmt(n), x.pl.lon, x.pl.lat, 'own'); m.markPlace(x.pl.id, 'own', true);
     });
@@ -172,7 +197,7 @@
   var _run = P.run;
   P.run = function (c, opt) {
     opt = opt || {}; var s = this.s;
-    if (c.needs === 'deploy' && !opt.deployed) { var w1 = this.cmdAvail(c); if (w1) { s.last = '지금은 할 수 없습니다 — ' + w1; return this.renderTurn(); } return this.deployUI(c); }
+    if (c.needs === 'deploy' && !opt.deployed) { var w1 = this.cmdAvail(c); if (w1) { s.last = '지금은 할 수 없습니다 — ' + w1; return this.renderTurn(); } return this.deployUI(c, opt); }
     if (c.needs === 'target' && opt.target) {
       var w2 = this.cmdAvail(c); if (w2) { s.last = '지금은 할 수 없습니다 — ' + w2; return this.renderTurn(); }
       return this.warFlow(opt.target, c);
@@ -218,31 +243,96 @@
     else if (pl) g.map.focus(pl.lon, pl.lat, 900, 700);
   };
 
-  /* ── 병력 배치 조정 ── */
-  P.deployUI = function (c) {
-    var self = this, g = this.g, st = this.stations(), wrap = h('div', 'modal dock'), card = h('div', 'card'), vals = {};
-    card.innerHTML = '<h2>병력 배치</h2><div class="sub">수도와 전선에 주둔시킬 병력 비율입니다. 합이 100%를 넘을 수 없고, 남는 분은 후방·예비군입니다.<br>침공이나 방어전이 벌어진 방면에 병력이 많을수록 방어가 유리합니다.</div><div id="dp-list"></div><div class="note" id="dp-fb"></div><div style="display:flex;gap:8px;justify-content:flex-end;margin-top:10px"><button class="btn" id="dp-x">취소</button><button class="btn pri" id="dp-ok">배치 확정</button></div>';
-    var box = $('#dp-list', card), land = this.landTotal();
-    st.forEach(function (x) {
-      vals[x.pl.id] = x.share;
-      var row = h('div', 'dp-st', '<div><b>' + x.pl.name + '</b> <small>' + (x.role === 'capital' ? '도성 방비' : '전선 · ' + (x.pl.modern || '')) + '</small></div><input type="range" min="0" max="70" value="' + x.share + '"><div class="v"></div>');
-      var rng = $('input', row), v = $('.v', row);
-      function upd() { v.textContent = vals[x.pl.id] + '%'; }
-      rng.oninput = function () { var val = +rng.value, oth = Object.keys(vals).reduce(function (t, k) { return t + (k === x.pl.id ? 0 : vals[k]); }, 0); if (oth + val > 100) { val = 100 - oth; rng.value = val; } vals[x.pl.id] = val; upd(); fb(); };
-      row.onmouseenter = function () { g.map.focus(x.pl.lon, x.pl.lat, 900, 600); };
-      upd(); box.appendChild(row);
-    });
-    function fb() { var used = Object.keys(vals).reduce(function (t, k) { return t + vals[k]; }, 0); $('#dp-fb', card).innerHTML = '후방·예비 <b>' + (100 - used) + '%</b> · 야전 가능 병력 ' + land.toLocaleString() + '명 기준. 수도 30% · 전선 합 55%가 기본 배치입니다.'; }
-    fb(); wrap.appendChild(card); g.root.appendChild(wrap);
-    $('#dp-x', card).onclick = function () { wrap.remove(); self.renderTurn(); };
-    $('#dp-ok', card).onclick = function () { wrap.remove(); self.s.deploy = self.s.deploy || {}; for (var k in vals) self.s.deploy[k] = vals[k]; self.run(c, { deployed: true }); };
+  /* ── 병력 배치 조정: 소유한 본토의 모든 성에 주둔 비율을 정한다 ──
+   *  도성·전선 요충뿐 아니라 소유한 어느 성에든 병력을 둘 수 있다(s.deploy[성 id] = %). 병력을 둔 성은
+   *  ① 그 방면 방어가 단단해지고(defend.js defInfo) ② 적이 노리기 어려워지며(aiwar.js) ③ 그 방면을 칠 때의 출병 거점이 된다(stationFor). */
+  var KIND = { capital: ['도성', 'Capital', '都城'], city: ['성', 'City', '城'], fortress: ['요새', 'Fortress', '要塞'], port: ['항구', 'Port', '港'], pass: ['관문', 'Pass', '関門'] };
+  // 배치 대상: 도성 → 전선 요충 → 그 밖의 소유 성(적에게 가까운 순). 바다 건너 거점은 제외(그곳 주둔군이 따로 지킨다)
+  P.deployList = function () {
+    var self = this, core = this.stations(), seen = {}, out = [], foe = this.foeCenter(), home = this.homeRegion ? this.homeRegion() : null;
+    core.forEach(function (x) { seen[x.pl.id] = 1; out.push({ pl: x.pl, role: x.role }); });
+    var posts = this.places().filter(function (p) { return !seen[p.id] && self.ownerOf(p) === self.side && (home == null || !SG.regionOf || SG.regionOf(p) === home); });
+    posts.sort(function (a, b) { return dist(a, foe) - dist(b, foe); });
+    posts.forEach(function (p) { out.push({ pl: p, role: 'post' }); });
+    return out;
   };
-  // 어떤 지점의 전투에서 그 방면 주둔 비율이 주는 보정
+  // 기본 배치: 도성 30% + 전선 22·15·10·8%, 나머지 성은 0%
+  P.deployDefaults = function () { var d = {}, fi = 0; this.stations().forEach(function (x) { d[x.pl.id] = x.role === 'capital' ? 30 : FRONT_DEF[fi++]; }); return d; };
+  P.deployUI = function (c, opt) {
+    var self = this, g = this.g, s = this.s, wrap = h('div', 'modal dock'), card = h('div', 'card dpcard'), vals = {}, rows = {}, land = this.landTotal(), focus = opt && opt.focus, list = this.deployList(), cur = {}, tm = null;
+    this.stations().forEach(function (x) { cur[x.pl.id] = x.share; });
+    list.forEach(function (x) { vals[x.pl.id] = cur[x.pl.id] != null ? cur[x.pl.id] : Math.max(0, Math.round(+(s.deploy && s.deploy[x.pl.id]) || 0)); });
+    var home = this.homeRegion ? this.homeRegion() : null, over = this.places().filter(function (p) { return self.ownerOf(p) === self.side && home != null && SG.regionOf && SG.regionOf(p) !== home; }).length;
+    card.innerHTML = '<h2>' + L3('병력 배치', 'Troop Deployment', '兵力配置') + '</h2><div class="sub">' +
+      L3('소유한 모든 성에 병력을 나누어 둘 수 있습니다. 합이 100%를 넘을 수 없고, 남는 분은 후방·예비군입니다.<br>침공을 받은 성은 그 성과 가까운 곳에 둔 병력으로 막습니다. 병력을 많이 둔 성은 적이 노리기도 어렵습니다.',
+        'You can station troops at any castle you hold. The total cannot exceed 100%; the rest stay in the rear as reserves.<br>An invaded castle is defended by the troops stationed near it, and enemies are less eager to attack a heavily garrisoned castle.',
+        '所有するどの城にも兵を配置できます。合計は100%を超えられず、残りは後方・予備軍になります。<br>侵攻を受けた城は、その近くに置いた兵で防ぎます。兵を多く置いた城は敵も攻めにくくなります。') +
+      '</div><div id="dp-list"></div><div class="note" id="dp-fb"></div><div class="dp-act"><button class="btn" id="dp-df">' + L3('기본 배치로', 'Default layout', '初期配置に戻す') + '</button><span></span><button class="btn" id="dp-x">' + L3('취소', 'Cancel', 'キャンセル') + '</button><button class="btn pri" id="dp-ok">' + L3('배치 확정', 'Confirm', '配置を確定') + '</button></div>';
+    function sumOther(id) { return Object.keys(vals).reduce(function (t, k) { return t + (k === id ? 0 : vals[k]); }, 0); }
+    function mk(x) {
+      var pl = x.pl, kd = KIND[pl.kind] || KIND.city, kn = L3(kd[0], kd[1], kd[2]);
+      var role = x.role === 'capital' ? L3('도성 방비', 'Capital garrison', '都の守備') : x.role === 'front' ? L3('전선', 'Front', '前線') + ' · ' + kn : kn;
+      var row = h('div', 'dp-st' + (focus === pl.id ? ' focus' : ''), '<div><b>' + pl.name + '</b> <small>' + role + (pl.modern ? ' · ' + pl.modern : '') + '</small><small class="dp-d"></small></div><input type="range" min="0" max="70" value="' + vals[pl.id] + '"><div class="v"></div>');
+      var rng = $('input', row), v = $('.v', row);
+      rng.oninput = function () { var val = +rng.value, oth = sumOther(pl.id); if (oth + val > 100) { val = Math.max(0, 100 - oth); rng.value = val; } vals[pl.id] = val; v.textContent = val + '%'; sched(); };
+      rng.onchange = function () { redraw(); };
+      row.onmouseenter = function () { g.map.focus(pl.lon, pl.lat, 900, 600); };
+      v.textContent = vals[pl.id] + '%'; rows[pl.id] = { row: row, rng: rng, v: v, d: $('.dp-d', row), pl: pl };
+      return row;
+    }
+    // 합계와 성마다 "침공이 닥치면 이 성에서 막아 낼 병력"을 미리 계산해 보여 준다(방어 계산 defInfo 를 그대로 쓴다)
+    function refresh() {
+      var used = Object.keys(vals).reduce(function (t, k) { return t + vals[k]; }, 0);
+      $('#dp-fb', card).innerHTML = L3('후방·예비 <b>' + (100 - used) + '%</b> · 야전 가능 병력 ' + land.toLocaleString() + '명 기준. 기본 배치는 도성 30% · 전선 합 55%입니다.',
+        'Rear/reserve <b>' + (100 - used) + '%</b> - based on ' + land.toLocaleString() + ' field troops. The default layout is 30% at the capital and 55% across the front.',
+        '後方・予備 <b>' + (100 - used) + '%</b> ・ 野戦兵力' + land.toLocaleString() + '名を基準。初期配置は都30%・前線計55%です。');
+      self._dpTmp = vals;
+      try {
+        list.forEach(function (x) {
+          var r = rows[x.pl.id], n = Math.round(land * vals[x.pl.id] / 10000) * 100, i = null;
+          try { i = self.defInfo({ place: x.pl.id, defense: true, enemy: { total: 0 } }, null); } catch (e) { }
+          var m = i ? Math.round(i.local / 100) * 100 : 0;
+          r.d.textContent = (n > 0 ? L3('주둔 약 ' + n.toLocaleString() + '명', 'Stationed ~' + n.toLocaleString(), '駐屯 約' + n.toLocaleString() + '名') : L3('주둔군 없음(성 수비대만)', 'No garrison (castle guard only)', '駐屯なし(城の守備隊のみ)')) +
+            (i ? ' · ' + L3('침공 시 막아 낼 병력 약 ' + m.toLocaleString() + '명', 'defenders if attacked ~' + m.toLocaleString(), '侵攻時の防衛兵力 約' + m.toLocaleString() + '名') : '');
+        });
+      } finally { self._dpTmp = null; }
+    }
+    function sched() { clearTimeout(tm); tm = setTimeout(refresh, 70); }
+    function redraw() { self._dpTmp = vals; try { self.drawDeploy(); } finally { self._dpTmp = null; } }   // 지도의 깃발도 미리보기 값으로 다시 그린다
+    var box = $('#dp-list', card);
+    function head(t) { box.appendChild(h('div', 'dp-h', t)); }
+    var cap = list.filter(function (x) { return x.role === 'capital'; }), fr = list.filter(function (x) { return x.role === 'front'; }), posts = list.filter(function (x) { return x.role === 'post'; });
+    if (cap.length) { head(L3('도성', 'Capital', '都城')); cap.forEach(function (x) { box.appendChild(mk(x)); }); }
+    if (fr.length) { head(L3('전선 요충', 'Frontier strongholds', '前線の要衝')); fr.forEach(function (x) { box.appendChild(mk(x)); }); }
+    if (posts.length) {
+      var act = posts.filter(function (x) { return vals[x.pl.id] > 0 || x.pl.id === focus; }), idle = posts.filter(function (x) { return !(vals[x.pl.id] > 0 || x.pl.id === focus); });
+      head(L3('그 밖의 소유 성', 'Other castles you hold', 'その他の所有城') + ' (' + posts.length + ')');
+      act.forEach(function (x) { box.appendChild(mk(x)); });
+      if (idle.length) {
+        var det = h('details', 'dp-more', '<summary>' + L3('병력을 두지 않은 성 ' + idle.length + '곳 — 눌러서 펼치기', idle.length + ' castles without troops - click to expand', '兵を置いていない城' + idle.length + 'か所 — クリックで展開') + '</summary>');
+        idle.forEach(function (x) { det.appendChild(mk(x)); }); box.appendChild(det);
+      }
+    }
+    if (over) box.appendChild(h('div', 'note', L3('바다 건너 거점 ' + over + '곳은 이 배치와 별개로 그곳 주둔군이 지킵니다.', over + ' overseas holding(s) are guarded by their own garrisons, separately from this layout.', '海の向こうの拠点' + over + 'か所は、この配置とは別に現地の駐屯軍が守ります。')));
+    refresh(); wrap.appendChild(card); g.root.appendChild(wrap);
+    if (focus && rows[focus]) { var fo = rows[focus]; setTimeout(function () { try { fo.row.scrollIntoView({ block: 'center' }); } catch (e) { } }, 60); g.map.focus(fo.pl.lon, fo.pl.lat, 900, 600); }
+    $('#dp-x', card).onclick = function () { clearTimeout(tm); wrap.remove(); self.renderTurn(); };
+    $('#dp-df', card).onclick = function () {
+      var d = self.deployDefaults();
+      list.forEach(function (x) { var val = d[x.pl.id] || 0; vals[x.pl.id] = val; rows[x.pl.id].rng.value = val; rows[x.pl.id].v.textContent = val + '%'; });
+      refresh(); redraw();
+    };
+    $('#dp-ok', card).onclick = function () {
+      clearTimeout(tm); wrap.remove(); s.deploy = s.deploy || {};
+      list.forEach(function (x) { var k = x.pl.id; if (x.role === 'post' && !vals[k]) delete s.deploy[k]; else s.deploy[k] = vals[k]; });
+      self.run(c, { deployed: true });
+    };
+  };
+  // 어떤 지점의 전투에서 그 방면 주둔 비율이 주는 보정(출병 때). 방어전은 defend.js 의 defInfo 가 따로 계산한다
   P.deployFactor = function (bt, anchor) {
     var pid = bt.place || (anchor && anchor.place), pl = pid && SG.placeById(pid); if (!pl) return null;
-    var st = this.stations(), best = null, nf = Math.max(1, st.filter(function (x) { return x.role === 'front'; }).length);
-    st.forEach(function (x) { var d = dist(x.pl, pl); if (d < 1.6 && (!best || d < best.d)) best = { x: x, d: d }; });
-    if (!best) return null;
+    var best = this.stationFor(pl), nf = Math.max(1, this.stations().filter(function (x) { return x.role === 'front'; }).length);
+    if (!best || best.d >= 1.6) return null;
     var avg = best.x.role === 'capital' ? 30 : 55 / nf, f = clamp(0.65 + 0.35 * best.x.share / avg, 0.65, 1.5);
     return { f: f, name: best.x.pl.name, share: best.x.share };
   };
@@ -374,10 +464,12 @@
     var self = this, ow = this.ownerOf(pl), acts = [], html = '', inTurn = !!$('#chron .endyear');
     html += '<small>현재 소유: <b>' + (SG.sideName[ow] || '—') + '</b>' + (this.s.owners && this.s.owners[pl.id] === this.side ? ' (점령)' : '') + '</small>';
     if (ow === this.side) {
-      var st = this.stations().filter(function (x) { return x.pl.id === pl.id; })[0];
+      var st = this.allStations().filter(function (x) { return x.pl.id === pl.id; })[0], hm = this.homeRegion ? this.homeRegion() : null, isHome = hm == null || !SG.regionOf || SG.regionOf(pl) === hm;
       if (st) html += '<br><small>주둔 비율 ' + st.share + '% · 약 ' + fmt(Math.round(this.landTotal() * st.share / 10000) * 100) + ' 명</small>';
+      else if (isHome) html += '<br><small>' + L3('주둔 비율 0% (성 수비대만 있음)', 'Stationed 0% (castle garrison only)', '駐屯割合0%(城の守備隊のみ)') + '</small>';
+      else html += '<br><small>' + L3('바다 건너 거점 — 그곳 주둔군이 지킵니다', 'Overseas holding - guarded by its own garrison', '海の向こうの拠点 — 現地の駐屯軍が守ります') + '</small>';
       var wd = this.cmds().filter(function (c) { return c.id === 'deploy'; })[0];
-      if (inTurn && wd && !this.cmdAvail(wd)) acts.push({ label: '병력 배치 조정', fn: function () { self.run(wd); } });
+      if (inTurn && wd && isHome && !this.cmdAvail(wd)) acts.push({ label: L3('병력 배치 조정', 'Adjust deployment', '兵力配置の調整'), fn: function () { self.run(wd, { focus: pl.id }); } });
     } else {
       var t = this.targets().filter(function (x) { return x.place === pl.id; })[0];
       if (t) {

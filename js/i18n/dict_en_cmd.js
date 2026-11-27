@@ -46,7 +46,7 @@ SG.i18n.add('en', {
   '큰 강 하구 조선소에서 새 전선이 진수되었습니다.': 'New warships were launched from the shipyard at the great river\'s mouth.',
   '척후망·첩보 강화': 'Strengthen Scouts & Intelligence', '국경 척후를 늘려 적정을 살핍니다.': 'Add border scouts to watch the enemy.',
   '국경마다 척후가 늘고 봉수가 정비되었습니다. 적의 움직임이 한결 잘 보입니다.': 'Scouts increased along the border and the beacons were restored. Enemy movements are much easier to see.',
-  '병력 배치 조정': 'Adjust Troop Deployment', '수도와 전선 성에 주둔시킬 병력 비율을 정합니다. (침공·방어전에서 그 방면의 방어력에 영향)': 'Set the share of troops stationed at the capital and frontier fortresses. (Affects defense in that sector during invasions)',
+  '병력 배치 조정': 'Adjust Troop Deployment', '소유한 모든 성에 주둔시킬 병력 비율을 정합니다. (침공·방어전에서 그 방면의 방어력에 영향, 병력을 둔 성은 적도 노리기 어렵습니다)': 'Set the share of troops stationed at each castle you hold. (Affects defense in that sector during invasions; enemies also hesitate to attack a heavily garrisoned castle)',
   '장수들을 불러 병력을 새로 나누어 배치했습니다.': 'The generals were summoned and the troops redeployed.',
   '열병과 포상': 'Review & Reward', '군을 사열하고 공을 세운 자를 상합니다.': 'Review the army and reward those who earned merit.',
   '열병식에서 왕이 직접 공을 세운 장수에게 말과 곡식을 내렸습니다.': 'At the review, the king personally granted horses and grain to the meritorious generals.',

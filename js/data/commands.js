@@ -27,7 +27,7 @@ SG.data.commands = [
   { id: 'fortify', cat: '군사', name: '산성 보수·증축', desc: '국경과 요충의 산성을 손봅니다.', cost: { gold: 6, food: 3 }, hist: '역사', note: '655년 마천성을 중수한 기록이 있습니다.', eff: { realm: { defense: 9 } }, lines: ['요충의 산성들에 새 성가퀴와 우물이 보강되었습니다.', '백성들이 돌을 날라 국경 산성이 한층 높아졌습니다.'] },
   { id: 'navy', cat: '군사', name: '수군·조선 증강', desc: '서해를 지킬 전선을 만듭니다. (수군 +0.5천)', cost: { gold: 7 }, hist: '일반', eff: { realm: { navy: 10 }, army: { baekje_navy: 500 } }, lines: ['큰 강 하구 조선소에서 새 전선이 진수되었습니다.'] },
   { id: 'scouts', cat: '군사', name: '척후망·첩보 강화', desc: '국경 척후를 늘려 적정을 살핍니다.', cost: { gold: 4 }, hist: '일반', eff: { realm: { intel: 14 }, army: { baekje_scout: 300 } }, lines: ['국경마다 척후가 늘고 봉수가 정비되었습니다. 적의 움직임이 한결 잘 보입니다.'] },
-  { id: 'deploy', cat: '군사', name: '병력 배치 조정', desc: '수도와 전선 성에 주둔시킬 병력 비율을 정합니다. (침공·방어전에서 그 방면의 방어력에 영향)', cost: {}, hist: '일반', needs: 'deploy', eff: {}, lines: ['장수들을 불러 병력을 새로 나누어 배치했습니다.'] },
+  { id: 'deploy', cat: '군사', name: '병력 배치 조정', desc: '소유한 모든 성에 주둔시킬 병력 비율을 정합니다. (침공·방어전에서 그 방면의 방어력에 영향, 병력을 둔 성은 적도 노리기 어렵습니다)', cost: {}, hist: '일반', needs: 'deploy', eff: {}, lines: ['장수들을 불러 병력을 새로 나누어 배치했습니다.'] },
   { id: 'parade', cat: '군사', name: '열병과 포상', desc: '군을 사열하고 공을 세운 자를 상합니다.', cost: { gold: 5 }, hist: '일반', eff: { fx: { morale: 9 }, realm: { royal: 3 } }, lines: ['열병식에서 왕이 직접 공을 세운 장수에게 말과 곡식을 내렸습니다.'] },
   { id: 'war', cat: '군사', name: '{rival} 정벌 (전쟁)', desc: '{rival}의 성을 골라 군을 보냅니다. (자유 입력: "{rival}를 공격")', cost: { food: 6 }, hist: '역사', note: '의자왕은 642·645·647·648·649·655년에 {rival}를 공격했습니다.', needs: 'target', eff: {}, ap: 2 },
 

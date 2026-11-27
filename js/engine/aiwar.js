@@ -207,8 +207,8 @@
     var self = this, s = this.s, y = s.year, N = this.names; s.threat = s.threat || {}; s.ai = s.ai || {};
     if (s.ai.strikeY === y || (s.threat.last != null && y - s.threat.last < 1)) return null;
     var mine = this.myPlaces().filter(function (p) { return p.id !== self.cfg.capPlace; }); if (!mine.length) return null;
-    var away = this.awayNow ? this.awayNow() : null, mor = this.g.state.res.morale, dom = this.dominance ? this.dominance() : 0, st = this.stations(), share = {};
-    st.forEach(function (x) { share[x.pl.id] = x.share; });
+    var away = this.awayNow ? this.awayNow() : null, mor = this.g.state.res.morale, dom = this.dominance ? this.dominance() : 0, st = this.allStations(), share = {};
+    st.forEach(function (x) { share[x.pl.id] = x.role === 'post' ? Math.max(x.share, 16) : x.share; });
     var picked = null, ext = this.extStrike ? this.extStrike() : 1;   // 후계 시대에는 공세가 잦아진다
     shuffle(this.aliveRoles()).some(function (r) {
       var side = self.sides[r], w = s.world[r]; if (!side || side === self.side || (s.coal && s.coal.members.indexOf(r) >= 0)) return false;
